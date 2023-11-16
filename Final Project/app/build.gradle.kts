@@ -38,5 +38,6 @@ dependencies {
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
     implementation ("com.auth0.android:jwtdecode:2.0.0")
-    implementation ("net.openid:appauth:0.9.1")
+    implementation ("net.openid:appauth:0.11.1")
+    implementation ("com.spotify.android:auth:1.2.6")
 }
