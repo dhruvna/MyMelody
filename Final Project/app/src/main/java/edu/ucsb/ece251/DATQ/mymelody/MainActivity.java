@@ -1,29 +1,16 @@
 package edu.ucsb.ece251.DATQ.mymelody;
 
-import androidx.appcompat.app.AppCompatActivity;
-
-import android.net.Uri;
-import android.os.Bundle;
-import android.util.Log;
-import android.view.View;
-import android.webkit.WebView;
 import android.content.Intent;
-import android.widget.Toast;
+import android.os.Bundle;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import com.spotify.sdk.android.auth.AuthorizationRequest;
-import com.spotify.sdk.android.auth.AuthorizationResponse;
-import com.spotify.sdk.android.auth.AuthorizationClient;
-
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
+import androidx.appcompat.app.AppCompatActivity;
 
 public class MainActivity extends AppCompatActivity {
 
     private TextView LoginStatus;
-    private Button LoginButton;
     private SpotifyService spotifyService;
 
     @Override
@@ -32,19 +19,12 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         LoginStatus = findViewById(R.id.LoginStatus);
-        LoginButton = findViewById(R.id.LoginButton);
+        Button loginButton = findViewById(R.id.LoginButton);
         //Initialize Spotify Service
         spotifyService = new SpotifyService(this);
-        LoginButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                spotifyService.authenticateSpotify();
-            }
-        });
+        loginButton.setOnClickListener(view -> spotifyService.authenticateSpotify());
 
         // Initialize WebView for Google Charts
-//        WebView googleChartWebView = findViewById(R.id.google_chart_webview);
-//        GoogleChartsWebView.setupWebView(googleChartWebView);
     }
 
     protected void onNewIntent(Intent intent) {
@@ -52,9 +32,9 @@ public class MainActivity extends AppCompatActivity {
         boolean loginSuccess = spotifyService.handleAuthResponse(intent);
 
         if(loginSuccess) {
-            LoginStatus.setText("Login Successful!");
+            LoginStatus.setText(R.string.success_msg);
         } else {
-            LoginStatus.setText("Login failed. Try again!");
+            LoginStatus.setText(R.string.fail_msg);
         }
     }
     private void showToast(String message) {
