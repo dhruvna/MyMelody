@@ -5,69 +5,56 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.webkit.WebView;
 import android.content.Intent;
 import android.widget.Toast;
+import android.widget.Button;
+import android.widget.TextView;
 
 import com.spotify.sdk.android.auth.AuthorizationRequest;
 import com.spotify.sdk.android.auth.AuthorizationResponse;
 import com.spotify.sdk.android.auth.AuthorizationClient;
 
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final int REQUEST_CODE = 420;
-    private static final String REDIRECT_URI = "mymelody://callback";
-    private static final String CLIENT_ID = "44d8159e766e496f9b8ce905397518af";
+    private TextView LoginStatus;
+    private Button LoginButton;
+    private SpotifyService spotifyService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        authenticateSpotify();
-
-//         Initialize Spotify Service
-        SpotifyService spotifyService = new SpotifyService();
+        LoginStatus = findViewById(R.id.LoginStatus);
+        LoginButton = findViewById(R.id.LoginButton);
+        //Initialize Spotify Service
+        spotifyService = new SpotifyService(this);
+        LoginButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                spotifyService.authenticateSpotify();
+            }
+        });
 
         // Initialize WebView for Google Charts
 //        WebView googleChartWebView = findViewById(R.id.google_chart_webview);
 //        GoogleChartsWebView.setupWebView(googleChartWebView);
     }
 
-    private void authenticateSpotify() {
-        Log.println(Log.VERBOSE, "startauth", "Starting authentication process");
-        AuthorizationRequest.Builder builder =
-                new AuthorizationRequest.Builder(CLIENT_ID, AuthorizationResponse.Type.TOKEN, REDIRECT_URI);
-
-        builder.setScopes(new String[]{"user-read-private", "playlist-read", "playlist-read-private", "streaming"});
-
-        AuthorizationRequest request = builder.build();
-
-        AuthorizationClient.openLoginInBrowser(this, request);
-    }
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-        Uri uri = intent.getData();
-        if (uri != null) {
-            AuthorizationResponse response = AuthorizationResponse.fromUri(uri);
-            switch (response.getType()) {
-                // Response was successful and contains auth token
-                case TOKEN:
-                    // Handle successful response
-                    String token = response.getAccessToken();
-                    showToast(token);
-                    break;
+        boolean loginSuccess = spotifyService.handleAuthResponse(intent);
 
-                // Auth flow returned an error
-                case ERROR:
-                    // Handle error response
-                    break;
-
-                // Most likely auth flow was cancelled
-                default:
-                    // Handle other cases
-            }
+        if(loginSuccess) {
+            LoginStatus.setText("Login Successful!");
+        } else {
+            LoginStatus.setText("Login failed. Try again!");
         }
     }
     private void showToast(String message) {
