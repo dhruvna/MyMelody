@@ -15,8 +15,15 @@ public class SpotifyService {
     private static final String CLIENT_ID = "44d8159e766e496f9b8ce905397518af";
     private final Activity activity;
 
+    private String accessToken = null;
+
     public SpotifyService(Activity activity) {
         this.activity = activity;
+    }
+
+    public void setAccessToken(String token) {
+        this.accessToken = token;
+        showToast(token);
     }
 
     // Create authentication request
@@ -37,9 +44,18 @@ public class SpotifyService {
         if (uri != null) {
             AuthorizationResponse response = AuthorizationResponse.fromUri(uri);
             if (response.getType() == AuthorizationResponse.Type.TOKEN) {
-                showToast(response.getAccessToken());
+                String token = response.getAccessToken();
+                setAccessToken(token);
                 return true;
             }
+        }
+        return false;
+    }
+
+    public boolean logOut() {
+        if(accessToken != null) {
+            accessToken = null;
+            return true;
         }
         return false;
     }

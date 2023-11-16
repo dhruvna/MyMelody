@@ -20,10 +20,17 @@ public class MainActivity extends AppCompatActivity {
 
         LoginStatus = findViewById(R.id.LoginStatus);
         Button loginButton = findViewById(R.id.LoginButton);
+        Button logoutButton = findViewById(R.id.LogoutButton);
         //Initialize Spotify Service
         spotifyService = new SpotifyService(this);
         loginButton.setOnClickListener(view -> spotifyService.authenticateSpotify());
-
+        logoutButton.setOnClickListener(view-> {
+            boolean logOutSuccess = spotifyService.logOut();
+            if(logOutSuccess) {
+                LoginStatus.setText(R.string.reset_msg);
+                showToast("Logged out.");
+            }
+        });
         // Initialize WebView for Google Charts
     }
 
@@ -35,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
             LoginStatus.setText(R.string.success_msg);
         } else {
             LoginStatus.setText(R.string.fail_msg);
+            showToast("Log in failure.");
         }
     }
     private void showToast(String message) {
