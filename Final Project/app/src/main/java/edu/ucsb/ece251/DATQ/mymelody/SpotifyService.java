@@ -10,6 +10,11 @@ import com.spotify.sdk.android.auth.AuthorizationClient;
 import com.spotify.sdk.android.auth.AuthorizationRequest;
 import com.spotify.sdk.android.auth.AuthorizationResponse;
 
+import kotlin.jvm.optionals.OptionalsKt;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+
 public class SpotifyService {
     private static final String REDIRECT_URI = "mymelody://callback";
     private static final String CLIENT_ID = "44d8159e766e496f9b8ce905397518af";
@@ -50,6 +55,35 @@ public class SpotifyService {
             }
         }
         return false;
+    }
+
+    public void fetchUserTopTracks() {
+        new Thread(() -> {
+            try {
+                OkHttpClient client = new OkHttpClient();
+                String url = "https://api.spotify.com/v1/me/top/tracks";
+                Request request = new Request.Builder()
+                        .url(url)
+                        .addHeader("Authorization", "Bearer " + accessToken)
+                        .build();
+                Log.println(Log.VERBOSE, "response",  request.toString());
+                Log.d("SpotifyService", "Fetching top tracks");
+                try (Response response = client.newCall(request).execute()) {
+                    if (response.isSuccessful() && response.body() != null) {
+                        String responseData = response.body().string();
+                        Log.d("SpotifyService", "Response data: " + responseData);
+                        showToast("Tracks fetched");
+                        // Parse and process the JSON response
+                    } else {
+                        Log.e("SpotifyService", "Unsuccessful response");
+                    }
+                } catch (Exception e) {
+                    Log.e("SpotifyService", "Error fetching top tracks", e);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
     }
 
     public boolean logOut() {
