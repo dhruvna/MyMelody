@@ -126,7 +126,7 @@ public class SpotifyService {
                     } else {
                         // Run on the main thread
                         activity.runOnUiThread(callback::onError);
-                        
+
                     }
                 }
             } catch (Exception e) {
