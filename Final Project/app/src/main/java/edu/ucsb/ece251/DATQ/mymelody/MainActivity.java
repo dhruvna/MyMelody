@@ -35,6 +35,19 @@ public class MainActivity extends AppCompatActivity {
         fetchButton.setOnClickListener(view -> {
             spotifyService.fetchUserTopTracks();
         });
+        fetchButton.setOnClickListener(view -> {
+            spotifyService.fetchUsername(new SpotifyService.FetchUsernameCallback() {
+                @Override
+                public void onUsernameFetched(String username) {
+                    LoginStatus.setText("Username: " + username);
+                }
+
+                @Override
+                public void onError() {
+                    showToast("Failed to fetch username.");
+                }
+            });
+        });
         // Initialize WebView for Google Charts
     }
 
@@ -53,3 +66,5 @@ public class MainActivity extends AppCompatActivity {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 }
+
+
