@@ -10,48 +10,58 @@ import com.spotify.sdk.android.auth.AuthorizationClient;
 import com.spotify.sdk.android.auth.AuthorizationRequest;
 import com.spotify.sdk.android.auth.AuthorizationResponse;
 
-import kotlin.jvm.optionals.OptionalsKt;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
 public class SpotifyService {
+
+    private static final int REQUEST_CODE = 1337;
     private static final String REDIRECT_URI = "mymelody://callback";
     private static final String CLIENT_ID = "44d8159e766e496f9b8ce905397518af";
-    private final Activity activity;
-
-    private String accessToken = null;
+    private static Activity activity = null;
+    private static String accessToken = null;
 
     public SpotifyService(Activity activity) {
         this.activity = activity;
     }
 
-    public void setAccessToken(String token) {
-        this.accessToken = token;
+    public static void setAccessToken(String token) {
+        accessToken = token;
         showToast(token);
     }
 
     // Create authentication request
-    public void authenticateSpotify() {
+    public void authenticateSpotify(Activity activity) {
         Log.println(Log.VERBOSE, "startauth", "Starting authentication process");
-        AuthorizationRequest.Builder builder =
-                new AuthorizationRequest.Builder(CLIENT_ID, AuthorizationResponse.Type.TOKEN, REDIRECT_URI);
+        final AuthorizationRequest request = new AuthorizationRequest.Builder(CLIENT_ID, AuthorizationResponse.Type.TOKEN, REDIRECT_URI)
+                .setScopes(new String[]{"user-read-private", "playlist-read", "playlist-read-private", "streaming"})
+                .build();
 
-        builder.setScopes(new String[]{"user-read-private", "playlist-read", "playlist-read-private", "streaming"});
-
-        AuthorizationRequest request = builder.build();
-
-        AuthorizationClient.openLoginInBrowser(activity, request);
+        AuthorizationClient.openLoginActivity(activity, REQUEST_CODE, request);
     }
 
-    public boolean handleAuthResponse(Intent intent) {
-        Uri uri = intent.getData();
-        if (uri != null) {
-            AuthorizationResponse response = AuthorizationResponse.fromUri(uri);
-            if (response.getType() == AuthorizationResponse.Type.TOKEN) {
-                String token = response.getAccessToken();
-                setAccessToken(token);
-                return true;
+    public static boolean onActivityResult(int requestCode, int resultCode, Intent intent) {
+        // Check if result comes from the correct activity
+        if (requestCode == REQUEST_CODE) {
+            AuthorizationResponse response = AuthorizationClient.getResponse(resultCode, intent);
+            switch (response.getType()) {
+                // Response was successful and contains auth token
+                case TOKEN:
+                    // Handle successful response
+                    String token = response.getAccessToken();
+                    setAccessToken(token);
+                    showToast(token);
+                    return true;
+                // Auth flow returned an error
+                case ERROR:
+                    // Handle error response
+                    return false;
+
+                // Most likely auth flow was cancelled
+                default:
+                    // Handle other cases
+                    return false;
             }
         }
         return false;
@@ -89,11 +99,12 @@ public class SpotifyService {
     public boolean logOut() {
         if(accessToken != null) {
             accessToken = null;
+            AuthorizationClient.clearCookies(activity);
             return true;
         }
         return false;
     }
-    private void showToast(String message) {
+    private static void showToast(String message) {
         Toast.makeText(activity, message, Toast.LENGTH_SHORT).show();
     }
 }

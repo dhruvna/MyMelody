@@ -2,6 +2,7 @@ package edu.ucsb.ece251.DATQ.mymelody;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -24,7 +25,7 @@ public class MainActivity extends AppCompatActivity {
         Button fetchButton = findViewById(R.id.FetchButton);
         //Initialize Spotify Service
         spotifyService = new SpotifyService(this);
-        loginButton.setOnClickListener(view -> spotifyService.authenticateSpotify());
+        loginButton.setOnClickListener(view -> spotifyService.authenticateSpotify(this));
         logoutButton.setOnClickListener(view-> {
             boolean logOutSuccess = spotifyService.logOut();
             if(logOutSuccess) {
@@ -38,15 +39,14 @@ public class MainActivity extends AppCompatActivity {
         // Initialize WebView for Google Charts
     }
 
-    protected void onNewIntent(Intent intent) {
-        super.onNewIntent(intent);
-        boolean loginSuccess = spotifyService.handleAuthResponse(intent);
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        super.onActivityResult(requestCode, resultCode, intent);
 
-        if(loginSuccess) {
-            LoginStatus.setText(R.string.success_msg);
+        if(SpotifyService.onActivityResult(requestCode, resultCode, intent)) {
+            Log.d("SUCCESS", "Login successful");
         } else {
-            LoginStatus.setText(R.string.fail_msg);
-            showToast("Log in failure.");
+            Log.d("FAILURE", "LOGIN FAILURE");
         }
     }
     private void showToast(String message) {
