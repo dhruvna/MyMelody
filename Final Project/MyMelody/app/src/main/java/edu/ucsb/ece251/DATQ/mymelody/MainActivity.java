@@ -25,7 +25,7 @@ public class MainActivity extends AppCompatActivity {
         Button fetchButton = findViewById(R.id.FetchButton);
         //Initialize Spotify Service
         spotifyService = new SpotifyService(this);
-        loginButton.setOnClickListener(view -> spotifyService.authenticateSpotify());
+        loginButton.setOnClickListener(view -> spotifyService.authenticateSpotify(this));
         logoutButton.setOnClickListener(view-> {
             boolean logOutSuccess = spotifyService.logOut();
             if(logOutSuccess) {
@@ -63,16 +63,6 @@ public class MainActivity extends AppCompatActivity {
             showToast("Log in failure.");
         }
     }
-//    @Override
-//    protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
-//        super.onActivityResult(requestCode, resultCode, intent);
-//
-//        if(SpotifyService.onActivityResult(requestCode, resultCode, intent)) {
-//            Log.d("SUCCESS", "Login successful");
-//        } else {
-//            Log.d("FAILURE", "LOGIN FAILURE");
-//        }
-//    }
     private void showToast(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
