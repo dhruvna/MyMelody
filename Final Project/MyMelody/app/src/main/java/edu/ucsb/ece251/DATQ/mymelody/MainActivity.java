@@ -25,7 +25,7 @@ public class MainActivity extends AppCompatActivity {
         Button fetchButton = findViewById(R.id.FetchButton);
         //Initialize Spotify Service
         spotifyService = new SpotifyService(this);
-        loginButton.setOnClickListener(view -> spotifyService.authenticateSpotify(this));
+        loginButton.setOnClickListener(view -> spotifyService.authenticateSpotify());
         logoutButton.setOnClickListener(view-> {
             boolean logOutSuccess = spotifyService.logOut();
             if(logOutSuccess) {
@@ -52,16 +52,27 @@ public class MainActivity extends AppCompatActivity {
         // Initialize WebView for Google Charts
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
-        super.onActivityResult(requestCode, resultCode, intent);
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        boolean loginSuccess = spotifyService.handleAuthResponse(intent);
 
-        if(SpotifyService.onActivityResult(requestCode, resultCode, intent)) {
-            Log.d("SUCCESS", "Login successful");
+        if(loginSuccess) {
+            LoginStatus.setText(R.string.success_msg);
         } else {
-            Log.d("FAILURE", "LOGIN FAILURE");
+            LoginStatus.setText(R.string.fail_msg);
+            showToast("Log in failure.");
         }
     }
+//    @Override
+//    protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
+//        super.onActivityResult(requestCode, resultCode, intent);
+//
+//        if(SpotifyService.onActivityResult(requestCode, resultCode, intent)) {
+//            Log.d("SUCCESS", "Login successful");
+//        } else {
+//            Log.d("FAILURE", "LOGIN FAILURE");
+//        }
+//    }
     private void showToast(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
