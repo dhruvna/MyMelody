@@ -2,14 +2,25 @@ package edu.ucsb.ece251.DATQ.mymelody;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
+import android.os.Handler;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+
 public class MainActivity extends AppCompatActivity {
+
+    private ArrayList<String> TrackArray;
+    private ArrayAdapter adapter;
+    private Handler handler = new Handler();
 
     private TextView LoginStatus;
     private SpotifyService spotifyService;
@@ -18,6 +29,13 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+
+        TrackArray = new ArrayList<>();
+        adapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_list_item_1, TrackArray);
+        ListView TrackList = findViewById(R.id.TrackList);
+        TrackList.setAdapter(adapter);
 
         LoginStatus = findViewById(R.id.LoginStatus);
         Button loginButton = findViewById(R.id.LoginButton);
@@ -34,25 +52,35 @@ public class MainActivity extends AppCompatActivity {
                 showToast("Logged out.");
             }
         });
-        fetchTracksButton.setOnClickListener(view -> {
-            spotifyService.fetchUserTopTracks();
-        });
-        fetchUserInfoButton.setOnClickListener(view -> {
-            spotifyService.fetchUsername(new SpotifyService.FetchUsernameCallback() {
-                @Override
-                public void onUsernameFetched(String usernameEmail) {
-                    String[] userInfo = usernameEmail.split(",");
-                    String username = userInfo[0];
-                    String email = userInfo[1];
-                    LoginStatus.setText("Username: " + username + "\nEmail: " + email);
+        fetchTracksButton.setOnClickListener(view -> spotifyService.fetchUserTopTracks(new SpotifyService.FetchTrackCallback() {
+            @Override
+            public void onTrackFetched(String tracks) {
+                String[] trackList = tracks.split(",");
+                int numTracks = Integer.parseInt(trackList[0]);
+                for(int i = 1; i < numTracks; i++) {
+                    TrackArray.add(trackList[i]);
                 }
+                adapter.notifyDataSetChanged();
+            }
+            @Override
+            public void onError() {
+                showToast("Failed to fetch username.");
+            }
+        }));
+        fetchUserInfoButton.setOnClickListener(view -> spotifyService.fetchUsername(new SpotifyService.FetchUsernameCallback() {
+            @Override
+            public void onUsernameFetched(String usernameEmail) {
+                String[] userInfo = usernameEmail.split(",");
+                String username = userInfo[0];
+                String email = userInfo[1];
+                LoginStatus.setText("Username: " + username + "\nEmail: " + email);
+            }
 
-                @Override
-                public void onError() {
-                    showToast("Failed to fetch username.");
-                }
-            });
-        });
+            @Override
+            public void onError() {
+                showToast("Failed to fetch username.");
+            }
+        }));
         // Initialize WebView for Google Charts
     }
 

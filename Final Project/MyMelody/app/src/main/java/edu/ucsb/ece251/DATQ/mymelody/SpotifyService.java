@@ -1,28 +1,24 @@
  package edu.ucsb.ece251.DATQ.mymelody;
 
-import android.app.Activity;
-import android.content.Intent;
-import android.net.Uri;
-import android.util.Log;
-import android.widget.Button;
-import android.widget.Toast;
+ import android.app.Activity;
+ import android.content.Intent;
+ import android.net.Uri;
+ import android.util.Log;
+ import android.widget.Toast;
 
-import com.spotify.sdk.android.auth.AuthorizationClient;
-import com.spotify.sdk.android.auth.AuthorizationRequest;
-import com.spotify.sdk.android.auth.AuthorizationResponse;
+ import com.spotify.sdk.android.auth.AuthorizationClient;
+ import com.spotify.sdk.android.auth.AuthorizationRequest;
+ import com.spotify.sdk.android.auth.AuthorizationResponse;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+ import org.json.JSONArray;
+ import org.json.JSONObject;
 
-import kotlin.jvm.optionals.OptionalsKt;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
+ import okhttp3.OkHttpClient;
+ import okhttp3.Request;
+ import okhttp3.Response;
 
 public class SpotifyService {
 
-    private static final int REQUEST_CODE = 1337;
     private static final String REDIRECT_URI = "mymelody://callback";
     private static final String CLIENT_ID = "44d8159e766e496f9b8ce905397518af";
     private static Activity activity = null;
@@ -59,7 +55,12 @@ public class SpotifyService {
         }
         return false;
     }
-    public void fetchUserTopTracks() {
+
+    public interface FetchTrackCallback {
+        void onTrackFetched(String tracks);
+        void onError();
+    }
+    public void fetchUserTopTracks(FetchTrackCallback callback) {
         new Thread(() -> {
             try {
                 OkHttpClient client = new OkHttpClient();
@@ -78,11 +79,16 @@ public class SpotifyService {
 
                         if (items.length() > 0) {
                             Log.d("TOP TRACKS", "GOT SOMETHING?");
-                            JSONObject topTrack = items.getJSONObject(0); // Get the first track
-                            String topTrackName = topTrack.getString("name"); // Get the name of the track
-
+                            String tracks = "" + items.length();
+                            for(int i = 0; i < items.length(); i++) {
+                                JSONObject track = items.getJSONObject(i);
+                                tracks += track.getString("name");
+                                tracks += ",";
+                            }
                             // Display the name of the top track in a Toast
-                            activity.runOnUiThread(() -> showToast("Top Track: " + topTrackName));
+                            String finalTracks = tracks;
+                            activity.runOnUiThread(() -> callback.onTrackFetched(finalTracks));
+//                            activity.runOnUiThread(() -> showToast("Top Track: " + topTrackName));
                         } else {
                             activity.runOnUiThread(() -> showToast("No top tracks found"));
                         }
