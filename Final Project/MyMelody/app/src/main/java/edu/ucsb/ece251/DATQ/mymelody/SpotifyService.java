@@ -79,11 +79,11 @@ public class SpotifyService {
 
                         if (items.length() > 0) {
                             Log.d("TOP TRACKS", "GOT SOMETHING?");
-                            String tracks = "" + items.length();
+                            String tracks = "" + items.length() + "%20";
                             for(int i = 0; i < items.length(); i++) {
                                 JSONObject track = items.getJSONObject(i);
                                 tracks += track.getString("name");
-                                tracks += ",";
+                                tracks += "%20";
                             }
                             // Display the name of the top track in a Toast
                             String finalTracks = tracks;

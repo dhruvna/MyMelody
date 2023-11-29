@@ -55,8 +55,9 @@ public class MainActivity extends AppCompatActivity {
         fetchTracksButton.setOnClickListener(view -> spotifyService.fetchUserTopTracks(new SpotifyService.FetchTrackCallback() {
             @Override
             public void onTrackFetched(String tracks) {
-                String[] trackList = tracks.split(",");
+                String[] trackList = tracks.split("%20");
                 int numTracks = Integer.parseInt(trackList[0]);
+                TrackArray.add("Fetching Top " + numTracks + " Tracks!");
                 for(int i = 1; i < numTracks; i++) {
                     TrackArray.add(trackList[i]);
                 }
