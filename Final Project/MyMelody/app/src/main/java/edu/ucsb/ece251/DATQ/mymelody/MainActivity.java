@@ -22,7 +22,8 @@ public class MainActivity extends AppCompatActivity {
         LoginStatus = findViewById(R.id.LoginStatus);
         Button loginButton = findViewById(R.id.LoginButton);
         Button logoutButton = findViewById(R.id.LogoutButton);
-        Button fetchButton = findViewById(R.id.FetchButton);
+        Button fetchUserInfoButton = findViewById(R.id.FetchUserInfoButton);
+        Button fetchTracksButton = findViewById(R.id.FetchTracksButton);
         //Initialize Spotify Service
         spotifyService = new SpotifyService(this);
         loginButton.setOnClickListener(view -> spotifyService.authenticateSpotify(this));
@@ -33,14 +34,17 @@ public class MainActivity extends AppCompatActivity {
                 showToast("Logged out.");
             }
         });
-        fetchButton.setOnClickListener(view -> {
+        fetchTracksButton.setOnClickListener(view -> {
             spotifyService.fetchUserTopTracks();
         });
-        fetchButton.setOnClickListener(view -> {
+        fetchUserInfoButton.setOnClickListener(view -> {
             spotifyService.fetchUsername(new SpotifyService.FetchUsernameCallback() {
                 @Override
-                public void onUsernameFetched(String username) {
-                    LoginStatus.setText("Username: " + username);
+                public void onUsernameFetched(String usernameEmail) {
+                    String[] userInfo = usernameEmail.split(",");
+                    String username = userInfo[0];
+                    String email = userInfo[1];
+                    LoginStatus.setText("Username: " + username + "\nEmail: " + email);
                 }
 
                 @Override

@@ -40,7 +40,8 @@ public class SpotifyService {
     public void authenticateSpotify(Activity activity) {
         Log.println(Log.VERBOSE, "startauth", "Starting authentication process");
         final AuthorizationRequest request = new AuthorizationRequest.Builder(CLIENT_ID, AuthorizationResponse.Type.TOKEN, REDIRECT_URI)
-                .setScopes(new String[]{"user-read-private", "playlist-read", "playlist-read-private", "streaming"})
+                .setScopes(new String[]{"user-read-email", "user-read-private", "user-read-recently-played", "playlist-read-private", "user-top-read", "user-follow-read"})
+                .setShowDialog(true)
                 .build();
 
         AuthorizationClient.openLoginInBrowser(activity, request);
@@ -76,6 +77,7 @@ public class SpotifyService {
                         JSONArray items = jsonObject.getJSONArray("items");
 
                         if (items.length() > 0) {
+                            Log.d("TOP TRACKS", "GOT SOMETHING?");
                             JSONObject topTrack = items.getJSONObject(0); // Get the first track
                             String topTrackName = topTrack.getString("name"); // Get the name of the track
 
@@ -114,8 +116,9 @@ public class SpotifyService {
                         String responseData = response.body().string();
                         JSONObject jsonObject = new JSONObject(responseData);
                         String username = jsonObject.getString("display_name");
+                        String email = jsonObject.getString("email");
                         // Run on the main thread
-                        activity.runOnUiThread(() -> callback.onUsernameFetched(username));
+                        activity.runOnUiThread(() -> callback.onUsernameFetched(username + "," + email));
                     } else {
                         // Run on the main thread
                         activity.runOnUiThread(callback::onError);
