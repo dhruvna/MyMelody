@@ -2,6 +2,9 @@ package edu.ucsb.ece251.DATQ.mymelody;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Html;
+import android.text.method.LinkMovementMethod;
+import android.text.util.Linkify;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
@@ -31,6 +34,8 @@ public class MainActivity extends AppCompatActivity {
         TrackList.setAdapter(adapter);
 
         LoginStatus = findViewById(R.id.LoginStatus);
+        LoginStatus.setAutoLinkMask(Linkify.WEB_URLS);
+        LoginStatus.setMovementMethod(LinkMovementMethod.getInstance());
         Button loginButton = findViewById(R.id.LoginButton);
         Button logoutButton = findViewById(R.id.LogoutButton);
         Button fetchUserInfoButton = findViewById(R.id.FetchUserInfoButton);
@@ -44,6 +49,8 @@ public class MainActivity extends AppCompatActivity {
             if(logOutSuccess) {
                 LoginStatus.setText(R.string.reset_msg);
                 showToast("Logged out.");
+                TrackArray.clear();
+                adapter.notifyDataSetChanged();
             }
         });
 
@@ -62,13 +69,10 @@ public class MainActivity extends AppCompatActivity {
             }
         }));
 
-        fetchUserInfoButton.setOnClickListener(view -> spotifyService.fetchUsername(new SpotifyService.FetchUsernameCallback() {
+        fetchUserInfoButton.setOnClickListener(view -> spotifyService.fetchUserInfo(new SpotifyService.FetchUserInfoCallback() {
             @Override
-            public void onUsernameFetched(String usernameEmail) {
-                String[] userInfo = usernameEmail.split(",");
-                String username = userInfo[0];
-                String email = userInfo[1];
-                LoginStatus.setText("Username: " + username + "\nEmail: " + email);
+            public void onUserInfoFetched(User user) {
+                LoginStatus.setText(user.toString());
             }
 
             @Override

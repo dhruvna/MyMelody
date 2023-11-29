@@ -102,12 +102,12 @@ public class SpotifyService {
             }
         }).start();
     }
-    public interface FetchUsernameCallback {
-        void onUsernameFetched(String username);
+    public interface FetchUserInfoCallback {
+        void onUserInfoFetched(User user);
         void onError();
     }
 
-    public void fetchUsername(FetchUsernameCallback callback) {
+    public void fetchUserInfo(FetchUserInfoCallback callback) {
         new Thread(() -> {
             try {
                 OkHttpClient client = new OkHttpClient();
@@ -119,11 +119,20 @@ public class SpotifyService {
                 try (Response response = client.newCall(request).execute()) {
                     if (response.isSuccessful() && response.body() != null) {
                         String responseData = response.body().string();
-                        JSONObject jsonObject = new JSONObject(responseData);
-                        String username = jsonObject.getString("display_name");
-                        String email = jsonObject.getString("email");
+                        JSONObject jsonResponse = new JSONObject(responseData);
+                        String username = jsonResponse.getString("display_name");
+                        String email = jsonResponse.getString("email");
+                        String id = jsonResponse.getString("id");
+                        String profileUrl = jsonResponse.getJSONObject("external_urls").getString("spotify");
+                        String imageUrl = "";
+                        JSONArray images = jsonResponse.getJSONArray("images");
+                        if(images != null && images.length() > 0) {
+                            JSONObject image = images.getJSONObject(1);
+                            imageUrl = image.getString("url");
+                        }
+                        User user = new User(id, username, email, profileUrl, imageUrl);
                         // Run on the main thread
-                        activity.runOnUiThread(() -> callback.onUsernameFetched(username + "," + email));
+                        activity.runOnUiThread(() -> callback.onUserInfoFetched(user));
                     } else {
                         // Run on the main thread
                         activity.runOnUiThread(callback::onError);

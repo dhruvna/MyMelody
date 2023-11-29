@@ -12,7 +12,7 @@
         android:label="@string/app_name"
         android:roundIcon="@drawable/mymelody"
         android:supportsRtl="true"
-        android:theme="@style/Theme.MyMelody"
+        android:theme="@style/AppTheme"
         tools:targetApi="31">
         <activity
             android:name=".MainActivity"
