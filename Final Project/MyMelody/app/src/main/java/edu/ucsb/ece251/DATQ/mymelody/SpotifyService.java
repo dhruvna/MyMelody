@@ -25,11 +25,11 @@ public class SpotifyService {
     private static String accessToken = null;
 
     public SpotifyService(Activity activity) {
-        this.activity = activity;
+        SpotifyService.activity = activity;
     }
 
     public void setAccessToken(String token) {
-        this.accessToken = token;
+        accessToken = token;
         showToast(accessToken);
     }
     // Create authentication request
@@ -67,7 +67,7 @@ public class SpotifyService {
                 String url = "https://api.spotify.com/v1/me/top/tracks";
                 Request request = new Request.Builder()
                         .url(url)
-                        .addHeader("Authorization", "Bearer " + this.accessToken)
+                        .addHeader("Authorization", "Bearer " + accessToken)
                         .build();
                 Log.println(Log.VERBOSE, "response", request.toString());
                 Log.d("SpotifyService", "Fetching top tracks");
@@ -88,7 +88,6 @@ public class SpotifyService {
                             // Display the name of the top track in a Toast
                             String finalTracks = tracks;
                             activity.runOnUiThread(() -> callback.onTrackFetched(finalTracks));
-//                            activity.runOnUiThread(() -> showToast("Top Track: " + topTrackName));
                         } else {
                             activity.runOnUiThread(() -> showToast("No top tracks found"));
                         }
@@ -114,7 +113,7 @@ public class SpotifyService {
                 OkHttpClient client = new OkHttpClient();
                 Request request = new Request.Builder()
                         .url("https://api.spotify.com/v1/me")
-                        .addHeader("Authorization", "Bearer " + this.accessToken)
+                        .addHeader("Authorization", "Bearer " + accessToken)
                         .build();
 
                 try (Response response = client.newCall(request).execute()) {
