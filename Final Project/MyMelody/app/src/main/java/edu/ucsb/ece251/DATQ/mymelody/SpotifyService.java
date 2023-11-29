@@ -1,9 +1,10 @@
-package edu.ucsb.ece251.DATQ.mymelody;
+ package edu.ucsb.ece251.DATQ.mymelody;
 
 import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.util.Log;
+import android.widget.Button;
 import android.widget.Toast;
 
 import com.spotify.sdk.android.auth.AuthorizationClient;
@@ -26,10 +27,11 @@ public class SpotifyService {
         this.activity = activity;
     }
 
-    public static void setAccessToken(String token) {
-        accessToken = token;
-        showToast(token);
+    public void setAccessToken(String token) {
+        this.accessToken = token;
+        showToast(accessToken);
     }
+
 
     // Create authentication request
     public void authenticateSpotify(Activity activity) {
@@ -74,7 +76,7 @@ public class SpotifyService {
                 String url = "https://api.spotify.com/v1/me/top/tracks";
                 Request request = new Request.Builder()
                         .url(url)
-                        .addHeader("Authorization", "Bearer " + accessToken)
+                        .addHeader("Authorization", "Bearer " + this.accessToken)
                         .build();
                 Log.println(Log.VERBOSE, "response",  request.toString());
                 Log.d("SpotifyService", "Fetching top tracks");
@@ -107,4 +109,39 @@ public class SpotifyService {
     private static void showToast(String message) {
         Toast.makeText(activity, message, Toast.LENGTH_SHORT).show();
     }
+
+    public interface FetchUsernameCallback {
+        void onUsernameFetched(String username);
+        void onError();
+    }
+
+    public void fetchUsername(FetchUsernameCallback callback) {
+        new Thread(() -> {
+            try {
+                OkHttpClient client = new OkHttpClient();
+                Request request = new Request.Builder()
+                        .url("https://api.spotify.com/v1/me")
+                        .addHeader("Authorization", "Bearer " + this.accessToken)
+                        .build();
+
+                try (Response response = client.newCall(request).execute()) {
+                    if (response.isSuccessful() && response.body() != null) {
+                        String responseData = response.body().string();
+                        JSONObject jsonObject = new JSONObject(responseData);
+                        String username = jsonObject.getString("display_name");
+                        // Run on the main thread
+                        activity.runOnUiThread(() -> callback.onUsernameFetched(username));
+                    } else {
+                        // Run on the main thread
+                        activity.runOnUiThread(callback::onError);
+
+                    }
+                }
+            } catch (Exception e) {
+                // Run on the main thread
+                activity.runOnUiThread(callback::onError);
+            }
+        }).start();
+    }
+
 }
