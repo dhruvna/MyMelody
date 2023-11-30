@@ -5,6 +5,8 @@ import androidx.appcompat.widget.Toolbar;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -26,7 +28,7 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login);
 
         Toolbar toolbar = findViewById(R.id.Toolbar);
-//        setSupportActionBar(toolbar);
+        setSupportActionBar(toolbar);
 
         LoginPrompt = findViewById(R.id.LoginPrompt);
         UserInfo = findViewById(R.id.UserInfo);
@@ -40,8 +42,30 @@ public class LoginActivity extends AppCompatActivity {
             boolean logOutSuccess = spotifyService.logOut();
             if(logOutSuccess) logout();
         });
-
     }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        final Toolbar myToolbar = findViewById(R.id.Toolbar);
+        myToolbar.inflateMenu(R.menu.toolbar_menu);
+        myToolbar.setOnMenuItemClickListener(this::onOptionsItemSelected);
+        return true;
+    }
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int myID = item.getItemId();
+        if (myID == R.id.artists){
+            // Handle action for item 1
+            showToast("Going to Artist View");
+            return true;
+        }else if(myID==R.id.tracks){
+            // Handle action for item 2
+            showToast("Going to Track View");
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
 
     private void fetchUserInfo(String accessToken) {
         spotifyService.fetchUserInfo(accessToken, new SpotifyService.FetchUserInfoCallback() {
