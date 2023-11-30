@@ -25,7 +25,7 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-//        Toolbar toolbar = findViewById(R.id.Toolbar);
+        Toolbar toolbar = findViewById(R.id.Toolbar);
 //        setSupportActionBar(toolbar);
 
         LoginPrompt = findViewById(R.id.LoginPrompt);
@@ -35,19 +35,10 @@ public class LoginActivity extends AppCompatActivity {
         logoutButton = findViewById(R.id.LogoutButton);
 
         spotifyService = new SpotifyService(this);
-        loginButton.setOnClickListener(view -> {
-            spotifyService.authenticateSpotify(this);
-        });
+        loginButton.setOnClickListener(view -> spotifyService.authenticateSpotify(this));
         logoutButton.setOnClickListener(view-> {
             boolean logOutSuccess = spotifyService.logOut();
-            if(logOutSuccess) {
-                LoginPrompt.setText(R.string.login_msg);
-                showToast("Logged out.");
-                loginButton.setVisibility(View.VISIBLE);
-                logoutButton.setVisibility(View.INVISIBLE);
-                UserInfo.setVisibility(View.INVISIBLE);
-                PFP.setVisibility(View.INVISIBLE);
-            }
+            if(logOutSuccess) logout();
         });
 
     }
@@ -56,7 +47,7 @@ public class LoginActivity extends AppCompatActivity {
         spotifyService.fetchUserInfo(accessToken, new SpotifyService.FetchUserInfoCallback() {
             @Override
             public void onUserInfoFetched(User user) {
-                UserInfo.setText(user.toString()); // Assuming UserInfo is a TextView
+                UserInfo.setText(user.toString());
                 UserInfo.setVisibility(View.VISIBLE);
                 String pfpURL = user.getPFPLink();
                 Picasso.get().load(pfpURL).into(PFP);
@@ -87,4 +78,14 @@ public class LoginActivity extends AppCompatActivity {
     private void showToast(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
+
+    private void logout() {
+        LoginPrompt.setText(R.string.login_msg);
+        showToast("Logged out.");
+        loginButton.setVisibility(View.VISIBLE);
+        logoutButton.setVisibility(View.INVISIBLE);
+        UserInfo.setVisibility(View.INVISIBLE);
+        PFP.setVisibility(View.INVISIBLE);
+    }
+
 }

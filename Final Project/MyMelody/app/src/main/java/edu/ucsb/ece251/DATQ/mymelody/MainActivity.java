@@ -1,8 +1,6 @@
 package edu.ucsb.ece251.DATQ.mymelody;
 
-import android.content.Intent;
 import android.os.Bundle;
-import android.text.Html;
 import android.text.method.LinkMovementMethod;
 import android.text.util.Linkify;
 import android.widget.ArrayAdapter;
