@@ -47,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
         logoutButton.setOnClickListener(view-> {
             boolean logOutSuccess = spotifyService.logOut();
             if(logOutSuccess) {
-                LoginStatus.setText(R.string.reset_msg);
+                LoginStatus.setText(R.string.login_msg);
                 showToast("Logged out.");
                 TrackArray.clear();
                 adapter.notifyDataSetChanged();
