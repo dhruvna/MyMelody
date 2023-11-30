@@ -1,16 +1,12 @@
 package edu.ucsb.ece251.DATQ.mymelody;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import com.squareup.picasso.Picasso;
+import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,9 +29,10 @@ public class TrackActivity extends AppCompatActivity {
         TrackList.setAdapter(adapter);
         Bundle extras = getIntent().getExtras();
         if (extras != null) accessToken = extras.getString("Access Token");
-        Log.println(Log.VERBOSE, "Received token", accessToken);
-        fetchUserTopTracks(accessToken);
-
+        if (accessToken != null) {
+            Log.println(Log.VERBOSE, "Received token", accessToken);
+            fetchUserTopTracks(accessToken);
+        }
     }
     private void fetchUserTopTracks(String accessToken) {
         spotifyService.fetchUserTopTracks(accessToken, new SpotifyService.FetchTrackCallback() {

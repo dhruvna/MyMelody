@@ -79,13 +79,13 @@ public class SpotifyService {
                     JSONArray items = jsonResponse.getJSONArray("items");
                     Log.println(Log.VERBOSE, "num tracks", "received " + items.length() + "track");
                     if (items.length() > 0) {
-                        String tracks = "" + items.length() + "%20";
+                        StringBuilder tracks = new StringBuilder("" + items.length() + "%20");
                         for(int i = 0; i < items.length(); i++) {
                             JSONObject track = items.getJSONObject(i);
-                            tracks += track.getString("name");
-                            tracks += "%20";
+                            tracks.append(track.getString("name"));
+                            tracks.append("%20");
                         }
-                        String finalTracks = tracks;
+                        String finalTracks = tracks.toString();
                         // Use Handler to run on UI thread
                         Log.println(Log.VERBOSE, "Finished track fetch", "Ready to run on main thread");
                         activity.runOnUiThread(() -> callback.onTrackFetched(finalTracks));
@@ -121,13 +121,13 @@ public class SpotifyService {
                     JSONArray items = jsonResponse.getJSONArray("items");
                     Log.println(Log.VERBOSE, "num artists", "received " + items.length() + "artists");
                     if (items.length() > 0) {
-                        String artists = "" + items.length() + "%20";
+                        StringBuilder artists = new StringBuilder("" + items.length() + "%20");
                         for(int i = 0; i < items.length(); i++) {
                             JSONObject artist = items.getJSONObject(i);
-                            artists += artist.getString("name");
-                            artists += "%20";
+                            artists.append(artist.getString("name"));
+                            artists.append("%20");
                         }
-                        String finalArtists = artists;
+                        String finalArtists = artists.toString();
                         // Use Handler to run on UI thread
                         Log.println(Log.VERBOSE, "Finished artist fetch", "Ready to run on main thread");
                         activity.runOnUiThread(() -> callback.onArtistFetched(finalArtists));
