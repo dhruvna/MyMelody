@@ -56,17 +56,25 @@ public class LoginActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int myID = item.getItemId();
         if (myID == R.id.artists){
-            // Handle action for item 1
-            Intent artistIntent = new Intent(this, ArtistActivity.class);
-            artistIntent.putExtra("Access Token", accessToken);
-            startActivity(artistIntent);
-            return true;
+            if(accessToken != null) {
+                Intent artistIntent = new Intent(this, ArtistActivity.class);
+                artistIntent.putExtra("Access Token", accessToken);
+                startActivity(artistIntent);
+                return true;
+            } else {
+                showToast("Log in first to see user information!");
+                return false;
+            }
         }else if(myID==R.id.tracks){
-            // Handle action for item 2
-            Intent trackIntent = new Intent(this, TrackActivity.class);
-            trackIntent.putExtra("Access Token", accessToken);
-            startActivity(trackIntent);
-            return true;
+            if(accessToken != null) {
+                Intent trackIntent = new Intent(this, TrackActivity.class);
+                trackIntent.putExtra("Access Token", accessToken);
+                startActivity(trackIntent);
+                return true;
+            } else {
+                showToast("Log in first to see user information!");
+                return false;
+            }
         }
         return super.onOptionsItemSelected(item);
     }
@@ -115,6 +123,7 @@ public class LoginActivity extends AppCompatActivity {
         logoutButton.setVisibility(View.INVISIBLE);
         UserInfo.setVisibility(View.INVISIBLE);
         PFP.setVisibility(View.INVISIBLE);
+        accessToken = null;
     }
 
 }
