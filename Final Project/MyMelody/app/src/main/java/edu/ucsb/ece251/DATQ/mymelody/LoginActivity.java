@@ -11,6 +11,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.squareup.picasso.Picasso;
+
 public class LoginActivity extends AppCompatActivity {
     private TextView LoginPrompt;
     private TextView UserInfo;
@@ -44,6 +46,7 @@ public class LoginActivity extends AppCompatActivity {
                 loginButton.setVisibility(View.VISIBLE);
                 logoutButton.setVisibility(View.INVISIBLE);
                 UserInfo.setVisibility(View.INVISIBLE);
+                PFP.setVisibility(View.INVISIBLE);
             }
         });
 
@@ -55,6 +58,9 @@ public class LoginActivity extends AppCompatActivity {
             public void onUserInfoFetched(User user) {
                 UserInfo.setText(user.toString()); // Assuming UserInfo is a TextView
                 UserInfo.setVisibility(View.VISIBLE);
+                String pfpURL = user.getPFPLink();
+                Picasso.get().load(pfpURL).into(PFP);
+                PFP.setVisibility(View.VISIBLE);
             }
 
             @Override
