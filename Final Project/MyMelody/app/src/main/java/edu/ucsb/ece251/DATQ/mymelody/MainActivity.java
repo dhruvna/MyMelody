@@ -43,29 +43,29 @@ public class MainActivity extends AppCompatActivity {
         spotifyService = new SpotifyService(this);
         loginButton.setOnClickListener(view -> spotifyService.authenticateSpotify(this));
         logoutButton.setOnClickListener(view-> {
-            boolean logOutSuccess = spotifyService.logOut();
-            if(logOutSuccess) {
+//            boolean logOutSuccess = spotifyService.logout();
+//            if(logOutSuccess) {
                 LoginStatus.setText(R.string.login_msg);
                 showToast("Logged out.");
                 TrackArray.clear();
                 adapter.notifyDataSetChanged();
-            }
+//            }
         });
 
-        fetchTracksButton.setOnClickListener(view -> spotifyService.fetchUserTopTracks(new SpotifyService.FetchTrackCallback() {
-            @Override
-            public void onTrackFetched(String tracks) {
-                String[] trackList = tracks.split("%20");
-                int numTracks = Integer.parseInt(trackList[0]);
-                TrackArray.add("Fetching Top " + numTracks + " Tracks!");
-                TrackArray.addAll(Arrays.asList(trackList).subList(1, numTracks));
-                adapter.notifyDataSetChanged();
-            }
-            @Override
-            public void onError() {
-                showToast("Failed to fetch username.");
-            }
-        }));
+//        fetchTracksButton.setOnClickListener(view -> spotifyService.fetchUserTopTracks(new SpotifyService.FetchTrackCallback() {
+//            @Override
+//            public void onTrackFetched(String tracks) {
+//                String[] trackList = tracks.split("%20");
+//                int numTracks = Integer.parseInt(trackList[0]);
+//                TrackArray.add("Fetching Top " + numTracks + " Tracks!");
+//                TrackArray.addAll(Arrays.asList(trackList).subList(1, numTracks));
+//                adapter.notifyDataSetChanged();
+//            }
+//            @Override
+//            public void onError() {
+//                showToast("Failed to fetch username.");
+//            }
+//        }));
 
 //        fetchUserInfoButton.setOnClickListener(view -> spotifyService.fetchUserInfo(new SpotifyService.FetchUserInfoCallback() {
 //            @Override

@@ -30,8 +30,11 @@ public class SpotifyService {
 
     public void setAccessToken(String token) {
         accessToken = token;
-//        showToast(accessToken);
     }
+    public String getAccessToken() {
+        return accessToken;
+    }
+
     // Create authentication request
     public void authenticateSpotify(Activity activity) {
         Log.println(Log.VERBOSE, "startauth", "Starting authentication process");
@@ -51,7 +54,6 @@ public class SpotifyService {
                 String token = response.getAccessToken();
                 setAccessToken(token);
                 Log.println(Log.VERBOSE, "finishauth", "Successfully completed authentication process");
-
                 return token;
             }
         }
@@ -61,45 +63,40 @@ public class SpotifyService {
         void onTrackFetched(String tracks);
         void onError();
     }
-    public void fetchUserTopTracks(FetchTrackCallback callback) {
+    public void fetchUserTopTracks(String accessToken, FetchTrackCallback callback) {
         new Thread(() -> {
-            try {
-                OkHttpClient client = new OkHttpClient();
-                String url = "https://api.spotify.com/v1/me/top/tracks";
-                Request request = new Request.Builder()
-                        .url(url)
-                        .addHeader("Authorization", "Bearer " + accessToken)
-                        .build();
-                Log.println(Log.VERBOSE, "response", request.toString());
-                Log.d("SpotifyService", "Fetching top tracks");
-                try (Response response = client.newCall(request).execute()) {
-                    if (response.isSuccessful() && response.body() != null) {
-                        String responseData = response.body().string();
-                        JSONObject jsonObject = new JSONObject(responseData);
-                        JSONArray items = jsonObject.getJSONArray("items");
-
-                        if (items.length() > 0) {
-                            Log.d("TOP TRACKS", "GOT SOMETHING?");
-                            String tracks = "" + items.length() + "%20";
-                            for(int i = 0; i < items.length(); i++) {
-                                JSONObject track = items.getJSONObject(i);
-                                tracks += track.getString("name");
-                                tracks += "%20";
-                            }
-                            // Display the name of the top track in a Toast
-                            String finalTracks = tracks;
-                            activity.runOnUiThread(() -> callback.onTrackFetched(finalTracks));
-                        } else {
-                            activity.runOnUiThread(() -> showToast("No top tracks found"));
+            OkHttpClient client = new OkHttpClient();
+            Request request = new Request.Builder()
+                    .url("https://api.spotify.com/v1/me/top/tracks")
+                    .addHeader("Authorization", "Bearer " + accessToken)
+                    .build();
+            try (Response response = client.newCall(request).execute()) {
+                if(response.isSuccessful() && response.body() != null) {
+                    Log.println(Log.VERBOSE, "trackfetcher", "received response for tracks!");
+                    String responseData = response.body().string();
+                    JSONObject jsonResponse = new JSONObject(responseData);
+                    // Extract user information from the JSON object
+                    JSONArray items = jsonResponse.getJSONArray("items");
+                    Log.println(Log.VERBOSE, "num tracks", "received " + items.length() + "track");
+                    if (items.length() > 0) {
+                        String tracks = "" + items.length() + "%20";
+                        for(int i = 0; i < items.length(); i++) {
+                            JSONObject track = items.getJSONObject(i);
+                            tracks += track.getString("name");
+                            tracks += "%20";
                         }
+                        String finalTracks = tracks;
+                        // Use Handler to run on UI thread
+                        Log.println(Log.VERBOSE, "Finished track fetch", "Ready to run on main thread");
+                        activity.runOnUiThread(() -> callback.onTrackFetched(finalTracks));
                     } else {
-                        Log.e("SpotifyService", "Unsuccessful response");
+                        // Run on the main thread
+                        activity.runOnUiThread(() -> showToast("No top tracks found"));
                     }
-                } catch (Exception e) {
-                    Log.e("SpotifyService", "Error fetching top tracks", e);
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                // Run on the main thread
+                activity.runOnUiThread(callback::onError);
             }
         }).start();
     }

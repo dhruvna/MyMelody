@@ -22,6 +22,7 @@ public class LoginActivity extends AppCompatActivity {
     private SpotifyService spotifyService;
     private Button loginButton;
     private Button logoutButton;
+    private String accessToken;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -56,14 +57,14 @@ public class LoginActivity extends AppCompatActivity {
         int myID = item.getItemId();
         if (myID == R.id.artists){
             // Handle action for item 1
-            showToast("Going to Artist View");
             Intent artistIntent = new Intent(this, ArtistActivity.class);
+            artistIntent.putExtra("Access Token", accessToken);
             startActivity(artistIntent);
             return true;
         }else if(myID==R.id.tracks){
             // Handle action for item 2
-            showToast("Going to Track View");
             Intent trackIntent = new Intent(this, TrackActivity.class);
+            trackIntent.putExtra("Access Token", accessToken);
             startActivity(trackIntent);
             return true;
         }
@@ -90,11 +91,11 @@ public class LoginActivity extends AppCompatActivity {
     }
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-        String accessToken = spotifyService.handleAuthResponse(intent);
+        accessToken = spotifyService.handleAuthResponse(intent);
 
         if(!accessToken.equals("null")) {
             LoginPrompt.setText(R.string.success_msg);
-            showToast("Login successful.");
+//            showToast("Login successful.");
             loginButton.setVisibility(View.INVISIBLE);
             logoutButton.setVisibility(View.VISIBLE);
             fetchUserInfo(accessToken);
