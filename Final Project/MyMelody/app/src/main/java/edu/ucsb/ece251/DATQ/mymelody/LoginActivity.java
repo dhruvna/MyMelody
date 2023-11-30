@@ -57,10 +57,14 @@ public class LoginActivity extends AppCompatActivity {
         if (myID == R.id.artists){
             // Handle action for item 1
             showToast("Going to Artist View");
+            Intent artistIntent = new Intent(this, ArtistActivity.class);
+            startActivity(artistIntent);
             return true;
         }else if(myID==R.id.tracks){
             // Handle action for item 2
             showToast("Going to Track View");
+            Intent trackIntent = new Intent(this, TrackActivity.class);
+            startActivity(trackIntent);
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -88,7 +92,7 @@ public class LoginActivity extends AppCompatActivity {
         super.onNewIntent(intent);
         String accessToken = spotifyService.handleAuthResponse(intent);
 
-        if(accessToken != "null") {
+        if(!accessToken.equals("null")) {
             LoginPrompt.setText(R.string.success_msg);
             showToast("Login successful.");
             loginButton.setVisibility(View.INVISIBLE);
