@@ -101,6 +101,47 @@ public class SpotifyService {
         }).start();
     }
 
+    public interface FetchArtistCallback {
+        void onArtistFetched(String artists);
+        void onError();
+    }
+    public void fetchUserTopArtists(String accessToken, FetchArtistCallback callback) {
+        new Thread(() -> {
+            OkHttpClient client = new OkHttpClient();
+            Request request = new Request.Builder()
+                    .url("https://api.spotify.com/v1/me/top/artists")
+                    .addHeader("Authorization", "Bearer " + accessToken)
+                    .build();
+            try (Response response = client.newCall(request).execute()) {
+                if(response.isSuccessful() && response.body() != null) {
+                    Log.println(Log.VERBOSE, "artistfetcher", "received response for artists!");
+                    String responseData = response.body().string();
+                    JSONObject jsonResponse = new JSONObject(responseData);
+                    // Extract user information from the JSON object
+                    JSONArray items = jsonResponse.getJSONArray("items");
+                    Log.println(Log.VERBOSE, "num artists", "received " + items.length() + "artists");
+                    if (items.length() > 0) {
+                        String artists = "" + items.length() + "%20";
+                        for(int i = 0; i < items.length(); i++) {
+                            JSONObject artist = items.getJSONObject(i);
+                            artists += artist.getString("name");
+                            artists += "%20";
+                        }
+                        String finalArtists = artists;
+                        // Use Handler to run on UI thread
+                        Log.println(Log.VERBOSE, "Finished artist fetch", "Ready to run on main thread");
+                        activity.runOnUiThread(() -> callback.onArtistFetched(finalArtists));
+                    } else {
+                        // Run on the main thread
+                        activity.runOnUiThread(() -> showToast("No top artists found"));
+                    }
+                }
+            } catch (Exception e) {
+                // Run on the main thread
+                activity.runOnUiThread(callback::onError);
+            }
+        }).start();
+    }
     public interface FetchUserInfoCallback {
         void onUserInfoFetched(User user);
         void onError();
@@ -142,6 +183,7 @@ public class SpotifyService {
         }
         }).start();
     }
+
     public boolean logOut() {
         if(accessToken != null) {
             accessToken = null;
