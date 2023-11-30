@@ -3,7 +3,9 @@ package edu.ucsb.ece251.DATQ.mymelody;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -13,6 +15,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
 import com.squareup.picasso.Picasso;
 
 public class LoginActivity extends AppCompatActivity {
@@ -23,6 +26,9 @@ public class LoginActivity extends AppCompatActivity {
     private Button loginButton;
     private Button logoutButton;
     private String accessToken;
+
+    private User currentUser;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -84,11 +90,13 @@ public class LoginActivity extends AppCompatActivity {
         spotifyService.fetchUserInfo(accessToken, new SpotifyService.FetchUserInfoCallback() {
             @Override
             public void onUserInfoFetched(User user) {
-                UserInfo.setText(user.toString());
+                currentUser = user;
+                UserInfo.setText(currentUser.toString());
                 UserInfo.setVisibility(View.VISIBLE);
-                String pfpURL = user.getPFPLink();
+                String pfpURL = currentUser.getPFPLink();
                 Picasso.get().load(pfpURL).into(PFP);
                 PFP.setVisibility(View.VISIBLE);
+//                updateUserInfo();
             }
 
             @Override
@@ -100,10 +108,8 @@ public class LoginActivity extends AppCompatActivity {
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         accessToken = spotifyService.handleAuthResponse(intent);
-
         if(!accessToken.equals("null")) {
             LoginPrompt.setText(R.string.success_msg);
-//            showToast("Login successful.");
             loginButton.setVisibility(View.INVISIBLE);
             logoutButton.setVisibility(View.VISIBLE);
             fetchUserInfo(accessToken);
@@ -126,4 +132,47 @@ public class LoginActivity extends AppCompatActivity {
         accessToken = null;
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        SharedPreferences loginPref = getSharedPreferences("LoginPrefs", MODE_PRIVATE);
+        SharedPreferences.Editor loginEditor = loginPref.edit();
+        loginEditor.putString("Access Token", accessToken);
+        loginEditor.apply();
+//        if(currentUser != null) {
+//            Gson gson = new Gson();
+//            String json = gson.toJson(currentUser);
+//            loginEditor.putString("currentUser", json);
+//            loginEditor.apply();
+//        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Code to be executed when the activity comes to the foreground.
+        updateUserInfo();
+    }
+    @Override
+    protected void onDestroy() {
+        // Cleanup and resource release
+        accessToken = null;
+        super.onDestroy();
+    }
+
+    private void updateUserInfo() {
+        SharedPreferences loginPref = getSharedPreferences("LoginPrefs", MODE_PRIVATE);
+        accessToken = loginPref.getString("Access Token", "");
+        showToast(accessToken);
+//        String json = loginPref.getString("currentUser", "");
+//        if (!json.isEmpty()) {
+//            Gson gson = new Gson();
+//            currentUser = gson.fromJson(json, User.class);
+//        }
+//        UserInfo.setText(currentUser.toString());
+//        UserInfo.setVisibility(View.VISIBLE);
+//        String pfpURL = currentUser.getPFPLink();
+//        Picasso.get().load(pfpURL).into(PFP);
+//        PFP.setVisibility(View.VISIBLE);
+    }
 }
