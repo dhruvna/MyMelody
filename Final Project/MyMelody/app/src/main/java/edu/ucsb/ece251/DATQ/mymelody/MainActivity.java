@@ -69,31 +69,31 @@ public class MainActivity extends AppCompatActivity {
             }
         }));
 
-        fetchUserInfoButton.setOnClickListener(view -> spotifyService.fetchUserInfo(new SpotifyService.FetchUserInfoCallback() {
-            @Override
-            public void onUserInfoFetched(User user) {
-                LoginStatus.setText(user.toString());
-            }
-
-            @Override
-            public void onError() {
-                showToast("Failed to fetch username.");
-            }
-        }));
+//        fetchUserInfoButton.setOnClickListener(view -> spotifyService.fetchUserInfo(new SpotifyService.FetchUserInfoCallback() {
+//            @Override
+//            public void onUserInfoFetched(User user) {
+//                LoginStatus.setText(user.toString());
+//            }
+//
+//            @Override
+//            public void onError() {
+//                showToast("Failed to fetch username.");
+//            }
+//        }));
         // Initialize WebView for Google Charts
     }
 
-    protected void onNewIntent(Intent intent) {
-        super.onNewIntent(intent);
-        boolean loginSuccess = spotifyService.handleAuthResponse(intent);
-
-        if(loginSuccess) {
-            LoginStatus.setText(R.string.success_msg);
-        } else {
-            LoginStatus.setText(R.string.fail_msg);
-            showToast("Log in failure.");
-        }
-    }
+//    protected void onNewIntent(Intent intent) {
+//        super.onNewIntent(intent);
+//        boolean loginSuccess = spotifyService.handleAuthResponse(intent);
+//
+//        if(loginSuccess) {
+//            LoginStatus.setText(R.string.success_msg);
+//        } else {
+//            LoginStatus.setText(R.string.fail_msg);
+//            showToast("Log in failure.");
+//        }
+//    }
     private void showToast(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }

@@ -43,7 +43,7 @@ public class SpotifyService {
         AuthorizationClient.openLoginInBrowser(activity, request);
     }
 
-    public boolean handleAuthResponse(Intent intent) {
+    public String handleAuthResponse(Intent intent) {
         Uri uri = intent.getData();
         if (uri != null) {
             AuthorizationResponse response = AuthorizationResponse.fromUri(uri);
@@ -51,12 +51,12 @@ public class SpotifyService {
                 String token = response.getAccessToken();
                 setAccessToken(token);
                 Log.println(Log.VERBOSE, "finishauth", "Successfully completed authentication process");
-                return true;
+
+                return token;
             }
         }
-        return false;
+        return "null";
     }
-
     public interface FetchTrackCallback {
         void onTrackFetched(String tracks);
         void onError();
@@ -103,14 +103,16 @@ public class SpotifyService {
             }
         }).start();
     }
+
     public interface FetchUserInfoCallback {
         void onUserInfoFetched(User user);
         void onError();
     }
 
-    public void fetchUserInfo(FetchUserInfoCallback callback) {
-        new Thread(() -> {
-            try {
+    public void fetchUserInfo(String accessToken, FetchUserInfoCallback callback) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
                 OkHttpClient client = new OkHttpClient();
                 Request request = new Request.Builder()
                         .url("https://api.spotify.com/v1/me")
@@ -120,32 +122,71 @@ public class SpotifyService {
                 try (Response response = client.newCall(request).execute()) {
                     if (response.isSuccessful() && response.body() != null) {
                         String responseData = response.body().string();
-                        JSONObject jsonResponse = new JSONObject(responseData);
-                        String username = jsonResponse.getString("display_name");
-                        String email = jsonResponse.getString("email");
-                        String id = jsonResponse.getString("id");
-                        String profileUrl = jsonResponse.getJSONObject("external_urls").getString("spotify");
+                        JSONObject jsonObject = new JSONObject(responseData);
+                        // Extract user information from the JSON object
+                        String id = jsonObject.getString("id");
+                        String username = jsonObject.has("display_name") ? jsonObject.getString("display_name") : "";
+                        String email = jsonObject.has("email") ? jsonObject.getString("email") : "";
+                        String profileLink = jsonObject.getJSONObject("external_urls").getString("spotify");
                         String imageUrl = "";
-                        JSONArray images = jsonResponse.getJSONArray("images");
+                        JSONArray images = jsonObject.getJSONArray("images");
                         if(images != null && images.length() > 0) {
                             JSONObject image = images.getJSONObject(1);
                             imageUrl = image.getString("url");
                         }
-                        User user = new User(id, username, email, profileUrl, imageUrl);
-                        // Run on the main thread
+                        User user = new User(id, username, email, profileLink, imageUrl);
+                        // Use Handler to run on UI thread
                         activity.runOnUiThread(() -> callback.onUserInfoFetched(user));
                     } else {
                         // Run on the main thread
                         activity.runOnUiThread(callback::onError);
-
                     }
-                }
-            } catch (Exception e) {
+                } catch (Exception e) {
                 // Run on the main thread
                 activity.runOnUiThread(callback::onError);
             }
+            }
         }).start();
     }
+
+//    public void fetchUserInfo(FetchUserInfoCallback callback) {
+//        new Thread(() -> {
+//            try {
+//                OkHttpClient client = new OkHttpClient();
+//                Request request = new Request.Builder()
+//                        .url("https://api.spotify.com/v1/me")
+//                        .addHeader("Authorization", "Bearer " + accessToken)
+//                        .build();
+//
+//                try (Response response = client.newCall(request).execute()) {
+//                    if (response.isSuccessful() && response.body() != null) {
+//                        String responseData = response.body().string();
+//                        JSONObject jsonResponse = new JSONObject(responseData);
+//                        String username = jsonResponse.getString("display_name");
+//                        String email = jsonResponse.getString("email");
+//                        String id = jsonResponse.getString("id");
+//                        String profileUrl = jsonResponse.getJSONObject("external_urls").getString("spotify");
+//                        String imageUrl = "";
+//                        JSONArray images = jsonResponse.getJSONArray("images");
+//                        if(images != null && images.length() > 0) {
+//                            JSONObject image = images.getJSONObject(1);
+//                            imageUrl = image.getString("url");
+//                        }
+//                        User user = new User(id, username, email, profileUrl, imageUrl);
+//                        // Run on the main thread
+//                        activity.runOnUiThread(() -> callback.onUserInfoFetched(user));
+//                    } else {
+//                        // Run on the main thread
+//                        activity.runOnUiThread(callback::onError);
+//
+//                    }
+//                }
+//            } catch (Exception e) {
+//                // Run on the main thread
+//                activity.runOnUiThread(callback::onError);
+//            }
+//        }).start();
+//    }
     public boolean logOut() {
         if(accessToken != null) {
             accessToken = null;

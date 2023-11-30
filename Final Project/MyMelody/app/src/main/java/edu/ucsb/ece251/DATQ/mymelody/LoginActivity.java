@@ -36,7 +36,6 @@ public class LoginActivity extends AppCompatActivity {
         loginButton.setOnClickListener(view -> {
             spotifyService.authenticateSpotify(this);
         });
-
         logoutButton.setOnClickListener(view-> {
             boolean logOutSuccess = spotifyService.logOut();
             if(logOutSuccess) {
@@ -44,19 +43,36 @@ public class LoginActivity extends AppCompatActivity {
                 showToast("Logged out.");
                 loginButton.setVisibility(View.VISIBLE);
                 logoutButton.setVisibility(View.INVISIBLE);
+                UserInfo.setVisibility(View.INVISIBLE);
+            }
+        });
+
+    }
+
+    private void fetchUserInfo(String accessToken) {
+        spotifyService.fetchUserInfo(accessToken, new SpotifyService.FetchUserInfoCallback() {
+            @Override
+            public void onUserInfoFetched(User user) {
+                UserInfo.setText(user.toString()); // Assuming UserInfo is a TextView
+                UserInfo.setVisibility(View.VISIBLE);
+            }
+
+            @Override
+            public void onError() {
+                showToast("Failed to fetch user information.");
             }
         });
     }
-
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-        boolean loginSuccess = spotifyService.handleAuthResponse(intent);
+        String accessToken = spotifyService.handleAuthResponse(intent);
 
-        if(loginSuccess) {
+        if(accessToken != "null") {
             LoginPrompt.setText(R.string.success_msg);
             showToast("Login successful.");
             loginButton.setVisibility(View.INVISIBLE);
             logoutButton.setVisibility(View.VISIBLE);
+            fetchUserInfo(accessToken);
         } else {
             LoginPrompt.setText(R.string.fail_msg);
             showToast("Log in failure.");
