@@ -50,6 +50,7 @@ public class SpotifyService {
             if (response.getType() == AuthorizationResponse.Type.TOKEN) {
                 String token = response.getAccessToken();
                 setAccessToken(token);
+                Log.println(Log.VERBOSE, "finishauth", "Successfully completed authentication process");
                 return true;
             }
         }
