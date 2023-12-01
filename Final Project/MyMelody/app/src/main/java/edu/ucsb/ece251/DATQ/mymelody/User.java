@@ -1,9 +1,6 @@
 package edu.ucsb.ece251.DATQ.mymelody;
 
-import android.text.Html;
 import android.util.Log;
-
-import java.util.StringTokenizer;
 
 public class User {
     private String id;
