@@ -3,50 +3,48 @@ package edu.ucsb.ece251.DATQ.mymelody;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
-import android.util.Log;
-import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import com.squareup.picasso.Picasso;
-
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class TrackActivity extends AppCompatActivity {
-    private ArrayList<String> TrackArray;
-    private ArrayAdapter adapter;
+    private ArrayList<Track> trackArrayList; // Use Track model
+    private TrackAdapter trackAdapter; // Use TrackAdapter
     private SpotifyService spotifyService;
     private String accessToken;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_track);
 
         spotifyService = new SpotifyService(this);
-        TrackArray = new ArrayList<>();
-        adapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_list_item_1, TrackArray);
-        ListView TrackList = findViewById(R.id.TrackList);
-        TrackList.setAdapter(adapter);
+        trackArrayList = new ArrayList<>();
+        trackAdapter = new TrackAdapter(this, trackArrayList); // Initialize TrackAdapter with the track list
+        ListView trackListView = findViewById(R.id.TrackList);
+        trackListView.setAdapter(trackAdapter); // Set the adapter for the ListView
         Bundle extras = getIntent().getExtras();
-        if (extras != null) accessToken = extras.getString("Access Token");
-        Log.println(Log.VERBOSE, "Received token", accessToken);
-        fetchUserTopTracks(accessToken);
-
+        if (extras != null) {
+            accessToken = extras.getString("Access Token");
+            fetchUserTopTracks(accessToken);
+        }
     }
+
     private void fetchUserTopTracks(String accessToken) {
         spotifyService.fetchUserTopTracks(accessToken, new SpotifyService.FetchTrackCallback() {
             @Override
             public void onTrackFetched(String tracks) {
                 String[] trackList = tracks.split("%20");
                 int numTracks = Integer.parseInt(trackList[0]);
-                TrackArray.add("Fetching Top " + numTracks + " Tracks!");
-                TrackArray.addAll(Arrays.asList(trackList).subList(1, numTracks));
-                adapter.notifyDataSetChanged();
+                trackArrayList.clear(); // Clear the current track list
+                for (int i = 1; i <= numTracks; i++) {
+                    // Assuming a default rating of 0 for all tracks initially
+                    trackArrayList.add(new Track(trackList[i], 0));
+                }
+                trackAdapter.notifyDataSetChanged(); // Notify the adapter that the data set has changed
             }
+
             @Override
             public void onError() {
                 showToast("Failed to fetch top tracks.");

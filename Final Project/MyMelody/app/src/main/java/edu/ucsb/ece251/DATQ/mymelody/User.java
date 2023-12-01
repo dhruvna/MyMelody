@@ -10,7 +10,7 @@ public class User {
     private String pfpLink;
 
     public User() {
-        this.id = "";
+        //this.id = "";
         this.username= "";
         this.email= "";
         this.profileLink= "";
@@ -18,7 +18,7 @@ public class User {
     }
     // Constructor
     public User(String id, String username, String email, String profileLink, String pfpLink) {
-        this.id = id;
+        //this.id = id;
         this.username = username;
         this.email = email;
         this.profileLink = profileLink;
@@ -26,9 +26,9 @@ public class User {
     }
 
     // Getters and Setters
-    public String getId() {
-        return id;
-    }
+//    public String getId() {
+//        return id;
+//    }
     public String getUsername() {
         return username;
     }
@@ -61,7 +61,7 @@ public class User {
     @Override
     public String toString() {
         return "Username: " + username + "\n" +
-                "id: " + id + "\n" +
+                //"id: " + id + "\n" +
                 "Email: " + email + "\n" +
                 Html.fromHtml("<a href=" + profileLink + "> Profile </a>")
                 ;

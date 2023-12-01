@@ -95,7 +95,6 @@ public class LoginActivity extends AppCompatActivity {
 
         if(!accessToken.equals("null")) {
             LoginPrompt.setText(R.string.success_msg);
-//            showToast("Login successful.");
             loginButton.setVisibility(View.INVISIBLE);
             logoutButton.setVisibility(View.VISIBLE);
             fetchUserInfo(accessToken);
@@ -116,5 +115,4 @@ public class LoginActivity extends AppCompatActivity {
         UserInfo.setVisibility(View.INVISIBLE);
         PFP.setVisibility(View.INVISIBLE);
     }
-
 }
