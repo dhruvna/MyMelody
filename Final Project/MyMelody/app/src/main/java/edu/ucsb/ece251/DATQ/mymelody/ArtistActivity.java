@@ -13,8 +13,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public class ArtistActivity extends AppCompatActivity {
-    private ArrayList<String> ArtistArray;
-    private ArrayAdapter adapter;
+    private ArrayList<Artist> ArtistArray;
+    private ArtistAdapter adapter;
     private SpotifyService spotifyService;
     private String accessToken;
     private User currentUser;
@@ -25,8 +25,7 @@ public class ArtistActivity extends AppCompatActivity {
 
         spotifyService = new SpotifyService(this);
         ArtistArray = new ArrayList<>();
-        adapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_list_item_1, ArtistArray);
+        adapter = new ArtistAdapter(this, ArtistArray);
         ListView ArtistList = findViewById(R.id.ArtistList);
         ArtistList.setAdapter(adapter);
         Bundle extras = getIntent().getExtras();
@@ -46,8 +45,10 @@ public class ArtistActivity extends AppCompatActivity {
             public void onArtistFetched(String Artists) {
                 String[] ArtistList = Artists.split("%20");
                 int numArtists = Integer.parseInt(ArtistList[0]);
-                ArtistArray.add("Fetching Top " + numArtists + " Artists!");
-                ArtistArray.addAll(Arrays.asList(ArtistList).subList(1, numArtists));
+                ArtistArray.clear();
+                for(int i = 1; i <= numArtists; i++) {
+                    ArtistArray.add(new Artist(ArtistList[i],0));
+                }
                 adapter.notifyDataSetChanged();
             }
             @Override
