@@ -45,7 +45,6 @@ public class SpotifyService {
 
         AuthorizationClient.openLoginInBrowser(activity, request);
     }
-
     public String handleAuthResponse(Intent intent) {
         Uri uri = intent.getData();
         if (uri != null) {
@@ -57,8 +56,61 @@ public class SpotifyService {
                 return token;
             }
         }
-        return "null";
+        return null;
     }
+
+    //Get User Info
+    public interface FetchUserInfoCallback {
+        void onUserInfoFetched(User user);
+        void onError();
+    }
+    public void fetchUserInfo(String AccessToken, FetchUserInfoCallback callback) {
+        new Thread(() -> {
+            OkHttpClient client = new OkHttpClient();
+            Request request = new Request.Builder()
+                    .url("https://api.spotify.com/v1/me")
+                    .addHeader("Authorization", "Bearer " + AccessToken)
+                    .build();
+
+            try (Response response = client.newCall(request).execute()) {
+                if (response.isSuccessful() && response.body() != null) {
+                    String responseData = response.body().string();
+                    JSONObject jsonObject = new JSONObject(responseData);
+                    // Extract user information from the JSON object
+                    String id = jsonObject.getString("id");
+                    String username = jsonObject.has("display_name") ? jsonObject.getString("display_name") : "";
+                    String email = jsonObject.has("email") ? jsonObject.getString("email") : "";
+                    String profileLink = jsonObject.getJSONObject("external_urls").getString("spotify");
+                    String imageUrl = "";
+                    JSONArray images = jsonObject.getJSONArray("images");
+                    if(images.length() > 0) {
+                        JSONObject image = images.getJSONObject(1);
+                        imageUrl = image.getString("url");
+                    }
+                    User user = new User(id, username, email, profileLink, imageUrl, AccessToken);
+                    // Use Handler to run on UI thread
+                    activity.runOnUiThread(() -> callback.onUserInfoFetched(user));
+                } else {
+                    // Run on the main thread
+                    activity.runOnUiThread(callback::onError);
+                }
+            } catch (Exception e) {
+            // Run on the main thread
+            activity.runOnUiThread(callback::onError);
+        }
+        }).start();
+    }
+
+    public boolean logOut() {
+        if(accessToken != null) {
+            accessToken = null;
+            AuthorizationClient.clearCookies(activity);
+            return true;
+        }
+        return false;
+    }
+
+    //Tracks/Artists/etc calls
     public interface FetchTrackCallback {
         void onTrackFetched(String tracks);
         void onError();
@@ -142,59 +194,9 @@ public class SpotifyService {
             }
         }).start();
     }
-    public interface FetchUserInfoCallback {
-        void onUserInfoFetched(User user);
-        void onError();
-    }
 
-    public void fetchUserInfo(String accessToken, FetchUserInfoCallback callback) {
-        new Thread(() -> {
-            OkHttpClient client = new OkHttpClient();
-            Request request = new Request.Builder()
-                    .url("https://api.spotify.com/v1/me")
-                    .addHeader("Authorization", "Bearer " + accessToken)
-                    .build();
-
-            try (Response response = client.newCall(request).execute()) {
-                if (response.isSuccessful() && response.body() != null) {
-                    String responseData = response.body().string();
-                    JSONObject jsonObject = new JSONObject(responseData);
-                    // Extract user information from the JSON object
-                    String id = jsonObject.getString("id");
-                    String username = jsonObject.has("display_name") ? jsonObject.getString("display_name") : "";
-                    String email = jsonObject.has("email") ? jsonObject.getString("email") : "";
-                    String profileLink = jsonObject.getJSONObject("external_urls").getString("spotify");
-                    String imageUrl = "";
-                    JSONArray images = jsonObject.getJSONArray("images");
-                    if(images.length() > 0) {
-                        JSONObject image = images.getJSONObject(1);
-                        imageUrl = image.getString("url");
-                    }
-                    User user = new User(id, username, email, profileLink, imageUrl);
-                    // Use Handler to run on UI thread
-                    activity.runOnUiThread(() -> callback.onUserInfoFetched(user));
-                } else {
-                    // Run on the main thread
-                    activity.runOnUiThread(callback::onError);
-                }
-            } catch (Exception e) {
-            // Run on the main thread
-            activity.runOnUiThread(callback::onError);
-        }
-        }).start();
-    }
-
-    public boolean logOut() {
-        if(accessToken != null) {
-            accessToken = null;
-            AuthorizationClient.clearCookies(activity);
-            return true;
-        }
-        return false;
-    }
     private static void showToast(String message) {
         Toast.makeText(activity, message, Toast.LENGTH_SHORT).show();
     }
-//
 
 }

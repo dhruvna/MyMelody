@@ -1,6 +1,9 @@
 package edu.ucsb.ece251.DATQ.mymelody;
 
 import android.text.Html;
+import android.util.Log;
+
+import java.util.StringTokenizer;
 
 public class User {
     private String id;
@@ -8,6 +11,7 @@ public class User {
     private String email;
     private String profileLink;
     private String pfpLink;
+    private String accessToken;
 
     public User() {
         this.id = "";
@@ -15,14 +19,16 @@ public class User {
         this.email= "";
         this.profileLink= "";
         this.pfpLink= "";
+        this.accessToken= "";
     }
     // Constructor
-    public User(String id, String username, String email, String profileLink, String pfpLink) {
+    public User(String id, String username, String email, String profileLink, String pfpLink, String accessToken) {
         this.id = id;
         this.username = username;
         this.email = email;
         this.profileLink = profileLink;
         this.pfpLink = pfpLink;
+        this.accessToken = accessToken;
     }
 
     // Getters and Setters
@@ -41,7 +47,7 @@ public class User {
     public String getPFPLink() {
         return pfpLink;
     }
-
+    public String getAccessToken() { return accessToken; }
     public void setId(String id) {
         this.id = id;
     }
@@ -57,13 +63,18 @@ public class User {
     public void setPFPLink(String pfpLink) {
         this.pfpLink = pfpLink;
     }
-    // Optional: Override toString() for easy printing of User object details
+    public void setAccessToken(String accessToken) { this.accessToken = accessToken; }
+
     @Override
     public String toString() {
-        return "Username: " + username + "\n" +
-                "id: " + id + "\n" +
+        String userString =  "id: " + id + "\n" +
+                "Username: " + username + "\n" +
                 "Email: " + email + "\n" +
-                Html.fromHtml("<a href=" + profileLink + "> Profile </a>")
+                "Profile Link: " + profileLink + "\n" +
+                "PFP Link: " + pfpLink + "\n" +
+                "Access Token: " + accessToken + "\n"
                 ;
+        Log.println(Log.VERBOSE, "USER INFO", userString);
+        return userString;
     }
 }
