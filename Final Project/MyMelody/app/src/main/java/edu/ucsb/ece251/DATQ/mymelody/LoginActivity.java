@@ -1,10 +1,8 @@
 package edu.ucsb.ece251.DATQ.mymelody;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -12,6 +10,9 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 
 import com.squareup.picasso.Picasso;
 
@@ -22,7 +23,8 @@ public class LoginActivity extends AppCompatActivity {
     private SpotifyService spotifyService;
     private Button loginButton;
     private Button logoutButton;
-    private String accessToken;
+    private User currentUser;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,35 +56,43 @@ public class LoginActivity extends AppCompatActivity {
     }
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        String accessToken = currentUser.getAccessToken();
         int myID = item.getItemId();
         if (myID == R.id.artists){
-            // Handle action for item 1
-            Intent artistIntent = new Intent(this, ArtistActivity.class);
-            artistIntent.putExtra("Access Token", accessToken);
-            startActivity(artistIntent);
-            return true;
+            if(accessToken != null) {
+                Intent artistIntent = new Intent(this, ArtistActivity.class);
+                artistIntent.putExtra("User Info", currentUser.toString());
+                startActivity(artistIntent);
+                return true;
+            } else {
+                showToast("Log in first to see user information!");
+                return false;
+            }
         }else if(myID==R.id.tracks){
-            // Handle action for item 2
-            Intent trackIntent = new Intent(this, TrackActivity.class);
-            trackIntent.putExtra("Access Token", accessToken);
-            startActivity(trackIntent);
-            return true;
+            if(accessToken != null) {
+                Intent trackIntent = new Intent(this, TrackActivity.class);
+                trackIntent.putExtra("User Info", currentUser.toString());
+                startActivity(trackIntent);
+                return true;
+            } else {
+                showToast("Log in first to see user information!");
+                return false;
+            }
         }
         return super.onOptionsItemSelected(item);
     }
-
 
     private void fetchUserInfo(String accessToken) {
         spotifyService.fetchUserInfo(accessToken, new SpotifyService.FetchUserInfoCallback() {
             @Override
             public void onUserInfoFetched(User user) {
-                UserInfo.setText(user.toString());
+                currentUser = user;
+                UserInfo.setText(currentUser.toString());
                 UserInfo.setVisibility(View.VISIBLE);
-                String pfpURL = user.getPFPLink();
+                String pfpURL = currentUser.getPFPLink();
                 Picasso.get().load(pfpURL).into(PFP);
                 PFP.setVisibility(View.VISIBLE);
             }
-
             @Override
             public void onError() {
                 showToast("Failed to fetch user information.");
@@ -91,9 +101,17 @@ public class LoginActivity extends AppCompatActivity {
     }
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-        accessToken = spotifyService.handleAuthResponse(intent);
-
-        if(!accessToken.equals("null")) {
+        String accessToken = spotifyService.handleAuthResponse(intent);
+        Bundle extras = getIntent().getExtras();
+        Log.println(Log.VERBOSE, "Debug", "ASDFHBASJFHFSFa");
+        if (extras != null) {
+            Log.println(Log.VERBOSE, "Debug", "ASDFHBASJFHFSFa");
+            String userInfo = extras.getString("currentUser");
+            currentUser = parseUserString(userInfo);
+            accessToken = currentUser.getAccessToken();
+            Log.println(Log.VERBOSE, "Testing token after back button", accessToken);
+        }
+        if(accessToken != null) {
             LoginPrompt.setText(R.string.success_msg);
             loginButton.setVisibility(View.INVISIBLE);
             logoutButton.setVisibility(View.VISIBLE);
@@ -103,10 +121,6 @@ public class LoginActivity extends AppCompatActivity {
             showToast("Log in failure.");
         }
     }
-    private void showToast(String message) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
-    }
-
     private void logout() {
         LoginPrompt.setText(R.string.login_msg);
         showToast("Logged out.");
@@ -114,5 +128,25 @@ public class LoginActivity extends AppCompatActivity {
         logoutButton.setVisibility(View.INVISIBLE);
         UserInfo.setVisibility(View.INVISIBLE);
         PFP.setVisibility(View.INVISIBLE);
+    }
+    public User parseUserString(String userString) {
+        String[] lines = userString.split("\n");
+        if(lines.length != 6) {
+            return null;
+        }
+        User user = new User(
+                lines[0].substring(lines[0].indexOf(": ") + 2),
+                lines[1].substring(lines[1].indexOf(": ") + 2),
+                lines[2].substring(lines[2].indexOf(": ") + 2),
+                lines[3].substring(lines[3].indexOf(": ") + 2),
+                lines[4].substring(lines[4].indexOf(": ") + 2),
+                lines[5].substring(lines[5].indexOf(": ") + 2)
+        );
+        Log.println(Log.VERBOSE, "TESTING PARSE", user.toString());
+        return user;
+    }
+
+    private void showToast(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 }

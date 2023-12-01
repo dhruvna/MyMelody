@@ -43,5 +43,6 @@ dependencies {
     implementation("com.spotify.android:auth:1.2.6")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation ("com.squareup.picasso:picasso:2.71828")
+    implementation ("com.google.code.gson:gson:2.8.6")
 
 }
