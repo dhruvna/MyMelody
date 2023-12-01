@@ -1,7 +1,9 @@
 package edu.ucsb.ece251.DATQ.mymelody;
+import java.util.StringTokenizer;
 
 import android.util.Log;
 
+import java.util.StringTokenizer;
 public class User {
     private String id;
     private String username;
@@ -11,7 +13,7 @@ public class User {
     private String accessToken;
 
     public User() {
-        //this.id = "";
+        this.id = "";
         this.username= "";
         this.email= "";
         this.profileLink= "";
@@ -19,8 +21,8 @@ public class User {
         this.accessToken= "";
     }
     // Constructor
-    public User(String id, String username, String email, String profileLink, String pfpLink) {
-        //this.id = id;
+    public User(String id, String username, String email, String profileLink, String pfpLink, String accessToken) {
+        this.id = id;
         this.username = username;
         this.email = email;
         this.profileLink = profileLink;
@@ -29,9 +31,9 @@ public class User {
     }
 
     // Getters and Setters
-//    public String getId() {
-//        return id;
-//    }
+    public String getId() {
+        return id;
+    }
     public String getUsername() {
         return username;
     }
@@ -64,13 +66,14 @@ public class User {
 
     @Override
     public String toString() {
-        return "Username: " + username + "\n" +
-                //"id: " + id + "\n" +
+        String userString =  "id: " + id + "\n" +
+                "Username: " + username + "\n" +
                 "Email: " + email + "\n" +
+                //Html.fromHtml("<a href=" + profileLink + "> Profile </a>")
                 "Profile Link: " + profileLink + "\n" +
                 "PFP Link: " + pfpLink + "\n" +
                 "Access Token: " + accessToken + "\n"
-                ;
+        ;
         Log.println(Log.VERBOSE, "USER INFO", userString);
         return userString;
     }
