@@ -89,12 +89,4 @@ public class ArtistActivity extends AppCompatActivity {
     private void showToast(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
-    public void onBackPressed() {
-        Intent goBack = new Intent(this, LoginActivity.class);
-        Log.println(Log.VERBOSE, "Back to Login", "BACK BUTTON PRESSED");
-        goBack.putExtra("Access Token", accessToken);
-        goBack.putExtra("currentUser", currentUser.toString());
-        startActivity(goBack);
-        finish();
-    }
 }

@@ -24,7 +24,7 @@ public class LoginActivity extends AppCompatActivity {
     private Button loginButton;
     private Button logoutButton;
     private User currentUser;
-
+    private boolean loggedIn;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -40,7 +40,10 @@ public class LoginActivity extends AppCompatActivity {
         logoutButton = findViewById(R.id.LogoutButton);
 
         spotifyService = new SpotifyService(this);
-        loginButton.setOnClickListener(view -> spotifyService.authenticateSpotify(this));
+        loginButton.setOnClickListener(view -> {
+            spotifyService.authenticateSpotify(this);
+            loggedIn = true;
+        });
         logoutButton.setOnClickListener(view-> {
             boolean logOutSuccess = spotifyService.logOut();
             if(logOutSuccess) logout();
@@ -56,10 +59,9 @@ public class LoginActivity extends AppCompatActivity {
     }
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        String accessToken = currentUser.getAccessToken();
         int myID = item.getItemId();
         if (myID == R.id.artists){
-            if(accessToken != null) {
+            if(loggedIn) {
                 Intent artistIntent = new Intent(this, ArtistActivity.class);
                 artistIntent.putExtra("User Info", currentUser.toString());
                 startActivity(artistIntent);
@@ -69,7 +71,7 @@ public class LoginActivity extends AppCompatActivity {
                 return false;
             }
         }else if(myID==R.id.tracks){
-            if(accessToken != null) {
+            if(loggedIn) {
                 Intent trackIntent = new Intent(this, TrackActivity.class);
                 trackIntent.putExtra("User Info", currentUser.toString());
                 startActivity(trackIntent);
@@ -128,6 +130,7 @@ public class LoginActivity extends AppCompatActivity {
         logoutButton.setVisibility(View.INVISIBLE);
         UserInfo.setVisibility(View.INVISIBLE);
         PFP.setVisibility(View.INVISIBLE);
+        loggedIn = false;
     }
     public User parseUserString(String userString) {
         String[] lines = userString.split("\n");
