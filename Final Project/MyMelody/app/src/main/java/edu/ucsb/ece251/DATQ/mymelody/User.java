@@ -1,9 +1,6 @@
 package edu.ucsb.ece251.DATQ.mymelody;
-import java.util.StringTokenizer;
 
 import android.util.Log;
-
-import java.util.StringTokenizer;
 public class User {
     private String id;
     private String username;
@@ -12,14 +9,6 @@ public class User {
     private String pfpLink;
     private String accessToken;
 
-    public User() {
-        this.id = "";
-        this.username= "";
-        this.email= "";
-        this.profileLink= "";
-        this.pfpLink= "";
-        this.accessToken= "";
-    }
     // Constructor
     public User(String id, String username, String email, String profileLink, String pfpLink, String accessToken) {
         this.id = id;
@@ -47,22 +36,6 @@ public class User {
         return pfpLink;
     }
     public String getAccessToken() { return accessToken; }
-    public void setId(String id) {
-        this.id = id;
-    }
-    public void setUsername(String username) {
-        this.username = username;
-    }
-    public void setEmail(String email) {
-        this.email = email;
-    }
-    public void setProfileLink(String profileLink) {
-        this.profileLink = profileLink;
-    }
-    public void setPFPLink(String pfpLink) {
-        this.pfpLink = pfpLink;
-    }
-    public void setAccessToken(String accessToken) { this.accessToken = accessToken; }
 
     @Override
     public String toString() {

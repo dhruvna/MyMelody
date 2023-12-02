@@ -99,11 +99,9 @@ public class LoginActivity extends AppCompatActivity {
         super.onNewIntent(intent);
         String accessToken = spotifyService.handleAuthResponse(intent);
         Bundle extras = getIntent().getExtras();
-        Log.println(Log.VERBOSE, "Debug", "ASDFHBASJFHFSFa");
         if (extras != null) {
-            Log.println(Log.VERBOSE, "Debug", "ASDFHBASJFHFSFa");
             String userInfo = extras.getString("currentUser");
-            currentUser = parseUserString(userInfo);
+            if (userInfo != null) currentUser = parseUserString(userInfo);
             accessToken = currentUser.getAccessToken();
             Log.println(Log.VERBOSE, "Testing token after back button", accessToken);
         }

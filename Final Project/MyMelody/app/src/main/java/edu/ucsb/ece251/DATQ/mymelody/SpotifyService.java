@@ -1,5 +1,6 @@
  package edu.ucsb.ece251.DATQ.mymelody;
 
+ import android.annotation.SuppressLint;
  import android.app.Activity;
  import android.content.Intent;
  import android.net.Uri;
@@ -21,6 +22,7 @@ public class SpotifyService {
 
     private static final String REDIRECT_URI = "mymelody://callback";
     private static final String CLIENT_ID = "44d8159e766e496f9b8ce905397518af";
+    @SuppressLint("StaticFieldLeak")
     private static Activity activity = null;
     private static String accessToken = null;
 
@@ -31,13 +33,10 @@ public class SpotifyService {
     public void setAccessToken(String token) {
         accessToken = token;
     }
-    public String getAccessToken() {
-        return accessToken;
-    }
 
     // Create authentication request
     public void authenticateSpotify(Activity activity) {
-        Log.println(Log.VERBOSE, "startauth", "Starting authentication process");
+        Log.println(Log.VERBOSE, "Starting Auth", "Starting authentication process");
         final AuthorizationRequest request = new AuthorizationRequest.Builder(CLIENT_ID, AuthorizationResponse.Type.TOKEN, REDIRECT_URI)
                 .setScopes(new String[]{"user-read-email", "user-read-private", "user-read-recently-played", "playlist-read-private", "user-top-read", "user-follow-read"})
                 .setShowDialog(true)
@@ -52,7 +51,7 @@ public class SpotifyService {
             if (response.getType() == AuthorizationResponse.Type.TOKEN) {
                 String token = response.getAccessToken();
                 setAccessToken(token);
-                Log.println(Log.VERBOSE, "finishauth", "Successfully completed authentication process");
+                Log.println(Log.VERBOSE, "Finished Auth", "Successfully completed authentication process");
                 return token;
             }
         }
@@ -124,7 +123,7 @@ public class SpotifyService {
                     .build();
             try (Response response = client.newCall(request).execute()) {
                 if(response.isSuccessful() && response.body() != null) {
-                    Log.println(Log.VERBOSE, "trackfetcher", "received response for tracks!");
+                    Log.println(Log.VERBOSE, "Track Fetcher", "Received response for tracks!");
                     String responseData = response.body().string();
                     JSONObject jsonResponse = new JSONObject(responseData);
                     // Extract user information from the JSON object
@@ -166,7 +165,7 @@ public class SpotifyService {
                     .build();
             try (Response response = client.newCall(request).execute()) {
                 if(response.isSuccessful() && response.body() != null) {
-                    Log.println(Log.VERBOSE, "artistfetcher", "received response for artists!");
+                    Log.println(Log.VERBOSE, "Artist Fetcher", "Received response for artists!");
                     String responseData = response.body().string();
                     JSONObject jsonResponse = new JSONObject(responseData);
                     // Extract user information from the JSON object

@@ -1,9 +1,7 @@
 package edu.ucsb.ece251.DATQ.mymelody;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -36,7 +34,7 @@ public class ArtistActivity extends AppCompatActivity {
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
             String userInfo = extras.getString("User Info");
-            currentUser = parseUserString(userInfo);
+            if (userInfo != null) currentUser = parseUserString(userInfo);
             accessToken = currentUser.getAccessToken();
         }
         if (accessToken != null) {
@@ -56,8 +54,8 @@ public class ArtistActivity extends AppCompatActivity {
             public void onArtistFetched(String Artists) {
                 String[] ArtistList = Artists.split("%20");
                 int numArtists = Integer.parseInt(ArtistList[0]);
-                artistArrayList.clear(); // Clear the current aritst list
-                for(int i = 1; i <= numArtists; i++) {
+                artistArrayList.clear(); // Clear the current artist list
+                for (int i = 1; i <= numArtists; i++) {
                     // Assuming a default rating of 0 for all artists initially
                     artistArrayList.add(new Artist(ArtistList[i],0));
                 }
@@ -72,10 +70,8 @@ public class ArtistActivity extends AppCompatActivity {
 
     public User parseUserString(String userString) {
         String[] lines = userString.split("\n");
-        if(lines.length != 6) {
-            return null;
-        }
-        User user = new User(
+        if (lines.length != 6) return null;
+        return new User(
                 lines[0].substring(lines[0].indexOf(": ") + 2),
                 lines[1].substring(lines[1].indexOf(": ") + 2),
                 lines[2].substring(lines[2].indexOf(": ") + 2),
@@ -83,8 +79,6 @@ public class ArtistActivity extends AppCompatActivity {
                 lines[4].substring(lines[4].indexOf(": ") + 2),
                 lines[5].substring(lines[5].indexOf(": ") + 2)
         );
-        Log.println(Log.VERBOSE, "TESTING PARSE", user.toString());
-        return user;
     }
 
     private void showToast(String message) {
