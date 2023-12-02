@@ -12,7 +12,6 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
-// No need to import Track if it's in the same package
 
 public class TrackAdapter extends ArrayAdapter<Track> {
     public TrackAdapter(Context context, ArrayList<Track> tracks) {
@@ -52,7 +51,6 @@ public class TrackAdapter extends ArrayAdapter<Track> {
                 public void beforeTextChanged(CharSequence charSequence, int start, int count, int after) {
                     // No action needed here for this example
                 }
-
                 @Override
                 public void onTextChanged(CharSequence charSequence, int start, int before, int count) {
                     // No action needed here for this example

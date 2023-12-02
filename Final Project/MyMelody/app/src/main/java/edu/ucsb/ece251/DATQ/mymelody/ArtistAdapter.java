@@ -12,7 +12,7 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
-// Assuming Artist is a class you've defined with getName() and getRating() methods.
+
 public class ArtistAdapter extends ArrayAdapter<Artist> {
     public ArtistAdapter(Context context, ArrayList<Artist> artists) {
         super(context, 0, artists);
@@ -46,16 +46,15 @@ public class ArtistAdapter extends ArrayAdapter<Artist> {
             holder.etArtistScore.setText(artist.getRating() >= 0 ? String.valueOf(artist.getRating()) : "");
 
             TextWatcher textWatcher = new TextWatcher() {
+                // beforeTextChanged, onTextChanged, afterTextChanged implementation
                 @Override
                 public void beforeTextChanged(CharSequence charSequence, int start, int count, int after) {
                     // No action needed here for this example
                 }
-
                 @Override
                 public void onTextChanged(CharSequence charSequence, int start, int before, int count) {
                     // No action needed here for this example
                 }
-
                 @Override
                 public void afterTextChanged(Editable s) {
                     try {
@@ -66,7 +65,7 @@ public class ArtistAdapter extends ArrayAdapter<Artist> {
                     }
                 }
 
-                // Implement other required methods of TextWatcher (beforeTextChanged, onTextChanged)
+                // Other methods (beforeTextChanged, onTextChanged) can remain empty if not needed
             };
 
             holder.etArtistScore.addTextChangedListener(textWatcher);
