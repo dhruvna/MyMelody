@@ -44,10 +44,12 @@ public class TrackActivity extends AppCompatActivity {
             fetchUserTopTracks(accessToken);
         }
     }
+
     private void sortTrackByScore() {
         Collections.sort(trackArrayList, (track1, track2) -> Integer.compare(track2.getRating(), track1.getRating()));
         trackAdapter.notifyDataSetChanged();
     }
+
     private void fetchUserTopTracks(String accessToken) {
         spotifyService.fetchUserTopTracks(accessToken, new SpotifyService.FetchTrackCallback() {
             @Override
@@ -61,13 +63,13 @@ public class TrackActivity extends AppCompatActivity {
                 }
                 trackAdapter.notifyDataSetChanged(); // Notify the adapter that the data set has changed
             }
-
             @Override
             public void onError() {
                 showToast("Failed to fetch top tracks.");
             }
         });
     }
+
     public User parseUserString(String userString) {
         String[] lines = userString.split("\n");
         if(lines.length != 6) {
@@ -84,6 +86,7 @@ public class TrackActivity extends AppCompatActivity {
         Log.println(Log.VERBOSE, "TESTING PARSE", user.toString());
         return user;
     }
+
     private void showToast(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }

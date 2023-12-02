@@ -11,12 +11,11 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 
 public class ArtistActivity extends AppCompatActivity {
-    private ArrayList<Artist> ArtistArray;
-    private ArtistAdapter adapter;
+    private ArrayList<Artist> artistArrayList;
+    private ArtistAdapter artistAdapter;
     private SpotifyService spotifyService;
     private String accessToken;
     private User currentUser;
@@ -26,10 +25,10 @@ public class ArtistActivity extends AppCompatActivity {
         setContentView(R.layout.activity_artist);
 
         spotifyService = new SpotifyService(this);
-        ArtistArray = new ArrayList<>();
-        adapter = new ArtistAdapter(this, ArtistArray);
+        artistArrayList = new ArrayList<>();
+        artistAdapter = new ArtistAdapter(this, artistArrayList); // Initialize ArtistAdapter with the artist list
         ListView ArtistList = findViewById(R.id.ArtistList);
-        ArtistList.setAdapter(adapter);
+        ArtistList.setAdapter(artistAdapter); // Set the adapter for the ListView
 
         Button sortButton = findViewById(R.id.btnSortArtists);
         sortButton.setOnClickListener(view -> sortArtistsByScore());
@@ -45,28 +44,30 @@ public class ArtistActivity extends AppCompatActivity {
             fetchUserTopArtists(accessToken);
         }
     }
+
+    private void sortArtistsByScore() {
+        Collections.sort(artistArrayList, (artist1, artist2) -> Integer.compare(artist2.getRating(), artist1.getRating()));
+        artistAdapter.notifyDataSetChanged();
+    }
+
     private void fetchUserTopArtists(String accessToken) {
         spotifyService.fetchUserTopArtists(accessToken, new SpotifyService.FetchArtistCallback() {
             @Override
             public void onArtistFetched(String Artists) {
                 String[] ArtistList = Artists.split("%20");
                 int numArtists = Integer.parseInt(ArtistList[0]);
-                ArtistArray.clear();
+                artistArrayList.clear(); // Clear the current aritst list
                 for(int i = 1; i <= numArtists; i++) {
-                    ArtistArray.add(new Artist(ArtistList[i],0));
+                    // Assuming a default rating of 0 for all artists initially
+                    artistArrayList.add(new Artist(ArtistList[i],0));
                 }
-                adapter.notifyDataSetChanged();
+                artistAdapter.notifyDataSetChanged(); // Notify the adapter that the data set has changed
             }
             @Override
             public void onError() {
                 showToast("Failed to fetch top Artists.");
             }
         });
-    }
-
-    private void sortArtistsByScore() {
-        Collections.sort(ArtistArray, (artist1, artist2) -> Integer.compare(artist2.getRating(), artist1.getRating()));
-        adapter.notifyDataSetChanged();
     }
 
     public User parseUserString(String userString) {

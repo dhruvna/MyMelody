@@ -45,8 +45,7 @@ public class LoginActivity extends AppCompatActivity {
             loggedIn = true;
         });
         logoutButton.setOnClickListener(view-> {
-            boolean logOutSuccess = spotifyService.logOut();
-            if(logOutSuccess) logout();
+            if(spotifyService.logOut()) logout();
         });
     }
 
@@ -60,26 +59,21 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int myID = item.getItemId();
-        if (myID == R.id.artists){
-            if(loggedIn) {
+        if(loggedIn) {
+            if (myID == R.id.artists){
                 Intent artistIntent = new Intent(this, ArtistActivity.class);
                 artistIntent.putExtra("User Info", currentUser.toString());
                 startActivity(artistIntent);
                 return true;
-            } else {
-                showToast("Log in first to see user information!");
-                return false;
-            }
-        }else if(myID==R.id.tracks){
-            if(loggedIn) {
+            } else if (myID == R.id.tracks){
                 Intent trackIntent = new Intent(this, TrackActivity.class);
                 trackIntent.putExtra("User Info", currentUser.toString());
                 startActivity(trackIntent);
                 return true;
-            } else {
-                showToast("Log in first to see user information!");
-                return false;
             }
+        } else {
+            showToast("Log in first to see user information!");
+            return false;
         }
         return super.onOptionsItemSelected(item);
     }
