@@ -4,12 +4,14 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class TrackActivity extends AppCompatActivity {
     private ArrayList<Track> trackArrayList; // Use Track model
@@ -27,6 +29,10 @@ public class TrackActivity extends AppCompatActivity {
         trackAdapter = new TrackAdapter(this, trackArrayList); // Initialize TrackAdapter with the track list
         ListView trackListView = findViewById(R.id.TrackList);
         trackListView.setAdapter(trackAdapter); // Set the adapter for the ListView
+
+        Button sortButton = findViewById(R.id.btnSortTracks);
+        sortButton.setOnClickListener(view -> sortTrackByScore());
+
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
             String userInfo = extras.getString("User Info");
@@ -38,7 +44,10 @@ public class TrackActivity extends AppCompatActivity {
             fetchUserTopTracks(accessToken);
         }
     }
-
+    private void sortTrackByScore() {
+        Collections.sort(trackArrayList, (track1, track2) -> Integer.compare(track2.getRating(), track1.getRating()));
+        trackAdapter.notifyDataSetChanged();
+    }
     private void fetchUserTopTracks(String accessToken) {
         spotifyService.fetchUserTopTracks(accessToken, new SpotifyService.FetchTrackCallback() {
             @Override

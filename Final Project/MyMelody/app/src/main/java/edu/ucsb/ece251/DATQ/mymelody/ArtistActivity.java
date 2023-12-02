@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -11,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 
 public class ArtistActivity extends AppCompatActivity {
     private ArrayList<Artist> ArtistArray;
@@ -28,6 +30,10 @@ public class ArtistActivity extends AppCompatActivity {
         adapter = new ArtistAdapter(this, ArtistArray);
         ListView ArtistList = findViewById(R.id.ArtistList);
         ArtistList.setAdapter(adapter);
+
+        Button sortButton = findViewById(R.id.btnSortArtists);
+        sortButton.setOnClickListener(view -> sortArtistsByScore());
+
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
             String userInfo = extras.getString("User Info");
@@ -56,6 +62,11 @@ public class ArtistActivity extends AppCompatActivity {
                 showToast("Failed to fetch top Artists.");
             }
         });
+    }
+
+    private void sortArtistsByScore() {
+        Collections.sort(ArtistArray, (artist1, artist2) -> Integer.compare(artist2.getRating(), artist1.getRating()));
+        adapter.notifyDataSetChanged();
     }
 
     public User parseUserString(String userString) {

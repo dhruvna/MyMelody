@@ -20,21 +20,32 @@ public class ArtistAdapter extends ArrayAdapter<Artist> {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        if (convertView == null) {
-            convertView = LayoutInflater.from(getContext()).inflate(R.layout.artistlist, parent, false);
-        }
+        ViewHolder holder;
 
-        TextView tvArtistName = convertView.findViewById(R.id.tvArtistName); // Make sure this ID exists
-        EditText etArtistRating = convertView.findViewById(R.id.etArtistScore); // Make sure this ID exists
+        if (convertView == null) {
+            convertView = LayoutInflater.from(getContext()).inflate(R.layout.artistlist, parent, false); // Ensure this is the correct layout
+            holder = new ViewHolder();
+            holder.tvArtistName = convertView.findViewById(R.id.tvArtistName);
+            holder.etArtistScore = convertView.findViewById(R.id.etArtistScore);
+
+            convertView.setTag(holder);
+        } else {
+            holder = (ViewHolder) convertView.getTag();
+        }
 
         Artist artist = getItem(position);
 
         if (artist != null) {
-            tvArtistName.setText(artist.getName());
-            etArtistRating.setText(artist.getRating() > 0 && artist.getRating() <= 10 ? String.valueOf(artist.getRating()) : "");
+            holder.tvArtistName.setText(artist.getName());
 
-            etArtistRating.addTextChangedListener(new TextWatcher() {
-                // Your TextWatcher implementation
+            // Remove the existing TextWatcher
+            if (holder.etArtistScore.getTag() instanceof TextWatcher) {
+                holder.etArtistScore.removeTextChangedListener((TextWatcher) holder.etArtistScore.getTag());
+            }
+
+            holder.etArtistScore.setText(artist.getRating() >= 0 ? String.valueOf(artist.getRating()) : "");
+
+            TextWatcher textWatcher = new TextWatcher() {
                 @Override
                 public void beforeTextChanged(CharSequence charSequence, int start, int count, int after) {
                     // No action needed here for this example
@@ -46,18 +57,27 @@ public class ArtistAdapter extends ArrayAdapter<Artist> {
                 }
 
                 @Override
-                public void afterTextChanged(Editable editable) {
-                    // Here you respond after the text has changed
+                public void afterTextChanged(Editable s) {
                     try {
-                        int rating = Integer.parseInt(editable.toString());
+                        int rating = Integer.parseInt(s.toString());
                         artist.setRating(rating);
                     } catch (NumberFormatException e) {
-                        artist.setRating(0);
+                        artist.setRating(0); // Or handle this as you see fit
                     }
                 }
-            });
+
+                // Implement other required methods of TextWatcher (beforeTextChanged, onTextChanged)
+            };
+
+            holder.etArtistScore.addTextChangedListener(textWatcher);
+            holder.etArtistScore.setTag(textWatcher); // Store the watcher in the tag for later removal
         }
 
         return convertView;
+    }
+
+    static class ViewHolder {
+        TextView tvArtistName;
+        EditText etArtistScore;
     }
 }

@@ -21,21 +21,33 @@ public class TrackAdapter extends ArrayAdapter<Track> {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
+        ViewHolder holder;
+
         if (convertView == null) {
-            convertView = LayoutInflater.from(getContext()).inflate(R.layout.tracklist, parent, false);
+            convertView = LayoutInflater.from(getContext()).inflate(R.layout.tracklist, parent, false); // Ensure this is the correct layout
+            holder = new ViewHolder();
+            holder.tvTrackName = convertView.findViewById(R.id.tvTrackName);
+            holder.etTrackScore = convertView.findViewById(R.id.etTrackScore);
+
+            convertView.setTag(holder);
+        } else {
+            holder = (ViewHolder) convertView.getTag();
         }
 
-        TextView tvTrackName = convertView.findViewById(R.id.tvTrackName);
-        EditText etTrackRating = convertView.findViewById(R.id.etTrackScore);
-
-        // Now 'track' is correctly recognized as an instance of Track class
         Track track = getItem(position);
 
         if (track != null) {
-            tvTrackName.setText(track.getName());
-            etTrackRating.setText(track.getRating() > 0 && track.getRating()<=10 ? String.valueOf(track.getRating()) : "");
+            holder.tvTrackName.setText(track.getName());
 
-            etTrackRating.addTextChangedListener(new TextWatcher() {
+            // Remove the existing TextWatcher
+            if (holder.etTrackScore.getTag() instanceof TextWatcher) {
+                holder.etTrackScore.removeTextChangedListener((TextWatcher) holder.etTrackScore.getTag());
+            }
+
+            holder.etTrackScore.setText(track.getRating() >= 0 ? String.valueOf(track.getRating()) : "");
+
+            TextWatcher textWatcher = new TextWatcher() {
+                // beforeTextChanged, onTextChanged, afterTextChanged implementation
                 @Override
                 public void beforeTextChanged(CharSequence charSequence, int start, int count, int after) {
                     // No action needed here for this example
@@ -45,21 +57,29 @@ public class TrackAdapter extends ArrayAdapter<Track> {
                 public void onTextChanged(CharSequence charSequence, int start, int before, int count) {
                     // No action needed here for this example
                 }
-
                 @Override
-                public void afterTextChanged(Editable editable) {
-                    // Here you respond after the text has changed
+                public void afterTextChanged(Editable s) {
                     try {
-                        int rating = Integer.parseInt(editable.toString());
+                        int rating = Integer.parseInt(s.toString());
                         track.setRating(rating);
                     } catch (NumberFormatException e) {
-                        track.setRating(0);
+                        track.setRating(0); // Or handle this as you see fit
                     }
                 }
-                // Implement other required methods of TextWatcher (beforeTextChanged, onTextChanged)
-            });
+
+                // Other methods (beforeTextChanged, onTextChanged) can remain empty if not needed
+            };
+
+            holder.etTrackScore.addTextChangedListener(textWatcher);
+            holder.etTrackScore.setTag(textWatcher); // Store the watcher in the tag for later removal
         }
 
         return convertView;
     }
+
+    static class ViewHolder {
+        TextView tvTrackName;
+        EditText etTrackScore;
+    }
+
 }
