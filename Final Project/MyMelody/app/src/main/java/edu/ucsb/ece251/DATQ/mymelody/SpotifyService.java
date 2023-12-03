@@ -114,11 +114,23 @@ public class SpotifyService {
         void onTrackFetched(String tracks);
         void onError();
     }
-    public void fetchUserTopTracks(String accessToken, FetchTrackCallback callback) {
+    public void fetchUserTopTracks(String accessToken, int rangeSetting, FetchTrackCallback callback) {
         new Thread(() -> {
             OkHttpClient client = new OkHttpClient();
+            String url = "";
+            switch(rangeSetting) {
+                case 0:
+                    url = "https://api.spotify.com/v1/me/top/tracks?time_range=short_term";
+                    break;
+                case 1:
+                    url = "https://api.spotify.com/v1/me/top/tracks?time_range=medium_term";
+                    break;
+                case 2:
+                    url = "https://api.spotify.com/v1/me/top/tracks?time_range=long_term";
+                    break;
+            }
             Request request = new Request.Builder()
-                    .url("https://api.spotify.com/v1/me/top/tracks")
+                    .url(url)
                     .addHeader("Authorization", "Bearer " + accessToken)
                     .build();
             try (Response response = client.newCall(request).execute()) {

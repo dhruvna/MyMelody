@@ -2,8 +2,12 @@ package edu.ucsb.ece251.DATQ.mymelody;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -17,6 +21,12 @@ public class TrackActivity extends AppCompatActivity {
     private SpotifyService spotifyService;
     private String accessToken;
     private User currentUser;
+
+    private int rangeSetting;
+    final static int lastMonth = 0;
+    final static int last6Months = 1;
+    final static int allTime = 2;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -31,6 +41,38 @@ public class TrackActivity extends AppCompatActivity {
         Button sortButton = findViewById(R.id.btnSortTracks);
         sortButton.setOnClickListener(view -> sortTrackByScore());
 
+        Spinner timeRange = findViewById(R.id.timeRange);
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
+                R.array.time_range_options, android.R.layout.simple_spinner_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        timeRange.setAdapter(adapter);
+
+        timeRange.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String selectedTimeRange = (String) parent.getItemAtPosition(position);
+                switch(selectedTimeRange) {
+                    case "Last Month":
+                        rangeSetting = lastMonth;
+                        break;
+                    case "Last 6 Months":
+                        rangeSetting = last6Months;
+                        break;
+                    case "All Time":
+                        rangeSetting = allTime;
+                        break;
+                }
+                // Handle the selected item
+                Log.println(Log.VERBOSE, "Range selected", "Range: " + selectedTimeRange);
+                handleTimeRangeSelection(rangeSetting);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                // Another interface callback
+            }
+        });
+
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
             String userInfo = extras.getString("User Info");
@@ -39,7 +81,7 @@ public class TrackActivity extends AppCompatActivity {
         }
         if (accessToken != null) {
             Log.println(Log.VERBOSE, "Received token", accessToken);
-            fetchUserTopTracks(accessToken);
+            fetchUserTopTracks(accessToken, rangeSetting);
         }
     }
 
@@ -48,8 +90,8 @@ public class TrackActivity extends AppCompatActivity {
         trackAdapter.notifyDataSetChanged();
     }
 
-    private void fetchUserTopTracks(String accessToken) {
-        spotifyService.fetchUserTopTracks(accessToken, new SpotifyService.FetchTrackCallback() {
+    private void fetchUserTopTracks(String accessToken, int rangeSetting) {
+        spotifyService.fetchUserTopTracks(accessToken, rangeSetting, new SpotifyService.FetchTrackCallback() {
             @Override
             public void onTrackFetched(String tracks) {
                 String[] trackList = tracks.split("%20");
@@ -79,6 +121,13 @@ public class TrackActivity extends AppCompatActivity {
                 lines[4].substring(lines[4].indexOf(": ") + 2),
                 lines[5].substring(lines[5].indexOf(": ") + 2)
         );
+    }
+
+    private void handleTimeRangeSelection(int rangeSetting) {
+        // Implement your logic based on the selected time range
+        // For example, fetch data for 'Last Month', 'Last 6 Months', or 'All Time'
+        fetchUserTopTracks(accessToken, rangeSetting);
+        trackAdapter.notifyDataSetChanged();
     }
 
     private void showToast(String message) {

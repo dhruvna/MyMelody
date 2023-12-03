@@ -5,4 +5,10 @@
     <string name="fail_msg">Login failed. Try again!</string>
     <string name="login_btn">Login to Spotify</string>
     <string name="logout_btn">Logout</string>
+    <string-array name="time_range_options">
+        <item>Last Month</item>
+        <item>Last 6 Months</item>
+        <item>All Time</item>
+    </string-array>
+
 </resources>

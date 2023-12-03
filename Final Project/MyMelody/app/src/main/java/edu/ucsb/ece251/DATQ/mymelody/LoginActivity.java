@@ -26,16 +26,17 @@ public class LoginActivity extends AppCompatActivity {
     private Button logoutButton;
     private User currentUser;
     private boolean loggedIn;
+    private Toolbar toolbar;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        Toolbar toolbar = findViewById(R.id.Toolbar);
+        toolbar = findViewById(R.id.Toolbar);
         setSupportActionBar(toolbar);
 
         LoginPrompt = findViewById(R.id.LoginPrompt);
-        UserInfo = findViewById(R.id.UserInfo);
+//        UserInfo = findViewById(R.id.UserInfo);
         PFP = findViewById(R.id.pfp);
         loginButton = findViewById(R.id.LoginButton);
         logoutButton = findViewById(R.id.LogoutButton);
@@ -87,6 +88,7 @@ public class LoginActivity extends AppCompatActivity {
                 currentUser = user;
 //                UserInfo.setText(currentUser.toString());
 //                UserInfo.setVisibility(View.VISIBLE);
+                toolbar.setTitle(currentUser.getUsername());
                 String pfpURL = currentUser.getPFPLink();
                 Picasso.get().load(pfpURL).into(PFP);
                 PFP.setVisibility(View.VISIBLE);
