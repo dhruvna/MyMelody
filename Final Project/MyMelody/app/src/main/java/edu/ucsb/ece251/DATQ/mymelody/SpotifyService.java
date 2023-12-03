@@ -38,7 +38,7 @@ public class SpotifyService {
     public void authenticateSpotify(Activity activity) {
         Log.println(Log.VERBOSE, "Starting Auth", "Starting authentication process");
         final AuthorizationRequest request = new AuthorizationRequest.Builder(CLIENT_ID, AuthorizationResponse.Type.TOKEN, REDIRECT_URI)
-                .setScopes(new String[]{"user-read-email", "user-read-private", "user-read-recently-played", "playlist-read-private", "user-top-read", "user-follow-read"})
+                .setScopes(new String[]{"user-read-email", "user-read-private", "user-read-recently-played", "playlist-read-private", "user-top-read", "user-follow-read", "user-read-currently-playing"})
                 .setShowDialog(true)
                 .build();
 
@@ -215,6 +215,47 @@ public class SpotifyService {
                 }
             } catch (Exception e) {
                 // Run on the main thread
+                activity.runOnUiThread(callback::onError);
+            }
+        }).start();
+    }
+
+    public interface FetchSongCallback {
+        void onSongFetched(String songName, String artistName, String albumArtUrl, int progress, int duration);
+        void onError();
+    }
+    public void fetchCurrentSong(FetchSongCallback callback) {
+        new Thread(() -> {
+            OkHttpClient client = new OkHttpClient();
+            String url = "https://api.spotify.com/v1/me/player/currently-playing?market=US";
+            Request request = new Request.Builder()
+                    .url(url)
+                    .addHeader("Authorization", "Bearer " + accessToken)
+                    .build();
+            Log.println(Log.VERBOSE, "url", request.toString());
+            try (Response response = client.newCall(request).execute()) {
+                if (response.isSuccessful() && response.body() != null) {
+                    Log.println(Log.VERBOSE, "Current Song Fetcher", "Received response for current song");
+                    String responseData = response.body().string();
+                    JSONObject jsonResponse = new JSONObject(responseData);
+                    // Extract track information
+                    JSONObject track = jsonResponse.getJSONObject("item");
+                    String trackName = track.getString("name");
+                    JSONArray artistsArray = track.getJSONArray("artists");
+                    String artistName = artistsArray.getJSONObject(0).getString("name"); // Assuming first artist
+                    JSONObject album = track.getJSONObject("album");
+                    String albumArtUrl = album.getJSONArray("images").getJSONObject(0).getString("url"); // Assuming first image
+                    int progress = jsonResponse.getInt("progress_ms");
+                    int duration = track.getInt("duration_ms");
+                    // Use Handler to run on UI thread
+                    activity.runOnUiThread(() -> callback.onSongFetched(trackName, artistName, albumArtUrl, progress, duration));
+                } else {
+                    // Handle response failure
+                    Log.println(Log.ERROR, "Track Fetcher", "Failed to fetch current track");
+                    activity.runOnUiThread(callback::onError);
+                }
+            } catch (Exception e) {
+                Log.println(Log.ERROR, "Track Fetcher", "Error fetching current track: " + e.getMessage());
                 activity.runOnUiThread(callback::onError);
             }
         }).start();
