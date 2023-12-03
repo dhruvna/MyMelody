@@ -1,5 +1,7 @@
 package edu.ucsb.ece251.DATQ.mymelody;
 
+import android.app.AlertDialog;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -14,7 +16,13 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
+import java.lang.reflect.Type;
+
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class ArtistActivity extends AppCompatActivity {
     private ArrayList<Artist> artistArrayList;
@@ -41,8 +49,10 @@ public class ArtistActivity extends AppCompatActivity {
         ListView ArtistList = findViewById(R.id.ArtistList);
         ArtistList.setAdapter(artistAdapter); // Set the adapter for the ListView
 
+        loadArtistsFromPreferences();
+
         Button sortButton = findViewById(R.id.btnSortArtists);
-        sortButton.setOnClickListener(view -> sortArtistsByScore());
+        sortButton.setOnClickListener(view -> showSortingOptions());
 
         Spinner timeRange = findViewById(R.id.timeRange);
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
@@ -105,15 +115,58 @@ public class ArtistActivity extends AppCompatActivity {
             if (userInfo != null) currentUser = parseUserString(userInfo);
             accessToken = currentUser.getAccessToken();
         }
-        if (accessToken != null) {
+        if (accessToken != null && artistArrayList.isEmpty()) {
             Log.println(Log.VERBOSE, "Received token", accessToken);
             fetchUserTopArtists(accessToken, rangeSetting, numArtists);
         }
     }
+    private void saveArtistsToPreferences() {
+        SharedPreferences prefs = getSharedPreferences("ArtistPrefs", MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        Gson gson = new Gson();
+        String json = gson.toJson(artistArrayList);
+        editor.putString("artistList", json);
+        editor.apply();
+    }
 
-    private void sortArtistsByScore() {
-        artistArrayList.sort((artist1, artist2) -> Integer.compare(artist2.getRating(), artist1.getRating()));
-        showToast("Sorting by your scores!");
+    private void loadArtistsFromPreferences() {
+        SharedPreferences prefs = getSharedPreferences("ArtistPrefs", MODE_PRIVATE);
+        Gson gson = new Gson();
+        String json = prefs.getString("artistList", null);
+        Type type = new TypeToken<ArrayList<Artist>>() {}.getType();
+        artistArrayList = gson.fromJson(json, type);
+
+        if (artistArrayList == null) {
+            artistArrayList = new ArrayList<>();
+        }
+
+        // Initialize and set your adapter here
+        artistAdapter = new ArtistAdapter(this, artistArrayList);
+        ListView artistListView = findViewById(R.id.ArtistList);
+        artistListView.setAdapter(artistAdapter);
+    }
+
+    private void sortArtistByScore(boolean ascending) {
+        if (ascending) {
+            // Sort ascending by name
+            Collections.sort(artistArrayList, (artist1, artist2) -> {
+                int scoreComparison = Integer.compare(artist1.getRating(), artist2.getRating());
+                if (scoreComparison == 0) {
+                    return artist1.getName().compareToIgnoreCase(artist2.getName());
+                }
+                return scoreComparison;
+            });
+        } else {
+            // Sort descending by score and then by name if scores are equal
+            Collections.sort(artistArrayList, (artist1, artist2) -> {
+                int scoreComparison = Integer.compare(artist2.getRating(), artist1.getRating());
+                if (scoreComparison == 0) {
+                    return artist1.getName().compareToIgnoreCase(artist2.getName());
+                }
+                return scoreComparison;
+            });
+        }
+
         artistAdapter.notifyDataSetChanged();
     }
 
@@ -156,7 +209,25 @@ public class ArtistActivity extends AppCompatActivity {
         fetchUserTopArtists(accessToken, rangeSetting, numArtists);
         artistAdapter.notifyDataSetChanged();
     }
+    @Override
+    protected void onPause() {
+        super.onPause();
+        saveArtistsToPreferences();
+    }
+    private void showSortingOptions() {
+        String[] options = {"Sort Ascending", "Sort Descending"};
 
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Choose Sorting Option");
+        builder.setItems(options, (dialog, which) -> {
+            if (which == 0) {
+                sortArtistByScore(true); // Ascending
+            } else {
+                sortArtistByScore(false); // Descending
+            }
+        });
+        builder.show();
+    }
     private void showToast(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }

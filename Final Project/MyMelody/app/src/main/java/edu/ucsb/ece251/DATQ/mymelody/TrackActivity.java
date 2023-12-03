@@ -1,5 +1,7 @@
 package edu.ucsb.ece251.DATQ.mymelody;
 
+import android.app.AlertDialog;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -14,7 +16,13 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
+import java.lang.reflect.Type;
+
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class TrackActivity extends AppCompatActivity {
     private ArrayList<Track> trackArrayList; // Use Track model
@@ -41,8 +49,10 @@ public class TrackActivity extends AppCompatActivity {
         ListView trackListView = findViewById(R.id.TrackList);
         trackListView.setAdapter(trackAdapter); // Set the adapter for the ListView
 
+        loadTracksFromPreferences();
+
         Button sortButton = findViewById(R.id.btnSortTracks);
-        sortButton.setOnClickListener(view -> sortTrackByScore());
+        sortButton.setOnClickListener(view -> showSortingOptions());
 
         Spinner timeRange = findViewById(R.id.timeRange);
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
@@ -105,15 +115,57 @@ public class TrackActivity extends AppCompatActivity {
             if (userInfo != null) currentUser = parseUserString(userInfo);
             accessToken = currentUser.getAccessToken();
         }
-        if (accessToken != null) {
+        if (accessToken != null && trackArrayList.isEmpty()) {
             Log.println(Log.VERBOSE, "Received token", accessToken);
             fetchUserTopTracks(accessToken, rangeSetting, numTracks);
         }
     }
+    private void saveTracksToPreferences() {
+        SharedPreferences prefs = getSharedPreferences("TrackPrefs", MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        Gson gson = new Gson();
+        String json = gson.toJson(trackArrayList);
+        editor.putString("trackList", json);
+        editor.apply();
+    }
 
-    private void sortTrackByScore() {
-        trackArrayList.sort((track1, track2) -> Integer.compare(track2.getRating(), track1.getRating()));
-        showToast("Sorting by your scores!");
+    private void loadTracksFromPreferences() {
+        SharedPreferences prefs = getSharedPreferences("TrackPrefs", MODE_PRIVATE);
+        Gson gson = new Gson();
+        String json = prefs.getString("trackList", null);
+        Type type = new TypeToken<ArrayList<Track>>() {}.getType();
+        trackArrayList = gson.fromJson(json, type);
+
+        if (trackArrayList == null) {
+            trackArrayList = new ArrayList<>();
+        }
+
+        // Initialize and set your adapter here
+        trackAdapter = new TrackAdapter(this, trackArrayList);
+        ListView trackListView = findViewById(R.id.TrackList);
+        trackListView.setAdapter(trackAdapter);
+    }
+    private void sortTrackByScore(boolean ascending) {
+        if (ascending) {
+            // Sort ascending by name
+            Collections.sort(trackArrayList, (track1, track2) -> {
+                int scoreComparison = Integer.compare(track1.getRating(), track2.getRating());
+                if (scoreComparison == 0) {
+                    return track1.getName().compareToIgnoreCase(track2.getName());
+                }
+                return scoreComparison;
+            });
+        } else {
+            // Sort descending by score and then by name if scores are equal
+            Collections.sort(trackArrayList, (track1, track2) -> {
+                int scoreComparison = Integer.compare(track2.getRating(), track1.getRating());
+                if (scoreComparison == 0) {
+                    return track1.getName().compareToIgnoreCase(track2.getName());
+                }
+                return scoreComparison;
+            });
+        }
+
         trackAdapter.notifyDataSetChanged();
     }
 
@@ -156,7 +208,25 @@ public class TrackActivity extends AppCompatActivity {
         fetchUserTopTracks(accessToken, rangeSetting, numTracks);
         trackAdapter.notifyDataSetChanged();
     }
+    @Override
+    protected void onPause() {
+        super.onPause();
+        saveTracksToPreferences();
+    }
+    private void showSortingOptions() {
+        String[] options = {"Sort Ascending", "Sort Descending"};
 
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Choose Sorting Option");
+        builder.setItems(options, (dialog, which) -> {
+            if (which == 0) {
+                sortTrackByScore(true); // Ascending
+            } else {
+                sortTrackByScore(false); // Descending
+            }
+        });
+        builder.show();
+    }
     private void showToast(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
