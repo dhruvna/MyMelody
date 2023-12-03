@@ -33,8 +33,7 @@ public class LoginActivity extends AppCompatActivity {
     private Toolbar toolbar;
     RelativeLayout currentlyPlayingContainer;
     private ProgressBar songProgressBar;
-    private Handler handler = new Handler();
-    private Runnable fetchCurrentTrackRunnable;
+    private final Handler handler = new Handler();
     private TextView elapsedView;
     private TextView durationView;
     private static final int FETCH_INTERVAL = 1000; // Interval in milliseconds (e.g., 5000ms for 5 seconds)
@@ -103,7 +102,12 @@ public class LoginActivity extends AppCompatActivity {
     private void setupFetchCurrentTrackTask() {
         RelativeLayout currentlyPlayingContainer = findViewById(R.id.currentlyPlayingContainer);
         currentlyPlayingContainer.setVisibility(View.VISIBLE);
-        fetchCurrentTrackRunnable = new Runnable() {
+        // If not logged in, don't continue
+        // Fetch the currently playing track
+        // Load the album art into the ImageView using Glide or Picasso
+        // Handle error
+        // Schedule the next execution
+        Runnable fetchCurrentTrackRunnable = new Runnable() {
             @Override
             public void run() {
                 if (!loggedIn) {
@@ -123,6 +127,7 @@ public class LoginActivity extends AppCompatActivity {
                         updateProgressBar(progress, duration);
 
                     }
+
                     @Override
                     public void onError() {
                         // Handle error
@@ -141,7 +146,7 @@ public class LoginActivity extends AppCompatActivity {
     }
     private void updateProgressBar(int progress, int duration) {
         if (duration > 0) {
-            long progressPercentage = (100 * progress) / duration;
+            long progressPercentage = (100L * progress) / duration;
             songProgressBar.setProgress((int) progressPercentage);
             elapsedView.setText(formatMillisToTime(progress));
             durationView.setText(formatMillisToTime(duration));

@@ -38,7 +38,7 @@ public class SpotifyService {
     public void authenticateSpotify(Activity activity) {
         Log.println(Log.VERBOSE, "Starting Auth", "Starting authentication process");
         final AuthorizationRequest request = new AuthorizationRequest.Builder(CLIENT_ID, AuthorizationResponse.Type.TOKEN, REDIRECT_URI)
-                .setScopes(new String[]{"user-read-email", "user-read-private", "user-read-recently-played", "playlist-read-private", "user-top-read", "user-follow-read", "user-read-currently-playing"})
+                .setScopes(new String[]{"user-read-playback-state", "user-read-email", "user-read-private", "user-read-recently-played", "playlist-read-private", "user-top-read", "user-follow-read", "user-read-currently-playing"})
                 .setShowDialog(true)
                 .build();
 
@@ -224,6 +224,7 @@ public class SpotifyService {
         void onSongFetched(String songName, String artistName, String albumArtUrl, int progress, int duration);
         void onError();
     }
+
     public void fetchCurrentSong(FetchSongCallback callback) {
         new Thread(() -> {
             OkHttpClient client = new OkHttpClient();
@@ -232,12 +233,19 @@ public class SpotifyService {
                     .url(url)
                     .addHeader("Authorization", "Bearer " + accessToken)
                     .build();
-            Log.println(Log.VERBOSE, "url", request.toString());
             try (Response response = client.newCall(request).execute()) {
-                if (response.isSuccessful() && response.body() != null) {
+                if(!response.isSuccessful()) {
+                    showToast("No active session");
+                    return;
+                }
+                String responseData = response.body() != null ? response.body().string() : "";
+                if (!responseData.isEmpty() && !responseData.equals("EMPTY_RESPONSE")) {
                     Log.println(Log.VERBOSE, "Current Song Fetcher", "Received response for current song");
-                    String responseData = response.body().string();
                     JSONObject jsonResponse = new JSONObject(responseData);
+                    if (jsonResponse.isNull("item")) {
+                        showToast("No song currently playing.");
+                        return;
+                    }
                     // Extract track information
                     JSONObject track = jsonResponse.getJSONObject("item");
                     String trackName = track.getString("name");
@@ -251,8 +259,7 @@ public class SpotifyService {
                     activity.runOnUiThread(() -> callback.onSongFetched(trackName, artistName, albumArtUrl, progress, duration));
                 } else {
                     // Handle response failure
-                    Log.println(Log.ERROR, "Track Fetcher", "Failed to fetch current track");
-                    activity.runOnUiThread(callback::onError);
+                    showToast("No song currently playing.");
                 }
             } catch (Exception e) {
                 Log.println(Log.ERROR, "Track Fetcher", "Error fetching current track: " + e.getMessage());
