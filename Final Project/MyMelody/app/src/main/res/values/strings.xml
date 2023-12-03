@@ -10,5 +10,9 @@
         <item>Last 6 Months</item>
         <item>All Time</item>
     </string-array>
-
+    <string name="TrackView">Your Top Tracks</string>\
+    <string name="ArtistView">Your Top Artists</string>
+    <string name="Track_Seek">Top 10 Tracks</string>
+    <string name="Artist_Seek">Top 10 Artists</string>
+    <string name="Sort_Btn">Sort by Score</string>
 </resources>

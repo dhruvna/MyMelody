@@ -15,7 +15,6 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.ArrayList;
-import java.util.Collections;
 
 public class TrackActivity extends AppCompatActivity {
     private ArrayList<Track> trackArrayList; // Use Track model
@@ -28,8 +27,6 @@ public class TrackActivity extends AppCompatActivity {
     final static int lastMonth = 0;
     final static int last6Months = 1;
     final static int allTime = 2;
-
-    private SeekBar trackSeekBar;
     private TextView trackCountTextView;
     private int numTracks = 10;  // Default value
 
@@ -79,7 +76,7 @@ public class TrackActivity extends AppCompatActivity {
             }
         });
 
-        trackSeekBar = findViewById(R.id.trackSeekBar);
+        SeekBar trackSeekBar = findViewById(R.id.trackSeekBar);
         trackCountTextView = findViewById(R.id.trackCountTextView);
 
         trackSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -115,7 +112,8 @@ public class TrackActivity extends AppCompatActivity {
     }
 
     private void sortTrackByScore() {
-        Collections.sort(trackArrayList, (track1, track2) -> Integer.compare(track2.getRating(), track1.getRating()));
+        trackArrayList.sort((track1, track2) -> Integer.compare(track2.getRating(), track1.getRating()));
+        showToast("Sorting by your scores!");
         trackAdapter.notifyDataSetChanged();
     }
 

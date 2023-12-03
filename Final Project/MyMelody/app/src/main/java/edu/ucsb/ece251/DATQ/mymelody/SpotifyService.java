@@ -169,11 +169,24 @@ public class SpotifyService {
         void onArtistFetched(String artists);
         void onError();
     }
-    public void fetchUserTopArtists(String accessToken, FetchArtistCallback callback) {
+    public void fetchUserTopArtists(String accessToken, int rangeSetting, int numArtists, FetchArtistCallback callback) {
         new Thread(() -> {
             OkHttpClient client = new OkHttpClient();
+            String url = "";
+            switch(rangeSetting) {
+                case 0:
+                    url = "https://api.spotify.com/v1/me/top/artists?time_range=short_term";
+                    break;
+                case 1:
+                    url = "https://api.spotify.com/v1/me/top/artists?time_range=medium_term";
+                    break;
+                case 2:
+                    url = "https://api.spotify.com/v1/me/top/artists?time_range=long_term";
+                    break;
+            }
+            url += "&limit=" + numArtists;
             Request request = new Request.Builder()
-                    .url("https://api.spotify.com/v1/me/top/artists")
+                    .url(url)
                     .addHeader("Authorization", "Bearer " + accessToken)
                     .build();
             try (Response response = client.newCall(request).execute()) {
