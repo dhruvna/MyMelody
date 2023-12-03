@@ -12,13 +12,12 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="1dp"
-        android:layout_marginBottom="62dp"
+        android:layout_marginBottom="57dp"
         android:background="@color/colorPrimary"
         android:elevation="4dp"
         android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
         app:layout_constraintBottom_toTopOf="@+id/MyMelody"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:popupTheme="@style/ThemeOverlay.AppCompat.Dark" />
@@ -27,11 +26,12 @@
         android:id="@+id/MyMelody"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="65dp"
+        android:layout_marginBottom="71dp"
         android:text="@string/app_name"
         android:textSize="40sp"
         app:layout_constraintBottom_toTopOf="@+id/LoginPrompt"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/Toolbar" />
 
@@ -39,61 +39,63 @@
         android:id="@+id/LoginPrompt"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="64dp"
+        android:layout_marginBottom="17dp"
         android:text="@string/login_msg"
         android:textSize="20sp"
         app:layout_constraintBottom_toTopOf="@+id/LogoutButton"
-        app:layout_constraintStart_toStartOf="@+id/LoginButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        android:textAlignment="center"
         app:layout_constraintTop_toBottomOf="@+id/MyMelody" />
 
     <Button
         android:id="@+id/LoginButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="9dp"
         android:text="@string/login_btn"
-        app:layout_constraintBaseline_toBaselineOf="@+id/LogoutButton"
+        app:layout_constraintBottom_toTopOf="@+id/UserInfo"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <TextView
-        android:id="@+id/UserInfo"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginStart="11dp"
-        android:layout_marginEnd="11dp"
-        android:layout_marginBottom="5dp"
-        android:textSize="20sp"
-        android:visibility="invisible"
-        app:layout_constraintBottom_toTopOf="@+id/pfp"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/LogoutButton" />
 
+<!--    <TextView-->
+<!--        android:id="@+id/UserInfo"-->
+<!--        android:layout_width="389dp"-->
+<!--        android:layout_height="0dp"-->
+<!--        android:layout_marginBottom="4dp"-->
+<!--        android:textSize="20sp"-->
+<!--        android:visibility="invisible"-->
+<!--        app:layout_constraintBottom_toTopOf="@+id/pfp"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:layout_constraintHorizontal_bias="0.5"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintTop_toBottomOf="@+id/LoginButton" />-->
+
     <ImageView
         android:id="@+id/pfp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="243dp"
+        android:layout_height="239dp"
         android:layout_gravity="center"
-        android:layout_marginStart="92dp"
-        android:layout_marginBottom="16dp"
+        android:layout_marginBottom="68dp"
         android:contentDescription="Profile Pic"
         android:src="@drawable/mymelody"
         android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/UserInfo" />
+        app:layout_constraintStart_toStartOf="parent" />
 
     <Button
         android:id="@+id/LogoutButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="25dp"
-        android:layout_marginBottom="10dp"
         android:text="@string/logout_btn"
         android:visibility="invisible"
-        app:layout_constraintBottom_toTopOf="@+id/UserInfo"
-        app:layout_constraintEnd_toEndOf="@+id/LoginButton"
+        app:layout_constraintBottom_toTopOf="@+id/LoginButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/LoginPrompt" />
 </androidx.constraintlayout.widget.ConstraintLayout>

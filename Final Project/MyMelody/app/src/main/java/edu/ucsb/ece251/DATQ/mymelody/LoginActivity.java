@@ -85,8 +85,8 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onUserInfoFetched(User user) {
                 currentUser = user;
-                UserInfo.setText(currentUser.toString());
-                UserInfo.setVisibility(View.VISIBLE);
+//                UserInfo.setText(currentUser.toString());
+//                UserInfo.setVisibility(View.VISIBLE);
                 String pfpURL = currentUser.getPFPLink();
                 Picasso.get().load(pfpURL).into(PFP);
                 PFP.setVisibility(View.VISIBLE);
