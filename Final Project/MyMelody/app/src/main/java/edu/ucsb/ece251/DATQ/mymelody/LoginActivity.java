@@ -1,6 +1,7 @@
 package edu.ucsb.ece251.DATQ.mymelody;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -47,6 +48,7 @@ public class LoginActivity extends AppCompatActivity {
         logoutButton.setOnClickListener(view-> {
             if(spotifyService.logOut()) logout();
         });
+        PFP.setOnClickListener(view -> openProfile());
     }
 
     @Override
@@ -106,7 +108,7 @@ public class LoginActivity extends AppCompatActivity {
             Log.println(Log.VERBOSE, "Testing token after back button", accessToken);
         }
         if(accessToken != null) {
-            LoginPrompt.setText(R.string.success_msg);
+            setLoginPrompt();
             loginButton.setVisibility(View.INVISIBLE);
             logoutButton.setVisibility(View.VISIBLE);
             fetchUserInfo(accessToken);
@@ -123,6 +125,20 @@ public class LoginActivity extends AppCompatActivity {
         UserInfo.setVisibility(View.INVISIBLE);
         PFP.setVisibility(View.INVISIBLE);
         loggedIn = false;
+    }
+    private void setLoginPrompt() {
+        String loginPrompt = "Welcome " + "\n" +
+                "Click your profile picture below to go to your Spotify profile!"
+                ;
+        LoginPrompt.setText(loginPrompt);
+    }
+
+    private void openProfile() {
+        if (loggedIn) {
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setData(Uri.parse(currentUser.getProfileLink()));
+            startActivity(intent);
+        }
     }
     public User parseUserString(String userString) {
         String[] lines = userString.split("\n");

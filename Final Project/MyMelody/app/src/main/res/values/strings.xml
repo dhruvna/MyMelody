@@ -1,10 +1,8 @@
 <resources>
     <string name="app_name">MyMelody</string>
     <string name="login_msg">Log in to Spotify!</string>
-    <string name="success_msg">Login Successful!</string>
+    <string name="success_msg">"Click your profile picture below to go to your Spotify profile!"</string>
     <string name="fail_msg">Login failed. Try again!</string>
     <string name="login_btn">Login to Spotify</string>
     <string name="logout_btn">Logout</string>
-    <string name="fetch_user">Fetch User Info</string>
-    <string name="fetch_top_tracks">Fetch Top Tracks</string>
 </resources>

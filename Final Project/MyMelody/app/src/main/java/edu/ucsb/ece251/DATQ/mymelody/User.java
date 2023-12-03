@@ -2,12 +2,12 @@ package edu.ucsb.ece251.DATQ.mymelody;
 
 import android.util.Log;
 public class User {
-    private String id;
-    private String username;
-    private String email;
-    private String profileLink;
-    private String pfpLink;
-    private String accessToken;
+    final private String id;
+    final private String username;
+    final private String email;
+    final private String profileLink;
+    final private String pfpLink;
+    final private String accessToken;
 
     // Constructor
     public User(String id, String username, String email, String profileLink, String pfpLink, String accessToken) {
@@ -18,20 +18,15 @@ public class User {
         this.pfpLink = pfpLink;
         this.accessToken = accessToken;
     }
-
     // Getters and Setters
     public String getId() {
         return id;
     }
-    public String getUsername() {
-        return username;
-    }
+    public String getUsername() { return username; }
     public String getEmail() {
         return email;
     }
-    public String getProfileLink() {
-        return profileLink;
-    }
+    public String getProfileLink() {return profileLink; }
     public String getPFPLink() {
         return pfpLink;
     }
