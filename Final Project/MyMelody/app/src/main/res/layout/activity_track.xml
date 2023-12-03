@@ -12,53 +12,71 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="14dp"
+        android:layout_marginTop="17dp"
+        android:layout_marginBottom="13dp"
         android:text="Track List"
         android:textSize="40dp"
-        app:layout_constraintBottom_toTopOf="@+id/btnSortTracks"
+        app:layout_constraintBottom_toTopOf="@+id/timeRange"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <ListView
         android:id="@+id/TrackList"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/timeRange" />
+        app:layout_constraintTop_toBottomOf="@+id/trackCountTextView" />
 
     <Spinner
         android:id="@+id/timeRange"
-        android:layout_width="153dp"
-        android:layout_height="50dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="83dp"
-        android:layout_marginEnd="5dp"
-        android:layout_marginBottom="13dp"
+        android:layout_width="150dp"
+        android:layout_height="41dp"
+        android:layout_marginStart="26dp"
+        android:layout_marginEnd="29dp"
+        android:layout_marginBottom="16dp"
         android:spinnerMode="dropdown"
         android:textAlignment="center"
-        app:layout_constraintBottom_toTopOf="@+id/TrackList"
+        app:layout_constraintBottom_toTopOf="@+id/trackSeekBar"
         app:layout_constraintEnd_toStartOf="@+id/btnSortTracks"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/textViewTrack" />
+
+    <SeekBar
+        android:id="@+id/trackSeekBar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="9dp"
+        android:max="49"
+        android:progress="9"
+        app:layout_constraintBottom_toTopOf="@+id/trackCountTextView"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/timeRange" />
+
+    <TextView
+        android:id="@+id/trackCountTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="18dp"
+        android:text="10 Tracks"
+        app:layout_constraintBottom_toTopOf="@+id/TrackList"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/trackSeekBar" />
 
     <Button
         android:id="@+id/btnSortTracks"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="5dp"
-        android:layout_marginEnd="11dp"
-        android:layout_marginBottom="12dp"
+        android:layout_marginEnd="29dp"
+        android:layout_marginBottom="14dp"
         android:text="Sort Tracks by Score"
-        app:layout_constraintBottom_toTopOf="@+id/TrackList"
+        app:layout_constraintBottom_toTopOf="@+id/trackSeekBar"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toEndOf="@+id/timeRange"
-        app:layout_constraintTop_toBottomOf="@+id/textViewTrack" />
+        app:layout_constraintStart_toEndOf="@+id/timeRange" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -7,7 +7,9 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.SeekBar;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -26,6 +28,10 @@ public class TrackActivity extends AppCompatActivity {
     final static int lastMonth = 0;
     final static int last6Months = 1;
     final static int allTime = 2;
+
+    private SeekBar trackSeekBar;
+    private TextView trackCountTextView;
+    private int numTracks = 10;  // Default value
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,12 +70,35 @@ public class TrackActivity extends AppCompatActivity {
                 }
                 // Handle the selected item
                 Log.println(Log.VERBOSE, "Range selected", "Range: " + selectedTimeRange);
-                handleTimeRangeSelection(rangeSetting);
+                handleTimeRangeSelection(rangeSetting, numTracks);
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
                 // Another interface callback
+            }
+        });
+
+        trackSeekBar = findViewById(R.id.trackSeekBar);
+        trackCountTextView = findViewById(R.id.trackCountTextView);
+
+        trackSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                numTracks = progress + 1;  // Since the range is 1 to 50
+                trackCountTextView.setText(numTracks + " Tracks");
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                // Optionally implement
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                // Optionally implement
+                // Fetch tracks here if you want to fetch them immediately after user selection
+                fetchUserTopTracks(accessToken, rangeSetting, numTracks);
             }
         });
 
@@ -81,7 +110,7 @@ public class TrackActivity extends AppCompatActivity {
         }
         if (accessToken != null) {
             Log.println(Log.VERBOSE, "Received token", accessToken);
-            fetchUserTopTracks(accessToken, rangeSetting);
+            fetchUserTopTracks(accessToken, rangeSetting, numTracks);
         }
     }
 
@@ -90,8 +119,8 @@ public class TrackActivity extends AppCompatActivity {
         trackAdapter.notifyDataSetChanged();
     }
 
-    private void fetchUserTopTracks(String accessToken, int rangeSetting) {
-        spotifyService.fetchUserTopTracks(accessToken, rangeSetting, new SpotifyService.FetchTrackCallback() {
+    private void fetchUserTopTracks(String accessToken, int rangeSetting, int numTracks) {
+        spotifyService.fetchUserTopTracks(accessToken, rangeSetting, numTracks, new SpotifyService.FetchTrackCallback() {
             @Override
             public void onTrackFetched(String tracks) {
                 String[] trackList = tracks.split("%20");
@@ -123,10 +152,10 @@ public class TrackActivity extends AppCompatActivity {
         );
     }
 
-    private void handleTimeRangeSelection(int rangeSetting) {
+    private void handleTimeRangeSelection(int rangeSetting, int numTracks) {
         // Implement your logic based on the selected time range
         // For example, fetch data for 'Last Month', 'Last 6 Months', or 'All Time'
-        fetchUserTopTracks(accessToken, rangeSetting);
+        fetchUserTopTracks(accessToken, rangeSetting, numTracks);
         trackAdapter.notifyDataSetChanged();
     }
 
