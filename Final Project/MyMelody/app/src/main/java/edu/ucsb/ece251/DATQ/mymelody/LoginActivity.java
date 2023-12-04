@@ -11,7 +11,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -26,24 +25,24 @@ public class LoginActivity extends AppCompatActivity {
     private TextView LoginPrompt;
     private ImageView PFP;
     private SpotifyService spotifyService;
-    private Button loginButton;
-    private Button logoutButton;
+    private Button loginButton, logoutButton;
     private User currentUser;
     private boolean loggedIn;
     private Toolbar toolbar;
-    RelativeLayout currentlyPlayingContainer;
-    private ProgressBar songProgressBar;
-    private final Handler handler = new Handler();
-    private TextView elapsedView;
-    private TextView durationView;
-    private static final int FETCH_INTERVAL = 1000; // Interval in milliseconds (e.g., 5000ms for 5 seconds)
+
+    //Spotify Player Widget
     private ImageView currentlyPlayingAlbumArt;
     private TextView currentlyPlayingSongName, currentlyPlayingArtistName;
+    private ProgressBar songProgressBar;
+    private TextView elapsedView, durationView;
+    private ImageView goBackBtn, fastForwardBtn, pauseBtn;
+    private static final int FETCH_INTERVAL = 1000; //
+    private final Handler handler = new Handler();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-        currentlyPlayingContainer = findViewById(R.id.currentlyPlayingContainer);
+
         toolbar = findViewById(R.id.Toolbar);
         setSupportActionBar(toolbar);
 
@@ -68,6 +67,9 @@ public class LoginActivity extends AppCompatActivity {
         songProgressBar = findViewById(R.id.songProgressBar);
         elapsedView = findViewById(R.id.currentlyPlayingTrackElapsed);
         durationView = findViewById(R.id.currentlyPlayingTrackDuration);
+        goBackBtn = findViewById(R.id.goBackButton);
+        pauseBtn = findViewById(R.id.playPauseButton);
+        fastForwardBtn = findViewById(R.id.fastForwardButton);
     }
 
     @Override
@@ -100,8 +102,6 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void setupFetchCurrentTrackTask() {
-        RelativeLayout currentlyPlayingContainer = findViewById(R.id.currentlyPlayingContainer);
-        currentlyPlayingContainer.setVisibility(View.VISIBLE);
         // If not logged in, don't continue
         // Fetch the currently playing track
         // Load the album art into the ImageView using Glide or Picasso
@@ -119,12 +119,12 @@ public class LoginActivity extends AppCompatActivity {
                 spotifyService.fetchCurrentSong(new SpotifyService.FetchSongCallback() {
                     @Override
                     public void onSongFetched(String trackName, String artistName, String albumArtUrl, int progress, int duration) {
-                        currentlyPlayingContainer.setVisibility(View.VISIBLE);
                         currentlyPlayingSongName.setText(trackName);
                         currentlyPlayingArtistName.setText(artistName);
                         // Load the album art into the ImageView using Glide or Picasso
                         Picasso.get().load(albumArtUrl).into(currentlyPlayingAlbumArt);
                         updateProgressBar(progress, duration);
+                        updateWidgetVisibility(true);
 
                     }
 
@@ -132,6 +132,7 @@ public class LoginActivity extends AppCompatActivity {
                     public void onError() {
                         // Handle error
                         showToast("Failed to fetch current song information.");
+                        updateWidgetVisibility(false);
                     }
                 });
 
@@ -150,6 +151,15 @@ public class LoginActivity extends AppCompatActivity {
             songProgressBar.setProgress((int) progressPercentage);
             elapsedView.setText(formatMillisToTime(progress));
             durationView.setText(formatMillisToTime(duration));
+        }
+    }
+    private void updateWidgetVisibility(boolean isVisible) {
+        View widget = findViewById(R.id.spotifyWidgetContainer);
+        if (widget != null) {
+            Log.d("LoginActivity", "Updating widget visibility: " + isVisible); // Debugging log
+            widget.setVisibility(isVisible ? View.VISIBLE : View.INVISIBLE);
+        } else {
+            Log.e("LoginActivity", "Widget container not found. Make sure the ID is correct.");
         }
     }
 
@@ -197,7 +207,7 @@ public class LoginActivity extends AppCompatActivity {
         loginButton.setVisibility(View.VISIBLE);
         logoutButton.setVisibility(View.INVISIBLE);
         PFP.setVisibility(View.INVISIBLE);
-        currentlyPlayingContainer.setVisibility(View.INVISIBLE);
+        updateWidgetVisibility(false);
         loggedIn = false;
     }
     private void setLoginPrompt() {
