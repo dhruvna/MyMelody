@@ -108,18 +108,20 @@ public class ArtistActivity extends AppCompatActivity {
                 fetchUserTopArtists(accessToken, rangeSetting, numArtists);
             }
         });
-        
+
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
             String userInfo = extras.getString("User Info");
             if (userInfo != null) currentUser = parseUserString(userInfo);
             accessToken = currentUser.getAccessToken();
         }
+
         if (accessToken != null && artistArrayList.isEmpty()) {
             Log.println(Log.VERBOSE, "Received token", accessToken);
             fetchUserTopArtists(accessToken, rangeSetting, numArtists);
         }
     }
+
     private void saveArtistsToPreferences() {
         SharedPreferences prefs = getSharedPreferences("ArtistPrefs", MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();

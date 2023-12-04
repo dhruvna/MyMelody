@@ -37,7 +37,7 @@ public class TrackActivity extends AppCompatActivity {
     final static int allTime = 2;
     private TextView trackCountTextView;
     private int numTracks = 10;  // Default value
-
+    SeekBar trackSeekBar;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -49,7 +49,8 @@ public class TrackActivity extends AppCompatActivity {
         ListView trackListView = findViewById(R.id.TrackList);
         trackListView.setAdapter(trackAdapter); // Set the adapter for the ListView
 
-        loadTracksFromPreferences();
+        trackCountTextView = findViewById(R.id.trackCountTextView);
+        trackSeekBar = findViewById(R.id.trackSeekBar);
 
         Button sortButton = findViewById(R.id.btnSortTracks);
         sortButton.setOnClickListener(view -> showSortingOptions());
@@ -59,6 +60,11 @@ public class TrackActivity extends AppCompatActivity {
                 R.array.time_range_options, android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         timeRange.setAdapter(adapter);
+
+        loadPreferences();
+        if (trackCountTextView != null) {
+            trackCountTextView.setText(numTracks + " Tracks");
+        }
 
         timeRange.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -86,29 +92,29 @@ public class TrackActivity extends AppCompatActivity {
             }
         });
 
-        SeekBar trackSeekBar = findViewById(R.id.trackSeekBar);
-        trackCountTextView = findViewById(R.id.trackCountTextView);
+        if(trackSeekBar != null) {
+            trackSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                @Override
+                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                    numTracks = progress + 1;  // Since the range is 1 to 50
+                    trackCountTextView.setText(numTracks + " Tracks");
+                }
 
-        trackSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                numTracks = progress + 1;  // Since the range is 1 to 50
-                trackCountTextView.setText(numTracks + " Tracks");
-            }
+                @Override
+                public void onStartTrackingTouch(SeekBar seekBar) {
+                    // Optionally implement
+                }
 
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-                // Optionally implement
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-                // Optionally implement
-                // Fetch tracks here if you want to fetch them immediately after user selection
-                fetchUserTopTracks(accessToken, rangeSetting, numTracks);
-            }
-        });
-
+                @Override
+                public void onStopTrackingTouch(SeekBar seekBar) {
+                    // Optionally implement
+                    // Fetch tracks here if you want to fetch them immediately after user selection
+                    //if (trackArrayList.isEmpty()) {
+                    fetchUserTopTracks(accessToken, rangeSetting, numTracks);
+                    //}
+                }
+            });
+        }
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
             String userInfo = extras.getString("User Info");
@@ -120,16 +126,20 @@ public class TrackActivity extends AppCompatActivity {
             fetchUserTopTracks(accessToken, rangeSetting, numTracks);
         }
     }
-    private void saveTracksToPreferences() {
+    private void savePreferences() {
         SharedPreferences prefs = getSharedPreferences("TrackPrefs", MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
         Gson gson = new Gson();
         String json = gson.toJson(trackArrayList);
         editor.putString("trackList", json);
+        editor.putInt("numTracks", numTracks);
+        editor.putInt("rangeSetting", rangeSetting);
+        editor.putInt("seekBarPosition", numTracks - 1);
         editor.apply();
     }
 
-    private void loadTracksFromPreferences() {
+
+    private void loadPreferences() {
         SharedPreferences prefs = getSharedPreferences("TrackPrefs", MODE_PRIVATE);
         Gson gson = new Gson();
         String json = prefs.getString("trackList", null);
@@ -140,11 +150,28 @@ public class TrackActivity extends AppCompatActivity {
             trackArrayList = new ArrayList<>();
         }
 
-        // Initialize and set your adapter here
-        trackAdapter = new TrackAdapter(this, trackArrayList);
-        ListView trackListView = findViewById(R.id.TrackList);
-        trackListView.setAdapter(trackAdapter);
+        int seekBarPosition = prefs.getInt("seekBarPosition", 9);
+        numTracks = seekBarPosition + 1;
+        trackSeekBar.setProgress(seekBarPosition);
+        trackCountTextView.setText(numTracks + " Tracks");
+        rangeSetting = prefs.getInt("rangeSetting", lastMonth);
+        numTracks = prefs.getInt("numTracks", 10);
+        Spinner timeRange = findViewById(R.id.timeRange);
+        if (timeRange != null) {
+            timeRange.setSelection(rangeSetting);
+        }
+
+        if (accessToken != null && trackArrayList.isEmpty()) {
+            fetchUserTopTracks(accessToken, rangeSetting, numTracks);
+        } else {
+            trackAdapter = new TrackAdapter(this, trackArrayList);
+            ListView trackListView = findViewById(R.id.TrackList);
+            trackListView.setAdapter(trackAdapter);
+        }
+
+        handleTimeRangeSelection(rangeSetting, numTracks);
     }
+
     private void sortTrackByScore(boolean ascending) {
         if (ascending) {
             // Sort ascending by name
@@ -211,7 +238,7 @@ public class TrackActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        saveTracksToPreferences();
+        savePreferences();
     }
     private void showSortingOptions() {
         String[] options = {"Sort Ascending", "Sort Descending"};
