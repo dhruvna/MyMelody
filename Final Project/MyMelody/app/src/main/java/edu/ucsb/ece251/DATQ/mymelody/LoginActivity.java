@@ -35,7 +35,9 @@ public class LoginActivity extends AppCompatActivity {
     private TextView currentlyPlayingSongName, currentlyPlayingArtistName;
     private ProgressBar songProgressBar;
     private TextView elapsedView, durationView;
-    private ImageView goBackBtn, fastForwardBtn, pauseBtn;
+    private ImageView goBackBtn, fastForwardBtn, playPauseBtn;
+    private boolean isPlaying = false;
+    private String currentDeviceID;
     private static final int FETCH_INTERVAL = 1000; //
     private final Handler handler = new Handler();
     @Override
@@ -68,8 +70,29 @@ public class LoginActivity extends AppCompatActivity {
         elapsedView = findViewById(R.id.currentlyPlayingTrackElapsed);
         durationView = findViewById(R.id.currentlyPlayingTrackDuration);
         goBackBtn = findViewById(R.id.goBackButton);
-        pauseBtn = findViewById(R.id.playPauseButton);
+        playPauseBtn = findViewById(R.id.playPauseButton);
         fastForwardBtn = findViewById(R.id.fastForwardButton);
+        goBackBtn.setOnClickListener(v-> {
+            if(loggedIn) {
+                fetchDeviceID(currentUser.getAccessToken());
+            }
+//            spotifyService.skipToPrevious(currentDeviceID);
+        });
+        playPauseBtn.setOnClickListener(v-> {
+            if(loggedIn) {
+                fetchDeviceID(currentUser.getAccessToken());
+                isPlaying = !isPlaying;
+                playPause(currentUser.getAccessToken(), isPlaying);
+            }
+//            spotifyService.playPause(currentDeviceID);
+
+        });
+        fastForwardBtn.setOnClickListener(v-> {
+            if(loggedIn) {
+                fetchDeviceID(currentUser.getAccessToken());
+            }
+//            spotifyService.skipToNext(currentDeviceID);
+        });
     }
 
     @Override
@@ -162,7 +185,32 @@ public class LoginActivity extends AppCompatActivity {
             Log.e("LoginActivity", "Widget container not found. Make sure the ID is correct.");
         }
     }
-
+    private void playPause(String accessToken, boolean isPlaying) {
+        spotifyService.playPause(accessToken, isPlaying, new SpotifyService.playPauseCallback() {
+            @Override
+            public void onPlayPauseSuccess() {
+                showToast("Playback Paused.");
+                updatePauseIcon();
+            }
+            @Override
+            public void onError() {
+                showToast("Failed to play/pause current track.");
+            }
+        });
+    }
+    private void fetchDeviceID(String accessToken) {
+        spotifyService.fetchCurrentDeviceId(accessToken, new SpotifyService.FetchDeviceIdCallback() {
+            @Override
+            public void onDeviceIdFetched(String deviceId) {
+                currentDeviceID = deviceId;
+                Log.println(Log.VERBOSE, "Device ID Fetcher","Device ID: " + currentDeviceID);
+            }
+            @Override
+            public void onError() {
+                Log.println(Log.VERBOSE, "Device ID Error","Failed to fetch current device ID");
+            }
+        });
+    }
     private void fetchUserInfo(String accessToken) {
         spotifyService.fetchUserInfo(accessToken, new SpotifyService.FetchUserInfoCallback() {
             @Override
@@ -245,6 +293,13 @@ public class LoginActivity extends AppCompatActivity {
         int seconds = (millis / 1000) % 60;
         int minutes = (millis / (1000 * 60)) % 60;
         return String.format(Locale.getDefault(), "%d:%02d", minutes, seconds);
+    }
+    private void updatePauseIcon() {
+        if(isPlaying) {
+            playPauseBtn.setImageResource(R.drawable.pause);
+        } else {
+            playPauseBtn.setImageResource(R.drawable.play);
+        }
     }
     private void showToast(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();

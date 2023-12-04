@@ -16,6 +16,7 @@
 
  import okhttp3.OkHttpClient;
  import okhttp3.Request;
+ import okhttp3.RequestBody;
  import okhttp3.Response;
 
 public class SpotifyService {
@@ -224,7 +225,6 @@ public class SpotifyService {
         void onSongFetched(String songName, String artistName, String albumArtUrl, int progress, int duration);
         void onError();
     }
-
     public void fetchCurrentSong(FetchSongCallback callback) {
         new Thread(() -> {
             OkHttpClient client = new OkHttpClient();
@@ -268,6 +268,72 @@ public class SpotifyService {
         }).start();
     }
 
+    public interface FetchDeviceIdCallback {
+        void onDeviceIdFetched(String deviceId);
+        void onError();
+    }
+    public void fetchCurrentDeviceId(String accessToken, FetchDeviceIdCallback callback) {
+        new Thread(() -> {
+            OkHttpClient client = new OkHttpClient();
+            String url = "https://api.spotify.com/v1/me/player";
+
+            Request request = new Request.Builder()
+                    .url(url)
+                    .addHeader("Authorization", "Bearer " + accessToken)
+                    .build();
+
+            try (Response response = client.newCall(request).execute()) {
+                if (response.isSuccessful() && response.body() != null) {
+                    String responseData = response.body().string();
+                    JSONObject jsonResponse = new JSONObject(responseData);
+                    if (!jsonResponse.isNull("device")) {
+                        JSONObject device = jsonResponse.getJSONObject("device");
+                        String deviceId = device.getString("id");
+                        activity.runOnUiThread(() -> callback.onDeviceIdFetched(deviceId));
+                    } else {
+                        activity.runOnUiThread(callback::onError);
+                    }
+                } else {
+                    activity.runOnUiThread(callback::onError);
+                }
+            } catch (Exception e) {
+                activity.runOnUiThread(callback::onError);
+            }
+        }).start();
+    }
+
+
+    public interface playPauseCallback {
+        void onPlayPauseSuccess();
+        void onError();
+    }
+    public void playPause(String accessToken, boolean isPlaying, playPauseCallback callback) {
+        new Thread(() -> {
+            OkHttpClient client = new OkHttpClient();
+            String url = "https://api.spotify.com/v1/me/player";
+            RequestBody body = RequestBody.create("", null);
+
+            Request.Builder builder = new Request.Builder()
+                    .url(url)
+                    .addHeader("Authorization", "Bearer " + accessToken);
+            if(isPlaying) {
+                builder.url(url + "/pause").put(body);
+            } else {
+                builder.url(url + "/play").put(body);
+            }
+            Request request = builder.build();
+            Log.println(Log.VERBOSE, "Play/Pause Request", "Sending: " + request.toString());
+            try (Response response = client.newCall(request).execute()) {
+                if (response.isSuccessful()) {
+                    activity.runOnUiThread(callback::onPlayPauseSuccess);
+                } else {
+                    activity.runOnUiThread(callback::onError);
+                }
+            } catch (Exception e) {
+                activity.runOnUiThread(callback::onError);
+            }
+        }).start();
+    }
     private static void showToast(String message) {
         Toast.makeText(activity, message, Toast.LENGTH_SHORT).show();
     }
