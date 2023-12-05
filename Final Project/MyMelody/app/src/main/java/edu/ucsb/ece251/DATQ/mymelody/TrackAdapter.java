@@ -43,7 +43,7 @@ public class TrackAdapter extends ArrayAdapter<Track> {
                 holder.etTrackScore.removeTextChangedListener((TextWatcher) holder.etTrackScore.getTag());
             }
 
-            holder.etTrackScore.setText(track.getRating() >= 0 ? String.valueOf(track.getRating()) : "");
+            holder.etTrackScore.setText(track.getRating() >= 0 && track.getRating()<=10 ? String.valueOf(track.getRating()) : "");
 
             TextWatcher textWatcher = new TextWatcher() {
                 // beforeTextChanged, onTextChanged, afterTextChanged implementation

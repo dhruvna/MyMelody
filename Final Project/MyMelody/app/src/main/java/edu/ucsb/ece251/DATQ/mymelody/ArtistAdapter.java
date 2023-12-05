@@ -43,7 +43,7 @@ public class ArtistAdapter extends ArrayAdapter<Artist> {
                 holder.etArtistScore.removeTextChangedListener((TextWatcher) holder.etArtistScore.getTag());
             }
 
-            holder.etArtistScore.setText(artist.getRating() >= 0 ? String.valueOf(artist.getRating()) : "");
+            holder.etArtistScore.setText(artist.getRating() >= 0 && artist.getRating()<=10 ? String.valueOf(artist.getRating()) : "");
 
             TextWatcher textWatcher = new TextWatcher() {
                 // beforeTextChanged, onTextChanged, afterTextChanged implementation
