@@ -74,7 +74,8 @@ public class LoginActivity extends AppCompatActivity {
         fastForwardBtn = findViewById(R.id.fastForwardButton);
         goBackBtn.setOnClickListener(v-> {
             if(loggedIn) {
-                fetchDeviceID(currentUser.getAccessToken());
+//                fetchDeviceID(currentUser.getAccessToken());
+                skipSong(currentUser.getAccessToken(), "previous");
             }
 //            spotifyService.skipToPrevious(currentDeviceID);
         });
@@ -89,7 +90,8 @@ public class LoginActivity extends AppCompatActivity {
         });
         fastForwardBtn.setOnClickListener(v-> {
             if(loggedIn) {
-                fetchDeviceID(currentUser.getAccessToken());
+//                fetchDeviceID(currentUser.getAccessToken());
+                skipSong(currentUser.getAccessToken(), "next");
             }
 //            spotifyService.skipToNext(currentDeviceID);
         });
@@ -188,11 +190,25 @@ public class LoginActivity extends AppCompatActivity {
             Log.e("LoginActivity", "Widget container not found. Make sure the ID is correct.");
         }
     }
+    private void skipSong(String accessToken, String direction) {
+        spotifyService.skipSong(accessToken, direction, new SpotifyService.skipSongCallback() {
+            @Override
+            public void onSkipSongSuccess() {
+                showToast("Skipping to " + direction + "track.");
+            }
+            @Override
+            public void onError() {
+                showToast("Failed to skip to " + direction +"track.");
+            }
+        });
+    }
     private void playPause(String accessToken, boolean isPlaying) {
         spotifyService.playPause(accessToken, isPlaying, new SpotifyService.playPauseCallback() {
             @Override
             public void onPlayPauseSuccess() {
-                showToast("Playback Paused.");
+                if(isPlaying) {
+                    showToast("Playback Paused.");
+                } else showToast("Playback Resumed.");
                 updatePauseIcon();
             }
             @Override

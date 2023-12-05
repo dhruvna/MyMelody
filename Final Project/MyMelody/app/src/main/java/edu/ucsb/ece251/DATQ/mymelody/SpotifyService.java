@@ -313,33 +313,67 @@ public class SpotifyService {
         new Thread(() -> {
             OkHttpClient client = new OkHttpClient();
             String url = "https://api.spotify.com/v1/me/player";
-            RequestBody body = RequestBody.create("", null);
-
+            if(isPlaying) {
+                url +="/pause";
+            } else {
+                url +="/play";
+            }
             Request.Builder builder = new Request.Builder()
                     .url(url)
                     .put(RequestBody.create("", null))
                     .addHeader("Authorization", "Bearer " + accessToken);
-            if(isPlaying) {
-                builder.url(url + "/pause").put(body);
-            } else {
-                builder.url(url + "/play").put(body);
-            }
             Request request = builder.build();
             Log.println(Log.VERBOSE, "Play/Pause Request", "Sending: " + request);
             try (Response response = client.newCall(request).execute()) {
                 if (response.isSuccessful()) {
-                    Log.println(Log.VERBOSE, "play/pause success", "WE DID IT");
+                    Log.println(Log.VERBOSE, "Play/Pause Status", "Play/Pause success");
                     activity.runOnUiThread(callback::onPlayPauseSuccess);
                 } else {
-                    Log.println(Log.VERBOSE, "play/pause success", "WE FAILED");
+                    Log.println(Log.VERBOSE, "Play/Pause Status", "Failed to play/pause track");
                     activity.runOnUiThread(callback::onError);
                 }
             } catch (Exception e) {
-                Log.println(Log.VERBOSE, "play/pause success", "WE EXCEPTED");
+                Log.println(Log.VERBOSE, "Play/Pause Status", "Exception with play/pause request");
                 activity.runOnUiThread(callback::onError);
             }
         }).start();
     }
+
+    public interface skipSongCallback {
+        void onSkipSongSuccess();
+        void onError();
+    }
+    public void skipSong(String accessToken, String direction, skipSongCallback callback) {
+        new Thread(() -> {
+            OkHttpClient client = new OkHttpClient();
+            String url = "https://api.spotify.com/v1/me/player";
+            if(direction == "previous") {
+                url +="/previous";
+            } else if (direction == "next"){
+                url +="/next";
+            }
+            Request.Builder builder = new Request.Builder()
+                    .url(url)
+                    .post(RequestBody.create("", null))
+                    .addHeader("Authorization", "Bearer " + accessToken);
+            Request request = builder.build();
+            Log.println(Log.VERBOSE, "Skip Song Request", "Sending: " + request);
+            try (Response response = client.newCall(request).execute()) {
+                if (response.isSuccessful()) {
+                    Log.println(Log.VERBOSE, "Skip Song Status", "Skipping " + direction);
+                    activity.runOnUiThread(callback::onSkipSongSuccess);
+                } else {
+                    Log.println(Log.VERBOSE, "Skip Song Status", "Failed to skip " + direction);
+                    activity.runOnUiThread(callback::onError);
+                }
+            } catch (Exception e) {
+                Log.println(Log.VERBOSE, "Skip Song Status", "Exception skipping " + direction);
+                activity.runOnUiThread(callback::onError);
+            }
+        }).start();
+    }
+
+
     private static void showToast(String message) {
         Toast.makeText(activity, message, Toast.LENGTH_SHORT).show();
     }
