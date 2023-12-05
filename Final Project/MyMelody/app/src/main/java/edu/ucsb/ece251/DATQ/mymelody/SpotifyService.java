@@ -14,8 +14,6 @@
  import org.json.JSONArray;
  import org.json.JSONObject;
 
- import java.io.IOException;
-
  import okhttp3.OkHttpClient;
  import okhttp3.Request;
  import okhttp3.RequestBody;
@@ -347,9 +345,9 @@ public class SpotifyService {
         new Thread(() -> {
             OkHttpClient client = new OkHttpClient();
             String url = "https://api.spotify.com/v1/me/player";
-            if(direction == "previous") {
+            if(direction.equals("previous")) {
                 url +="/previous";
-            } else if (direction == "next"){
+            } else if (direction.equals("next")){
                 url +="/next";
             }
             Request.Builder builder = new Request.Builder()

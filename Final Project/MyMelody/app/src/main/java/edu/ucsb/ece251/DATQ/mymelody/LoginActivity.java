@@ -35,7 +35,7 @@ public class LoginActivity extends AppCompatActivity {
     private TextView currentlyPlayingSongName, currentlyPlayingArtistName;
     private ProgressBar songProgressBar;
     private TextView elapsedView, durationView;
-    private ImageView goBackBtn, fastForwardBtn, playPauseBtn;
+    private ImageView playPauseBtn;
     private boolean isPlaying = false;
     private String currentDeviceID;
     private static final int FETCH_INTERVAL = 1000; 
@@ -69,9 +69,9 @@ public class LoginActivity extends AppCompatActivity {
         songProgressBar = findViewById(R.id.songProgressBar);
         elapsedView = findViewById(R.id.currentlyPlayingTrackElapsed);
         durationView = findViewById(R.id.currentlyPlayingTrackDuration);
-        goBackBtn = findViewById(R.id.goBackButton);
+        ImageView goBackBtn = findViewById(R.id.goBackButton);
         playPauseBtn = findViewById(R.id.playPauseButton);
-        fastForwardBtn = findViewById(R.id.fastForwardButton);
+        ImageView fastForwardBtn = findViewById(R.id.fastForwardButton);
         goBackBtn.setOnClickListener(v-> {
             if(loggedIn) {
 //                fetchDeviceID(currentUser.getAccessToken());
