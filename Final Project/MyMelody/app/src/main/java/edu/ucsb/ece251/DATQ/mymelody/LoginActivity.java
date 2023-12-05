@@ -38,7 +38,7 @@ public class LoginActivity extends AppCompatActivity {
     private ImageView goBackBtn, fastForwardBtn, playPauseBtn;
     private boolean isPlaying = false;
     private String currentDeviceID;
-    private static final int FETCH_INTERVAL = 1000; //
+    private static final int FETCH_INTERVAL = 1000; 
     private final Handler handler = new Handler();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,7 +80,7 @@ public class LoginActivity extends AppCompatActivity {
         });
         playPauseBtn.setOnClickListener(v-> {
             if(loggedIn) {
-                fetchDeviceID(currentUser.getAccessToken());
+//                fetchDeviceID(currentUser.getAccessToken());
                 isPlaying = !isPlaying;
                 playPause(currentUser.getAccessToken(), isPlaying);
             }
@@ -110,11 +110,13 @@ public class LoginActivity extends AppCompatActivity {
                 Intent artistIntent = new Intent(this, ArtistActivity.class);
                 artistIntent.putExtra("User Info", currentUser.toString());
                 startActivity(artistIntent);
+//                finish();
                 return true;
             } else if (myID == R.id.tracks){
                 Intent trackIntent = new Intent(this, TrackActivity.class);
                 trackIntent.putExtra("User Info", currentUser.toString());
                 startActivity(trackIntent);
+//                finish();
                 return true;
             }
         } else {
@@ -148,7 +150,6 @@ public class LoginActivity extends AppCompatActivity {
                         Picasso.get().load(albumArtUrl).into(currentlyPlayingAlbumArt);
                         updateProgressBar(progress, duration);
                         updateWidgetVisibility(true);
-
                     }
 
                     @Override
@@ -243,6 +244,7 @@ public class LoginActivity extends AppCompatActivity {
             logoutButton.setVisibility(View.VISIBLE);
             fetchUserInfo(accessToken);
             // Fetch and display the currently playing track
+            fetchDeviceID(accessToken);
             setupFetchCurrentTrackTask();
         } else {
             LoginPrompt.setText(R.string.fail_msg);
@@ -295,7 +297,7 @@ public class LoginActivity extends AppCompatActivity {
         return String.format(Locale.getDefault(), "%d:%02d", minutes, seconds);
     }
     private void updatePauseIcon() {
-        if(isPlaying) {
+        if(!isPlaying) {
             playPauseBtn.setImageResource(R.drawable.pause);
         } else {
             playPauseBtn.setImageResource(R.drawable.play);
