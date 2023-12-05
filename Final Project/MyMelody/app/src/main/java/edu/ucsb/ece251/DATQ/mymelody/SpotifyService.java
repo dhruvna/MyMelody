@@ -371,7 +371,6 @@ public class SpotifyService {
         }).start();
     }
 
-
     private static void showToast(String message) {
         Toast.makeText(activity, message, Toast.LENGTH_SHORT).show();
     }
