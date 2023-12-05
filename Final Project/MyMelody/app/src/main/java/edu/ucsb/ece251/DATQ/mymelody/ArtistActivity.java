@@ -31,12 +31,16 @@ public class ArtistActivity extends AppCompatActivity {
     private String accessToken;
     private User currentUser;
 
+    private boolean isDataLoaded = false;
     private int rangeSetting;
     final static int lastMonth = 0;
     final static int last6Months = 1;
     final static int allTime = 2;
     private TextView artistCountTextView;
     private int numArtists = 10;  // Default value
+
+    SeekBar artistSeekBar;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,7 +53,8 @@ public class ArtistActivity extends AppCompatActivity {
         ListView ArtistList = findViewById(R.id.ArtistList);
         ArtistList.setAdapter(artistAdapter); // Set the adapter for the ListView
 
-        loadArtistsFromPreferences();
+        artistSeekBar = findViewById(R.id.artistSeekBar);
+        artistCountTextView = findViewById(R.id.artistCountTextView);
 
         Button sortButton = findViewById(R.id.btnSortArtists);
         sortButton.setOnClickListener(view -> showSortingOptions());
@@ -59,6 +64,8 @@ public class ArtistActivity extends AppCompatActivity {
                 R.array.time_range_options, android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         timeRange.setAdapter(adapter);
+
+        loadPreferences();
 
         timeRange.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -77,7 +84,14 @@ public class ArtistActivity extends AppCompatActivity {
                 }
                 // Handle the selected item
                 Log.println(Log.VERBOSE, "Range selected", "Range: " + selectedTimeRange);
-                handleTimeRangeSelection(rangeSetting, numArtists);
+                if(isDataLoaded)
+                {
+                    isDataLoaded = false;
+                }
+                else
+                {
+                    handleTimeRangeSelection(rangeSetting, numArtists);
+                }
             }
 
             @Override
@@ -85,9 +99,6 @@ public class ArtistActivity extends AppCompatActivity {
                 // Another interface callback
             }
         });
-
-        SeekBar artistSeekBar = findViewById(R.id.artistSeekBar);
-        artistCountTextView = findViewById(R.id.artistCountTextView);
 
         artistSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
@@ -116,22 +127,25 @@ public class ArtistActivity extends AppCompatActivity {
             accessToken = currentUser.getAccessToken();
         }
 
-        if (accessToken != null && artistArrayList.isEmpty()) {
-            Log.println(Log.VERBOSE, "Received token", accessToken);
-            fetchUserTopArtists(accessToken, rangeSetting, numArtists);
-        }
+//        if (accessToken != null && artistArrayList.isEmpty()) {
+//            Log.println(Log.VERBOSE, "Received token", accessToken);
+//            fetchUserTopArtists(accessToken, rangeSetting, numArtists);
+//        }
     }
 
-    private void saveArtistsToPreferences() {
+    private void savePreferences() {
         SharedPreferences prefs = getSharedPreferences("ArtistPrefs", MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
         Gson gson = new Gson();
         String json = gson.toJson(artistArrayList);
         editor.putString("artistList", json);
+        editor.putInt("numArtists", numArtists);
+        editor.putInt("rangeSetting", rangeSetting);
+        editor.putInt("seekBarPosition", numArtists - 1);
         editor.apply();
     }
 
-    private void loadArtistsFromPreferences() {
+    private void loadPreferences() {
         SharedPreferences prefs = getSharedPreferences("ArtistPrefs", MODE_PRIVATE);
         Gson gson = new Gson();
         String json = prefs.getString("artistList", null);
@@ -140,12 +154,30 @@ public class ArtistActivity extends AppCompatActivity {
 
         if (artistArrayList == null) {
             artistArrayList = new ArrayList<>();
+            isDataLoaded = false;
+        }
+        else{
+            isDataLoaded = true;
         }
 
-        // Initialize and set your adapter here
-        artistAdapter = new ArtistAdapter(this, artistArrayList);
-        ListView artistListView = findViewById(R.id.ArtistList);
-        artistListView.setAdapter(artistAdapter);
+        int seekBarPosition = prefs.getInt("seekBarPosition", 9);
+        numArtists = seekBarPosition + 1;
+        artistSeekBar.setProgress(seekBarPosition);
+        artistCountTextView.setText(numArtists + " Artists");
+        rangeSetting = prefs.getInt("rangeSetting", lastMonth);
+        numArtists = prefs.getInt("numArtists", 10);
+        Spinner timeRange = findViewById(R.id.timeRange);
+        if (timeRange != null) {
+            timeRange.setSelection(rangeSetting);
+        }
+
+        if (accessToken != null && artistArrayList.isEmpty()) {
+            fetchUserTopArtists(accessToken, rangeSetting, numArtists);
+        } else {
+            artistAdapter = new ArtistAdapter(this, artistArrayList);
+            ListView artistListView = findViewById(R.id.ArtistList);
+            artistListView.setAdapter(artistAdapter);
+        }
     }
 
     private void sortArtistByScore(boolean ascending) {
@@ -214,7 +246,12 @@ public class ArtistActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        saveArtistsToPreferences();
+        savePreferences();
+    }
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadPreferences();
     }
     private void showSortingOptions() {
         String[] options = {"Sort Ascending", "Sort Descending"};

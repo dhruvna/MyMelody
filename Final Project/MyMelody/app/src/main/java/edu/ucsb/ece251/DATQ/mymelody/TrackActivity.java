@@ -30,7 +30,7 @@ public class TrackActivity extends AppCompatActivity {
     private SpotifyService spotifyService;
     private String accessToken;
     private User currentUser;
-
+    private boolean isDataLoaded = false;
     private int rangeSetting;
     final static int lastMonth = 0;
     final static int last6Months = 1;
@@ -38,6 +38,7 @@ public class TrackActivity extends AppCompatActivity {
     private TextView trackCountTextView;
     private int numTracks = 10;  // Default value
     SeekBar trackSeekBar;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -61,11 +62,6 @@ public class TrackActivity extends AppCompatActivity {
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         timeRange.setAdapter(adapter);
 
-        loadPreferences();
-        if (trackCountTextView != null) {
-            trackCountTextView.setText(numTracks + " Tracks");
-        }
-
         timeRange.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -83,7 +79,13 @@ public class TrackActivity extends AppCompatActivity {
                 }
                 // Handle the selected item
                 Log.println(Log.VERBOSE, "Range selected", "Range: " + selectedTimeRange);
-                handleTimeRangeSelection(rangeSetting, numTracks);
+                if(isDataLoaded)
+                {
+                    isDataLoaded = false;
+                }
+                else {
+                    handleTimeRangeSelection(rangeSetting, numTracks);
+                }
             }
 
             @Override
@@ -121,16 +123,19 @@ public class TrackActivity extends AppCompatActivity {
             if (userInfo != null) currentUser = parseUserString(userInfo);
             accessToken = currentUser.getAccessToken();
         }
-        if (accessToken != null && trackArrayList.isEmpty()) {
-            Log.println(Log.VERBOSE, "Received token", accessToken);
-            fetchUserTopTracks(accessToken, rangeSetting, numTracks);
-        }
+        loadPreferences();
+
+//        if (accessToken != null && !isDataLoaded) {
+//            Log.println(Log.VERBOSE, "Received token", accessToken);
+//            fetchUserTopTracks(accessToken, rangeSetting, numTracks);
+//        }
     }
     private void savePreferences() {
         SharedPreferences prefs = getSharedPreferences("TrackPrefs", MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
         Gson gson = new Gson();
         String json = gson.toJson(trackArrayList);
+        Log.d("SaveData", "Saving JSON: " + json);
         editor.putString("trackList", json);
         editor.putInt("numTracks", numTracks);
         editor.putInt("rangeSetting", rangeSetting);
@@ -145,9 +150,17 @@ public class TrackActivity extends AppCompatActivity {
         String json = prefs.getString("trackList", null);
         Type type = new TypeToken<ArrayList<Track>>() {}.getType();
         trackArrayList = gson.fromJson(json, type);
-
+        if (trackArrayList != null) {
+            Log.d("LoadData", "Loaded track list size: " + trackArrayList.size());
+            isDataLoaded = true;
+            for (int i = 0; i < Math.min(5, trackArrayList.size()); i++) {
+                Log.d("LoadData", "Track " + i + ": " + trackArrayList.get(i).getName() + ", Rating: " + trackArrayList.get(i).getRating());
+            }
+        }
         if (trackArrayList == null) {
             trackArrayList = new ArrayList<>();
+            Log.d("TrackArrayList","Empty");
+            isDataLoaded = false;
         }
 
         int seekBarPosition = prefs.getInt("seekBarPosition", 9);
@@ -169,7 +182,7 @@ public class TrackActivity extends AppCompatActivity {
             trackListView.setAdapter(trackAdapter);
         }
 
-        handleTimeRangeSelection(rangeSetting, numTracks);
+        //handleTimeRangeSelection(rangeSetting, numTracks);
     }
 
     private void sortTrackByScore(boolean ascending) {
@@ -239,6 +252,11 @@ public class TrackActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         savePreferences();
+    }
+    @Override
+    protected void onResume() {
+        super.onResume();
+        //loadPreferences();
     }
     private void showSortingOptions() {
         String[] options = {"Sort Ascending", "Sort Descending"};
