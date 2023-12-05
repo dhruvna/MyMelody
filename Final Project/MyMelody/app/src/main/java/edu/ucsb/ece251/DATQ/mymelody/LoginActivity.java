@@ -155,12 +155,10 @@ public class LoginActivity extends AppCompatActivity {
                     @Override
                     public void onError() {
                         // Handle error
-<<<<<<< HEAD
+
 //                        showToast("Failed to fetch current song information.");
-=======
                         showToast("Failed to fetch current song information.");
                         updateWidgetVisibility(false);
->>>>>>> 436ad64c60ab83c8ceffb35042f981b7b5933a9b
                     }
                 });
 
