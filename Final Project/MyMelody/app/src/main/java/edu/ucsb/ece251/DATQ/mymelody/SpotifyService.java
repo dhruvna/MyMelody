@@ -14,8 +14,11 @@
  import org.json.JSONArray;
  import org.json.JSONObject;
 
+ import java.io.IOException;
+
  import okhttp3.OkHttpClient;
  import okhttp3.Request;
+ import okhttp3.RequestBody;
  import okhttp3.Response;
 
 public class SpotifyService {
@@ -38,7 +41,7 @@ public class SpotifyService {
     public void authenticateSpotify(Activity activity) {
         Log.println(Log.VERBOSE, "Starting Auth", "Starting authentication process");
         final AuthorizationRequest request = new AuthorizationRequest.Builder(CLIENT_ID, AuthorizationResponse.Type.TOKEN, REDIRECT_URI)
-                .setScopes(new String[]{"user-read-email", "user-read-private", "user-read-recently-played", "playlist-read-private", "user-top-read", "user-follow-read", "user-read-currently-playing"})
+                .setScopes(new String[]{"user-modify-playback-state", "user-read-playback-state", "user-read-email", "user-read-private", "user-read-recently-played", "playlist-read-private", "user-top-read", "user-follow-read", "user-read-currently-playing"})
                 .setShowDialog(true)
                 .build();
 
@@ -232,12 +235,19 @@ public class SpotifyService {
                     .url(url)
                     .addHeader("Authorization", "Bearer " + accessToken)
                     .build();
-            Log.println(Log.VERBOSE, "url", request.toString());
             try (Response response = client.newCall(request).execute()) {
-                if (response.isSuccessful() && response.body() != null) {
+                if(!response.isSuccessful()) {
+                    showToast("No active session");
+                    return;
+                }
+                String responseData = response.body() != null ? response.body().string() : "";
+                if (!responseData.isEmpty() && !responseData.equals("EMPTY_RESPONSE")) {
                     Log.println(Log.VERBOSE, "Current Song Fetcher", "Received response for current song");
-                    String responseData = response.body().string();
                     JSONObject jsonResponse = new JSONObject(responseData);
+                    if (jsonResponse.isNull("item")) {
+                        showToast("No song currently playing.");
+                        return;
+                    }
                     // Extract track information
                     JSONObject track = jsonResponse.getJSONObject("item");
                     String trackName = track.getString("name");
@@ -251,8 +261,7 @@ public class SpotifyService {
                     activity.runOnUiThread(() -> callback.onSongFetched(trackName, artistName, albumArtUrl, progress, duration));
                 } else {
                     // Handle response failure
-                    Log.println(Log.ERROR, "Track Fetcher", "Failed to fetch current track");
-                    activity.runOnUiThread(callback::onError);
+                    showToast("No song currently playing.");
                 }
             } catch (Exception e) {
                 Log.println(Log.ERROR, "Track Fetcher", "Error fetching current track: " + e.getMessage());
@@ -261,6 +270,76 @@ public class SpotifyService {
         }).start();
     }
 
+    public interface FetchDeviceIdCallback {
+        void onDeviceIdFetched(String deviceId);
+        void onError();
+    }
+    public void fetchCurrentDeviceId(String accessToken, FetchDeviceIdCallback callback) {
+        new Thread(() -> {
+            OkHttpClient client = new OkHttpClient();
+            String url = "https://api.spotify.com/v1/me/player";
+
+            Request request = new Request.Builder()
+                    .url(url)
+                    .addHeader("Authorization", "Bearer " + accessToken)
+                    .build();
+
+            try (Response response = client.newCall(request).execute()) {
+                if (response.isSuccessful() && response.body() != null) {
+                    String responseData = response.body().string();
+                    JSONObject jsonResponse = new JSONObject(responseData);
+                    if (!jsonResponse.isNull("device")) {
+                        JSONObject device = jsonResponse.getJSONObject("device");
+                        String deviceId = device.getString("id");
+                        activity.runOnUiThread(() -> callback.onDeviceIdFetched(deviceId));
+                    } else {
+                        activity.runOnUiThread(callback::onError);
+                    }
+                } else {
+                    activity.runOnUiThread(callback::onError);
+                }
+            } catch (Exception e) {
+                activity.runOnUiThread(callback::onError);
+            }
+        }).start();
+    }
+
+
+    public interface playPauseCallback {
+        void onPlayPauseSuccess();
+        void onError();
+    }
+    public void playPause(String accessToken, boolean isPlaying, playPauseCallback callback) {
+        new Thread(() -> {
+            OkHttpClient client = new OkHttpClient();
+            String url = "https://api.spotify.com/v1/me/player";
+            RequestBody body = RequestBody.create("", null);
+
+            Request.Builder builder = new Request.Builder()
+                    .url(url)
+                    .put(RequestBody.create("", null))
+                    .addHeader("Authorization", "Bearer " + accessToken);
+            if(isPlaying) {
+                builder.url(url + "/pause").put(body);
+            } else {
+                builder.url(url + "/play").put(body);
+            }
+            Request request = builder.build();
+            Log.println(Log.VERBOSE, "Play/Pause Request", "Sending: " + request);
+            try (Response response = client.newCall(request).execute()) {
+                if (response.isSuccessful()) {
+                    Log.println(Log.VERBOSE, "play/pause success", "WE DID IT");
+                    activity.runOnUiThread(callback::onPlayPauseSuccess);
+                } else {
+                    Log.println(Log.VERBOSE, "play/pause success", "WE FAILED");
+                    activity.runOnUiThread(callback::onError);
+                }
+            } catch (Exception e) {
+                Log.println(Log.VERBOSE, "play/pause success", "WE EXCEPTED");
+                activity.runOnUiThread(callback::onError);
+            }
+        }).start();
+    }
     private static void showToast(String message) {
         Toast.makeText(activity, message, Toast.LENGTH_SHORT).show();
     }

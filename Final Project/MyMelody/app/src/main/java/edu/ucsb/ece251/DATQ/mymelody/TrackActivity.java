@@ -1,6 +1,7 @@
 package edu.ucsb.ece251.DATQ.mymelody;
 
 import android.app.AlertDialog;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
@@ -20,9 +21,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
-
 import java.util.ArrayList;
-import java.util.Collections;
 
 public class TrackActivity extends AppCompatActivity {
     private ArrayList<Track> trackArrayList; // Use Track model
@@ -188,7 +187,7 @@ public class TrackActivity extends AppCompatActivity {
     private void sortTrackByScore(boolean ascending) {
         if (ascending) {
             // Sort ascending by name
-            Collections.sort(trackArrayList, (track1, track2) -> {
+            trackArrayList.sort((track1, track2) -> {
                 int scoreComparison = Integer.compare(track1.getRating(), track2.getRating());
                 if (scoreComparison == 0) {
                     return track1.getName().compareToIgnoreCase(track2.getName());
@@ -197,7 +196,7 @@ public class TrackActivity extends AppCompatActivity {
             });
         } else {
             // Sort descending by score and then by name if scores are equal
-            Collections.sort(trackArrayList, (track1, track2) -> {
+            trackArrayList.sort((track1, track2) -> {
                 int scoreComparison = Integer.compare(track2.getRating(), track1.getRating());
                 if (scoreComparison == 0) {
                     return track1.getName().compareToIgnoreCase(track2.getName());
@@ -264,11 +263,8 @@ public class TrackActivity extends AppCompatActivity {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Choose Sorting Option");
         builder.setItems(options, (dialog, which) -> {
-            if (which == 0) {
-                sortTrackByScore(true); // Ascending
-            } else {
-                sortTrackByScore(false); // Descending
-            }
+            // Descending
+            sortTrackByScore(which == 0); // Ascending
         });
         builder.show();
     }

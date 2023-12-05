@@ -20,9 +20,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
-
 import java.util.ArrayList;
-import java.util.Collections;
 
 public class ArtistActivity extends AppCompatActivity {
     private ArrayList<Artist> artistArrayList;
@@ -183,7 +181,7 @@ public class ArtistActivity extends AppCompatActivity {
     private void sortArtistByScore(boolean ascending) {
         if (ascending) {
             // Sort ascending by name
-            Collections.sort(artistArrayList, (artist1, artist2) -> {
+            artistArrayList.sort((artist1, artist2) -> {
                 int scoreComparison = Integer.compare(artist1.getRating(), artist2.getRating());
                 if (scoreComparison == 0) {
                     return artist1.getName().compareToIgnoreCase(artist2.getName());
@@ -192,7 +190,7 @@ public class ArtistActivity extends AppCompatActivity {
             });
         } else {
             // Sort descending by score and then by name if scores are equal
-            Collections.sort(artistArrayList, (artist1, artist2) -> {
+            artistArrayList.sort((artist1, artist2) -> {
                 int scoreComparison = Integer.compare(artist2.getRating(), artist1.getRating());
                 if (scoreComparison == 0) {
                     return artist1.getName().compareToIgnoreCase(artist2.getName());
@@ -259,11 +257,8 @@ public class ArtistActivity extends AppCompatActivity {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Choose Sorting Option");
         builder.setItems(options, (dialog, which) -> {
-            if (which == 0) {
-                sortArtistByScore(true); // Ascending
-            } else {
-                sortArtistByScore(false); // Descending
-            }
+            // Descending
+            sortArtistByScore(which == 0); // Ascending
         });
         builder.show();
     }
