@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1054129694481",
+    "project_id": "mymelody-bdf18",
+    "storage_bucket": "mymelody-bdf18.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1054129694481:android:0ddc2af5303d92a16f0eb0",
+        "android_client_info": {
+          "package_name": "edu.ucsb.ece251.DATQ.mymelody"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDkXwtHO6jYjd59Sf3gbQfoMUZ6k94o15w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

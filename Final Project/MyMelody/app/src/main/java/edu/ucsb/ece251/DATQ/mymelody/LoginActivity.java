@@ -157,7 +157,7 @@ public class LoginActivity extends AppCompatActivity {
                         // Handle error
 
 //                        showToast("Failed to fetch current song information.");
-                        showToast("Failed to fetch current song information.");
+                        //showToast("Failed to fetch current song information.");
                         updateWidgetVisibility(false);
                     }
                 });

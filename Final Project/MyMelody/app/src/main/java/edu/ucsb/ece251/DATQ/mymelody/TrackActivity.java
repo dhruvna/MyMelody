@@ -14,9 +14,20 @@ import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.database.ValueEventListener;
+import androidx.annotation.NonNull;
+import com.google.firebase.database.DatabaseError;
+
+
+
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -37,6 +48,8 @@ public class TrackActivity extends AppCompatActivity {
     private TextView trackCountTextView;
     private int numTracks = 10;  // Default value
     SeekBar trackSeekBar;
+    DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,7 +61,7 @@ public class TrackActivity extends AppCompatActivity {
         trackAdapter = new TrackAdapter(this, trackArrayList); // Initialize TrackAdapter with the track list
         ListView trackListView = findViewById(R.id.TrackList);
         trackListView.setAdapter(trackAdapter); // Set the adapter for the ListView
-
+        FirebaseApp.initializeApp(this);
         trackCountTextView = findViewById(R.id.trackCountTextView);
         trackSeekBar = findViewById(R.id.trackSeekBar);
 
@@ -213,17 +226,63 @@ public class TrackActivity extends AppCompatActivity {
             @Override
             public void onTrackFetched(String tracks) {
                 String[] trackList = tracks.split("%20");
-                int numTracks = Integer.parseInt(trackList[0]);
-                trackArrayList.clear(); // Clear the current track list
-                for (int i = 1; i <= numTracks; i++) {
-                    // Assuming a default rating of 0 for all tracks initially
-                    trackArrayList.add(new Track(trackList[i], 0));
+                int numTracksFetched = Integer.parseInt(trackList[0]);
+                trackArrayList.clear();
+
+                for (int i = 1; i <= numTracksFetched; i++) {
+                    String[] trackInfo = trackList[i].split("%21"); // Assuming trackList[i] is the track ID
+                    Log.d("TrackId", trackInfo[1]);
+                    checkAndStoreTrack(trackInfo[1]);
                 }
-                trackAdapter.notifyDataSetChanged(); // Notify the adapter that the data set has changed
+                trackAdapter.notifyDataSetChanged();
             }
             @Override
             public void onError() {
                 showToast("Failed to fetch top tracks.");
+            }
+        });
+    }
+
+    private void checkAndStoreTrack(String trackId) {
+        databaseReference.child("tracks").child(trackId).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (!dataSnapshot.exists()) {
+                    // Track not in Firebase, so fetch details from Spotify and store
+                    fetchTrackDetailsFromSpotifyAndStore(trackId);
+                } else {
+                    Log.d("Firebase", "Data updated: " + dataSnapshot.getValue());
+                    // Track exists in Firebase, use it
+                    Track track = dataSnapshot.getValue(Track.class);
+                    if (track != null) {
+                        trackArrayList.add(track);
+                        trackAdapter.notifyDataSetChanged();
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.w("Firebase", "Failed to read track", databaseError.toException());
+            }
+        });
+    }
+
+    private void fetchTrackDetailsFromSpotifyAndStore(String trackId) {
+        // Fetch track details from Spotify
+        // This is a placeholder, you need to implement this based on your SpotifyService
+        spotifyService.fetchTrackDetails(trackId, new SpotifyService.FetchTrackDetailsCallback() {
+            @Override
+            public void onTrackDetailsFetched(Track track) {
+                // Store in Firebase
+                databaseReference.child("tracks").child(trackId).setValue(track);
+                trackArrayList.add(track);
+                trackAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onError() {
+                Log.e("Spotify", "Failed to fetch track details");
             }
         });
     }
