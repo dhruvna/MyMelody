@@ -31,12 +31,15 @@ public class LoginActivity extends AppCompatActivity {
     private Toolbar toolbar;
 
     //Spotify Player Widget
+    private String currentSong = "";
     private ImageView currentlyPlayingAlbumArt;
     private TextView currentlyPlayingSongName, currentlyPlayingArtistName;
     private ProgressBar songProgressBar;
     private TextView elapsedView, durationView;
-    private ImageView playPauseBtn;
+    private ImageView playPauseBtn, shuffleBtn, repeatBtn;
     private boolean isPlaying = false;
+    private String shuffleState = "shuffleOff";
+    private String repeatState = "repeatOff";
     private String currentDeviceID;
     private static final int FETCH_INTERVAL = 1000; 
     private final Handler handler = new Handler();
@@ -65,35 +68,50 @@ public class LoginActivity extends AppCompatActivity {
         // Initialize UI elements
         currentlyPlayingAlbumArt = findViewById(R.id.currentlyPlayingAlbumArt);
         currentlyPlayingSongName = findViewById(R.id.currentlyPlayingSongName);
+        currentlyPlayingSongName.setSelected(true);
         currentlyPlayingArtistName = findViewById(R.id.currentlyPlayingArtistName);
         songProgressBar = findViewById(R.id.songProgressBar);
         elapsedView = findViewById(R.id.currentlyPlayingTrackElapsed);
         durationView = findViewById(R.id.currentlyPlayingTrackDuration);
         ImageView goBackBtn = findViewById(R.id.goBackButton);
         playPauseBtn = findViewById(R.id.playPauseButton);
+        shuffleBtn = findViewById(R.id.shuffleButton);
+        repeatBtn = findViewById(R.id.repeatButton);
         ImageView fastForwardBtn = findViewById(R.id.fastForwardButton);
         goBackBtn.setOnClickListener(v-> {
             if(loggedIn) {
-//                fetchDeviceID(currentUser.getAccessToken());
                 skipSong(currentUser.getAccessToken(), "previous");
             }
-//            spotifyService.skipToPrevious(currentDeviceID);
         });
         playPauseBtn.setOnClickListener(v-> {
             if(loggedIn) {
-//                fetchDeviceID(currentUser.getAccessToken());
                 isPlaying = !isPlaying;
                 playPause(currentUser.getAccessToken(), isPlaying);
             }
-//            spotifyService.playPause(currentDeviceID);
 
         });
         fastForwardBtn.setOnClickListener(v-> {
             if(loggedIn) {
-//                fetchDeviceID(currentUser.getAccessToken());
                 skipSong(currentUser.getAccessToken(), "next");
             }
-//            spotifyService.skipToNext(currentDeviceID);
+        });
+        shuffleBtn.setOnClickListener(v-> {
+            if(shuffleState.equals("shuffleOff")) {
+                shuffleRepeat(currentUser.getAccessToken(), "shuffleOn");
+            } else if (shuffleState.equals("shuffleOn")) {
+                shuffleRepeat(currentUser.getAccessToken(), "shuffleOff");
+            }
+        });
+        repeatBtn.setOnClickListener(v-> {
+            if(repeatState.equals("repeatAll")) {
+                shuffleRepeat(currentUser.getAccessToken(), "repeatOne");
+            }
+            if(repeatState.equals("repeatOne")) {
+                shuffleRepeat(currentUser.getAccessToken(), "repeatOff");
+            }
+            if(repeatState.equals("repeatOff")) {
+                shuffleRepeat(currentUser.getAccessToken(), "repeatAll");
+            }
         });
     }
 
@@ -146,10 +164,14 @@ public class LoginActivity extends AppCompatActivity {
                 spotifyService.fetchCurrentSong(new SpotifyService.FetchSongCallback() {
                     @Override
                     public void onSongFetched(String trackName, String artistName, String albumArtUrl, int progress, int duration) {
-                        currentlyPlayingSongName.setText(trackName);
-                        currentlyPlayingArtistName.setText(artistName);
+                        if(!currentSong.equals(trackName)) {
+                            currentlyPlayingSongName.setText(trackName);
+                            currentlyPlayingArtistName.setText(artistName);
+                            Picasso.get().load(albumArtUrl).into(currentlyPlayingAlbumArt);
+                            currentSong = trackName;
+                        }
+
                         // Load the album art into the ImageView using Glide or Picasso
-                        Picasso.get().load(albumArtUrl).into(currentlyPlayingAlbumArt);
                         updateProgressBar(progress, duration);
                         updateWidgetVisibility(true);
                     }
@@ -157,8 +179,6 @@ public class LoginActivity extends AppCompatActivity {
                     @Override
                     public void onError() {
                         // Handle error
-
-//                        showToast("Failed to fetch current song information.");
                         showToast("Failed to fetch current song information.");
                         updateWidgetVisibility(false);
                     }
@@ -194,11 +214,11 @@ public class LoginActivity extends AppCompatActivity {
         spotifyService.skipSong(accessToken, direction, new SpotifyService.skipSongCallback() {
             @Override
             public void onSkipSongSuccess() {
-                showToast("Skipping to " + direction + "track.");
+                showToast("Skipping to " + direction + " track.");
             }
             @Override
             public void onError() {
-                showToast("Failed to skip to " + direction +"track.");
+                showToast("Failed to skip to " + direction + " track.");
             }
         });
     }
@@ -214,6 +234,33 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onError() {
                 showToast("Failed to play/pause current track.");
+            }
+        });
+    }
+    private void shuffleRepeat(String accessToken, String shufRep) {
+        spotifyService.shuffleRepeat(accessToken, shufRep, new SpotifyService.shuffleRepeatCallback() {
+            @Override
+            public void onShuffleRepeatSuccess() {
+                if(shufRep.equals("shuffleOn")) {
+                    showToast("Shuffle on.");
+                    shuffleState = "shuffleOn";
+                } else if(shufRep.equals("shuffleOff")){
+                    showToast("Shuffle off.");
+                    shuffleState = "shuffleOff";
+                } else if(shufRep.equals("repeatAll")) {
+                    showToast("Repeat all on.");
+                    repeatState = "repeatAll";
+                } else if(shufRep.equals("repeatOne")) {
+                    showToast("Repeat one on.");
+                    repeatState = "repeatOne";
+                } else if(shufRep.equals("repeatOff")) {
+                    showToast("Repeat off.");
+                    repeatState = "repeatOff";
+                }
+            }
+            @Override
+            public void onError() {
+                showToast("Failed to change shuffle/repeat state.");
             }
         });
     }

@@ -9,35 +9,99 @@
     android:padding="10dp">
 
     <ImageView
-        android:id="@+id/goBackButton"
-        android:layout_width="45dp"
-        android:layout_height="45dp"
-        android:layout_toStartOf="@id/playPauseButton"
-        android:rotation="180"
-        android:src="@drawable/fast_forward"
-        app:layout_constraintEnd_toStartOf="@+id/playPauseButton"
+        android:id="@+id/currentlyPlayingAlbumArt"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:src="@drawable/spotify"
+        app:layout_constraintLeft_toLeftOf="@id/songProgressBar"
+        app:layout_constraintTop_toTopOf="@id/currentlyPlayingSongName"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:layout_editor_absoluteX="-2dp"
+        tools:layout_editor_absoluteY="-1dp" />
+
+    <TextView
+        android:id="@+id/currentlyPlayingSongName"
+        android:layout_width="125dp"
+        android:layout_height="wrap_content"
+        android:ellipsize="marquee"
+        android:marqueeRepeatLimit="marquee_forever"
+        android:singleLine="true"
+        android:scrollHorizontally="true"
+
+        android:text="Song Name"
+        android:textColor="#FFFFFF"
+        android:textSize="18sp"
+        app:layout_constraintTop_toTopOf="@id/currentlyPlayingAlbumArt"
+        app:layout_constraintStart_toEndOf="@id/currentlyPlayingAlbumArt"
+        android:layout_marginStart="3dp"
+        tools:layout_editor_absoluteY="2dp" />
+
+    <TextView
+        android:id="@+id/currentlyPlayingArtistName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/currentlyPlayingSongName"
+        app:layout_constraintTop_toBottomOf="@id/currentlyPlayingSongName"
+        app:layout_constraintStart_toStartOf="@id/currentlyPlayingSongName"
+        android:text="Artist Name"
+        android:textColor="#FFFFFF"
+        android:textSize="14sp"
+        tools:layout_editor_absoluteY="27dp" />
+
+    <ImageView
+        android:id="@+id/shuffleButton"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_toStartOf="@id/currentlyPlayingSongName"
+        android:src="@drawable/shuffle"
+        app:layout_constraintEnd_toStartOf="@+id/goBackButton"
         app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toEndOf="@+id/currentlyPlayingSongName"
         app:layout_constraintTop_toTopOf="@id/currentlyPlayingSongName" />
 
     <ImageView
+        android:id="@+id/goBackButton"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_toStartOf="@id/playPauseButton"
+        android:rotation="180"
+        android:src="@drawable/fast_forward"
+        app:layout_constraintEnd_toStartOf="@+id/playPauseButton"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toEndOf="@+id/shuffleButton"
+        app:layout_constraintTop_toTopOf="@id/currentlyPlayingSongName" />
+
+    <ImageView
         android:id="@+id/playPauseButton"
-        android:layout_width="45dp"
-        android:layout_height="45dp"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
         android:layout_centerInParent="true"
         android:src="@drawable/pause"
         app:layout_constraintBottom_toBottomOf="@+id/goBackButton"
+        app:layout_constraintStart_toEndOf="@+id/goBackButton"
         app:layout_constraintEnd_toStartOf="@+id/fastForwardButton"
         app:layout_constraintTop_toTopOf="@+id/goBackButton" />
 
 
     <ImageView
         android:id="@+id/fastForwardButton"
-        android:layout_width="45dp"
-        android:layout_height="45dp"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
         android:src="@drawable/fast_forward"
-        app:layout_constraintEnd_toEndOf="@id/songProgressBar"
+        app:layout_constraintEnd_toStartOf="@id/repeatButton"
+        app:layout_constraintStart_toEndOf="@+id/playPauseButton"
         app:layout_constraintTop_toTopOf="@id/playPauseButton" />
+
+    <ImageView
+        android:id="@+id/repeatButton"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_toStartOf="@id/fastForwardButton"
+        android:src="@drawable/repeat"
+        app:layout_constraintStart_toEndOf="@+id/goBackButton"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintEnd_toEndOf="@id/songProgressBar"
+        app:layout_constraintTop_toTopOf="@id/currentlyPlayingSongName" />
 
     <TextView
         android:id="@+id/currentlyPlayingTrackElapsed"
@@ -81,40 +145,5 @@
         app:layout_constraintBottom_toTopOf="@id/songProgressBar"
         tools:layout_editor_absoluteX="40dp"
         tools:layout_editor_absoluteY="58dp" />
-
-    <ImageView
-        android:id="@+id/currentlyPlayingAlbumArt"
-        android:layout_width="60dp"
-        android:layout_height="60dp"
-        android:src="@drawable/spotify"
-        app:layout_constraintLeft_toLeftOf="@id/songProgressBar"
-        app:layout_constraintTop_toTopOf="@id/currentlyPlayingSongName"
-        app:layout_constraintStart_toStartOf="parent"
-        tools:layout_editor_absoluteX="-2dp"
-        tools:layout_editor_absoluteY="-1dp" />
-
-    <TextView
-        android:id="@+id/currentlyPlayingSongName"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Song Name"
-        android:textColor="#FFFFFF"
-        android:textSize="18sp"
-        app:layout_constraintTop_toTopOf="@id/currentlyPlayingAlbumArt"
-        app:layout_constraintStart_toEndOf="@id/currentlyPlayingAlbumArt"
-        android:layout_marginStart="3dp"
-        tools:layout_editor_absoluteY="2dp" />
-
-    <TextView
-        android:id="@+id/currentlyPlayingArtistName"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/currentlyPlayingSongName"
-        app:layout_constraintTop_toBottomOf="@id/currentlyPlayingSongName"
-        app:layout_constraintStart_toStartOf="@id/currentlyPlayingSongName"
-        android:text="Artist Name"
-        android:textColor="#FFFFFF"
-        android:textSize="14sp"
-        tools:layout_editor_absoluteY="27dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -371,6 +371,46 @@ public class SpotifyService {
         }).start();
     }
 
+    public interface shuffleRepeatCallback {
+        void onShuffleRepeatSuccess();
+        void onError();
+    }
+    public void shuffleRepeat(String accessToken, String shufRep, shuffleRepeatCallback callback) {
+        new Thread(() -> {
+            OkHttpClient client = new OkHttpClient();
+            String url = "https://api.spotify.com/v1/me/player";
+            if(shufRep.equals("shuffleOn")) {
+                url +="/shuffle?state=true";
+            } else if(shufRep.equals("shuffleOff")){
+                url +="/shuffle?state=false";
+            } else if(shufRep.equals("repeatAll")) {
+                url +="/repeat?state=context";
+            } else if(shufRep.equals("repeatOne")) {
+                url +="/repeat?state=track";
+            } else if(shufRep.equals("repeatOff")) {
+                url +="/repeat?state=off";
+            }
+            Request.Builder builder = new Request.Builder()
+                    .url(url)
+                    .put(RequestBody.create("", null))
+                    .addHeader("Authorization", "Bearer " + accessToken);
+            Request request = builder.build();
+            Log.println(Log.VERBOSE, "Shuffle/Repeat Request", "Sending: " + request);
+            try (Response response = client.newCall(request).execute()) {
+                if (response.isSuccessful()) {
+                    Log.println(Log.VERBOSE, "Shuffle/Repeat Status", "Shuffle/Repeat success");
+                    activity.runOnUiThread(callback::onShuffleRepeatSuccess);
+                } else {
+                    Log.println(Log.VERBOSE, "Shuffle/Repeat Status", "Failed to shuffle/repeat track");
+                    activity.runOnUiThread(callback::onError);
+                }
+            } catch (Exception e) {
+                Log.println(Log.VERBOSE, "Shuffle/Repeat Status", "Exception with shuffle/repeat request");
+                activity.runOnUiThread(callback::onError);
+            }
+        }).start();
+    }
+
     private static void showToast(String message) {
         Toast.makeText(activity, message, Toast.LENGTH_SHORT).show();
     }
