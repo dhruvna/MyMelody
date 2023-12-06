@@ -41,7 +41,7 @@ public class ArtistAdapter extends ArrayAdapter<Artist> {
 
         Artist artist = getItem(position);
 
-        if (artist != null) {
+        if (artist != null && artist.isSavedToFirebase()) {
             holder.tvArtistName.setText(artist.getName());
 
             // Remove the existing TextWatcher
@@ -50,6 +50,7 @@ public class ArtistAdapter extends ArrayAdapter<Artist> {
             }
 
             holder.etArtistScore.setText(artist.getRating() >= 0 && artist.getRating()<=10 ? String.valueOf(artist.getRating()) : "");
+
             onScoreChanged(artist, artist.getRating());
             TextWatcher textWatcher = new TextWatcher() {
                 // beforeTextChanged, onTextChanged, afterTextChanged implementation
