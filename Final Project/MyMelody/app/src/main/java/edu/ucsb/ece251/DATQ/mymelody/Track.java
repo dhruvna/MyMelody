@@ -4,7 +4,7 @@ public class Track {
     private String id;
     private String name;
     private int rating;
-
+    public Track() {} //need for firebase
     public Track(String id,String name, int rating) {
         this.id = id;
         this.name = name;

@@ -14,25 +14,22 @@ import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
-import com.google.firebase.FirebaseApp;
-import com.google.firebase.database.ValueEventListener;
-import androidx.annotation.NonNull;
-import com.google.firebase.database.DatabaseError;
-
-
-
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.database.ValueEventListener;
+import androidx.annotation.NonNull;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 public class TrackActivity extends AppCompatActivity {
     private ArrayList<Track> trackArrayList; // Use Track model
@@ -137,10 +134,6 @@ public class TrackActivity extends AppCompatActivity {
         }
         loadPreferences();
 
-//        if (accessToken != null && !isDataLoaded) {
-//            Log.println(Log.VERBOSE, "Received token", accessToken);
-//            fetchUserTopTracks(accessToken, rangeSetting, numTracks);
-//        }
     }
     private void savePreferences() {
         SharedPreferences prefs = getSharedPreferences("TrackPrefs", MODE_PRIVATE);
@@ -193,8 +186,6 @@ public class TrackActivity extends AppCompatActivity {
             ListView trackListView = findViewById(R.id.TrackList);
             trackListView.setAdapter(trackAdapter);
         }
-
-        //handleTimeRangeSelection(rangeSetting, numTracks);
     }
 
     private void sortTrackByScore(boolean ascending) {

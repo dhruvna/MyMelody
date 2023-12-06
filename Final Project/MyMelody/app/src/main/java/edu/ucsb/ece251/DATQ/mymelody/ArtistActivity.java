@@ -14,6 +14,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.gson.Gson;
@@ -22,13 +23,21 @@ import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.database.ValueEventListener;
+import androidx.annotation.NonNull;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+
 public class ArtistActivity extends AppCompatActivity {
     private ArrayList<Artist> artistArrayList;
     private ArtistAdapter artistAdapter;
     private SpotifyService spotifyService;
     private String accessToken;
     private User currentUser;
-
+    public boolean initiated = false;
     private boolean isDataLoaded = false;
     private int rangeSetting;
     final static int lastMonth = 0;
@@ -39,6 +48,7 @@ public class ArtistActivity extends AppCompatActivity {
 
     SeekBar artistSeekBar;
 
+    DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,7 +60,7 @@ public class ArtistActivity extends AppCompatActivity {
         artistAdapter = new ArtistAdapter(this, artistArrayList); // Initialize ArtistAdapter with the artist list
         ListView ArtistList = findViewById(R.id.ArtistList);
         ArtistList.setAdapter(artistAdapter); // Set the adapter for the ListView
-
+        FirebaseApp.initializeApp(this);
         artistSeekBar = findViewById(R.id.artistSeekBar);
         artistCountTextView = findViewById(R.id.artistCountTextView);
 
@@ -124,11 +134,6 @@ public class ArtistActivity extends AppCompatActivity {
             if (userInfo != null) currentUser = parseUserString(userInfo);
             accessToken = currentUser.getAccessToken();
         }
-
-//        if (accessToken != null && artistArrayList.isEmpty()) {
-//            Log.println(Log.VERBOSE, "Received token", accessToken);
-//            fetchUserTopArtists(accessToken, rangeSetting, numArtists);
-//        }
     }
 
     private void savePreferences() {
@@ -205,19 +210,65 @@ public class ArtistActivity extends AppCompatActivity {
     private void fetchUserTopArtists(String accessToken, int rangeSetting, int numArtists) {
         spotifyService.fetchUserTopArtists(accessToken, rangeSetting, numArtists, new SpotifyService.FetchArtistCallback() {
             @Override
-            public void onArtistFetched(String Artists) {
-                String[] ArtistList = Artists.split("%20");
-                int numArtists = Integer.parseInt(ArtistList[0]);
-                artistArrayList.clear(); // Clear the current artist list
-                for (int i = 1; i <= numArtists; i++) {
-                    // Assuming a default rating of 0 for all artists initially
-                    artistArrayList.add(new Artist(ArtistList[i],0));
+            public void onArtistFetched(String artists) {
+                String[] artistList = artists.split("%20");
+                int numArtistsFetched = Integer.parseInt(artistList[0]);
+                artistArrayList.clear();
+
+                for (int i = 1; i <= numArtistsFetched; i++) {
+                    String[] artistInfo = artistList[i].split("%21");
+                    Log.d("ArtistId", artistInfo[1]);
+                    checkAndStoreArtist(artistInfo[1]);
                 }
-                artistAdapter.notifyDataSetChanged(); // Notify the adapter that the data set has changed
+                artistAdapter.notifyDataSetChanged();
             }
             @Override
             public void onError() {
-                showToast("Failed to fetch top Artists.");
+                showToast("Failed to fetch top artists.");
+            }
+        });
+    }
+    private void checkAndStoreArtist(String artistId) {
+        databaseReference.child("artists").child(artistId).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (!dataSnapshot.exists()) {
+                    // Artist not in Firebase, so fetch details from Spotify and store
+                    fetchArtistDetailsFromSpotifyAndStore(artistId);
+                } else {
+                    Log.d("Firebase", "Data updated: " + dataSnapshot.getValue());
+
+                    Artist artist = dataSnapshot.getValue(Artist.class);
+                    if (artist != null) {
+                        artistArrayList.add(artist);
+                        artistAdapter.notifyDataSetChanged();
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.w("Firebase", "Failed to read artist", databaseError.toException());
+            }
+        });
+    }
+
+    private void fetchArtistDetailsFromSpotifyAndStore(String artistId) {
+        // Fetch artist details from Spotify
+        // This is a placeholder, you need to implement this based on your SpotifyService
+        spotifyService.fetchArtistDetails(artistId, new SpotifyService.FetchArtistDetailsCallback() {
+            @Override
+            public void onArtistDetailsFetched(Artist artist) {
+                // Store in Firebase
+                databaseReference.child("artists").child(artistId).setValue(artist);
+                artistArrayList.add(artist);
+                artist.setSavedToFirebase(true);
+                artistAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onError() {
+                Log.e("Spotify", "Failed to fetch artist details");
             }
         });
     }
