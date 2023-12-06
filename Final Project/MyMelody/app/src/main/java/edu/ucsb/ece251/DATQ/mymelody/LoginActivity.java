@@ -41,7 +41,7 @@ public class LoginActivity extends AppCompatActivity {
     private String shuffleState = "shuffleOff";
     private String repeatState = "repeatOff";
     private String currentDeviceID;
-    private static final int FETCH_INTERVAL = 1000; 
+    private static final int FETCH_INTERVAL = 1050;
     private final Handler handler = new Handler();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,12 +104,15 @@ public class LoginActivity extends AppCompatActivity {
         });
         repeatBtn.setOnClickListener(v-> {
             if(repeatState.equals("repeatAll")) {
+                Log.println(Log.VERBOSE, "Repeat State", "CURRENTLY IN REPEAT ALL, GOING TO REPEAT ONE");
                 shuffleRepeat(currentUser.getAccessToken(), "repeatOne");
             }
             if(repeatState.equals("repeatOne")) {
+                Log.println(Log.VERBOSE, "Repeat State", "CURRENTLY IN REPEAT ONE, GOING TO REPEAT OFF");
                 shuffleRepeat(currentUser.getAccessToken(), "repeatOff");
             }
             if(repeatState.equals("repeatOff")) {
+                Log.println(Log.VERBOSE, "Repeat State", "CURRENTLY IN REPEAT OFF, GOING TO REPEAT ALL");
                 shuffleRepeat(currentUser.getAccessToken(), "repeatAll");
             }
         });
@@ -164,6 +167,7 @@ public class LoginActivity extends AppCompatActivity {
                 spotifyService.fetchCurrentSong(new SpotifyService.FetchSongCallback() {
                     @Override
                     public void onSongFetched(String trackName, String artistName, String albumArtUrl, int progress, int duration) {
+                        updateStatus(currentUser.getAccessToken());
                         if(!currentSong.equals(trackName)) {
                             currentlyPlayingSongName.setText(trackName);
                             currentlyPlayingArtistName.setText(artistName);
@@ -226,10 +230,9 @@ public class LoginActivity extends AppCompatActivity {
         spotifyService.playPause(accessToken, isPlaying, new SpotifyService.playPauseCallback() {
             @Override
             public void onPlayPauseSuccess() {
-                if(isPlaying) {
+                if(!isPlaying) {
                     showToast("Playback Paused.");
                 } else showToast("Playback Resumed.");
-                updatePauseIcon();
             }
             @Override
             public void onError() {
@@ -243,23 +246,18 @@ public class LoginActivity extends AppCompatActivity {
             public void onShuffleRepeatSuccess() {
                 if(shufRep.equals("shuffleOn")) {
                     showToast("Shuffle on.");
-                    shuffleBtn.setImageResource(R.drawable.shuffle_white);
                     shuffleState = "shuffleOn";
                 } else if(shufRep.equals("shuffleOff")){
                     showToast("Shuffle off.");
-                    shuffleBtn.setImageResource(R.drawable.shuffle);
                     shuffleState = "shuffleOff";
                 } else if(shufRep.equals("repeatAll")) {
-                    showToast("Repeat all on.");
-                    repeatBtn.setImageResource(R.drawable.repeat_white);
+                    showToast("Repeat off.");
                     repeatState = "repeatAll";
                 } else if(shufRep.equals("repeatOne")) {
                     showToast("Repeat one on.");
-                    repeatBtn.setImageResource(R.drawable.repeat_one);
                     repeatState = "repeatOne";
                 } else if(shufRep.equals("repeatOff")) {
                     showToast("Repeat off.");
-                    repeatBtn.setImageResource(R.drawable.repeat);
                     repeatState = "repeatOff";
                 }
             }
@@ -269,12 +267,24 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
     }
-    private void fetchDeviceID(String accessToken) {
-        spotifyService.fetchCurrentDeviceId(accessToken, new SpotifyService.FetchDeviceIdCallback() {
+    private void fetchDeviceStatus(String accessToken) {
+        spotifyService.fetchCurrentDeviceStatus(accessToken, new SpotifyService.FetchDeviceStatusCallback() {
             @Override
-            public void onDeviceIdFetched(String deviceId) {
+            public void onDeviceStatusFetched(String deviceId, Boolean is_playing, String repeat_state, Boolean shuffle_state) {
                 currentDeviceID = deviceId;
-                Log.println(Log.VERBOSE, "Device ID Fetcher","Device ID: " + currentDeviceID);
+                isPlaying = is_playing;
+                if(repeat_state.equals("off")) {
+                    repeatState = "repeatOff";
+                } else if(repeat_state.equals("context")) {
+                    repeatState = "repeatAll";
+                } else if(repeat_state.equals("track")) {
+                    repeatState = "repeatOne";
+                }
+                shuffleState = (shuffle_state) ? "shuffleOn" : "shuffleOff";
+//                Log.println(Log.VERBOSE, "Device ID Fetcher","Device ID: " + currentDeviceID);
+//                Log.println(Log.VERBOSE, "Device Status", "Is Playing: " + isPlaying +
+//                        "\nRepeat State: " + repeatState +
+//                        "\nShuffle State: " + shuffleState);
             }
             @Override
             public void onError() {
@@ -314,7 +324,7 @@ public class LoginActivity extends AppCompatActivity {
             logoutButton.setVisibility(View.VISIBLE);
             fetchUserInfo(accessToken);
             // Fetch and display the currently playing track
-            fetchDeviceID(accessToken);
+            updateStatus(accessToken);
             setupFetchCurrentTrackTask();
         } else {
             LoginPrompt.setText(R.string.fail_msg);
@@ -366,11 +376,26 @@ public class LoginActivity extends AppCompatActivity {
         int minutes = (millis / (1000 * 60)) % 60;
         return String.format(Locale.getDefault(), "%d:%02d", minutes, seconds);
     }
-    private void updatePauseIcon() {
+    private void updateStatus(String accessToken) {
+        fetchDeviceStatus(accessToken);
         if(!isPlaying) {
-            playPauseBtn.setImageResource(R.drawable.pause);
-        } else {
             playPauseBtn.setImageResource(R.drawable.play);
+        } else {
+            playPauseBtn.setImageResource(R.drawable.pause);
+        }
+
+        if(shuffleState.equals("shuffleOn")) {
+            shuffleBtn.setImageResource(R.drawable.shuffle_white);
+        } else if(shuffleState.equals("shuffleOff")) {
+            shuffleBtn.setImageResource(R.drawable.shuffle);
+        }
+
+        if(repeatState.equals("repeatOff")) {
+            repeatBtn.setImageResource(R.drawable.repeat);
+        } else if(repeatState.equals("repeatOne")) {
+            repeatBtn.setImageResource(R.drawable.repeat_one);
+        } else if(repeatState.equals("repeatAll")) {
+            repeatBtn.setImageResource(R.drawable.repeat_white);
         }
     }
     private void showToast(String message) {

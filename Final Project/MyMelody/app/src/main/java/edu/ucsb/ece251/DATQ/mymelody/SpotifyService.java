@@ -268,11 +268,11 @@ public class SpotifyService {
         }).start();
     }
 
-    public interface FetchDeviceIdCallback {
-        void onDeviceIdFetched(String deviceId);
+    public interface FetchDeviceStatusCallback {
+        void onDeviceStatusFetched(String deviceId, Boolean is_playing, String repeat_state, Boolean shuffle_state);
         void onError();
     }
-    public void fetchCurrentDeviceId(String accessToken, FetchDeviceIdCallback callback) {
+    public void fetchCurrentDeviceStatus(String accessToken, FetchDeviceStatusCallback callback) {
         new Thread(() -> {
             OkHttpClient client = new OkHttpClient();
             String url = "https://api.spotify.com/v1/me/player";
@@ -289,7 +289,10 @@ public class SpotifyService {
                     if (!jsonResponse.isNull("device")) {
                         JSONObject device = jsonResponse.getJSONObject("device");
                         String deviceId = device.getString("id");
-                        activity.runOnUiThread(() -> callback.onDeviceIdFetched(deviceId));
+                        Boolean is_playing = jsonResponse.getBoolean("is_playing");
+                        String repeat_state = jsonResponse.getString("repeat_state");
+                        Boolean shuffle_state = jsonResponse.getBoolean("shuffle_state");
+                        activity.runOnUiThread(() -> callback.onDeviceStatusFetched(deviceId, is_playing, repeat_state, shuffle_state));
                     } else {
                         activity.runOnUiThread(callback::onError);
                     }
@@ -311,7 +314,7 @@ public class SpotifyService {
         new Thread(() -> {
             OkHttpClient client = new OkHttpClient();
             String url = "https://api.spotify.com/v1/me/player";
-            if(isPlaying) {
+            if(!isPlaying) {
                 url +="/pause";
             } else {
                 url +="/play";
