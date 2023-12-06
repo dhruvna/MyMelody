@@ -243,18 +243,23 @@ public class LoginActivity extends AppCompatActivity {
             public void onShuffleRepeatSuccess() {
                 if(shufRep.equals("shuffleOn")) {
                     showToast("Shuffle on.");
+                    shuffleBtn.setImageResource(R.drawable.shuffle_white);
                     shuffleState = "shuffleOn";
                 } else if(shufRep.equals("shuffleOff")){
                     showToast("Shuffle off.");
+                    shuffleBtn.setImageResource(R.drawable.shuffle);
                     shuffleState = "shuffleOff";
                 } else if(shufRep.equals("repeatAll")) {
                     showToast("Repeat all on.");
+                    repeatBtn.setImageResource(R.drawable.repeat_white);
                     repeatState = "repeatAll";
                 } else if(shufRep.equals("repeatOne")) {
                     showToast("Repeat one on.");
+                    repeatBtn.setImageResource(R.drawable.repeat_one);
                     repeatState = "repeatOne";
                 } else if(shufRep.equals("repeatOff")) {
                     showToast("Repeat off.");
+                    repeatBtn.setImageResource(R.drawable.repeat);
                     repeatState = "repeatOff";
                 }
             }
