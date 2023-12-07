@@ -469,16 +469,22 @@ public class SpotifyService {
         new Thread(() -> {
             OkHttpClient client = new OkHttpClient();
             String url = "https://api.spotify.com/v1/me/player";
-            if(shufRep.equals("shuffleOn")) {
-                url +="/shuffle?state=true";
-            } else if(shufRep.equals("shuffleOff")){
-                url +="/shuffle?state=false";
-            } else if(shufRep.equals("repeatAll")) {
-                url +="/repeat?state=context";
-            } else if(shufRep.equals("repeatOne")) {
-                url +="/repeat?state=track";
-            } else if(shufRep.equals("repeatOff")) {
-                url +="/repeat?state=off";
+            switch (shufRep) {
+                case "shuffleOn":
+                    url += "/shuffle?state=true";
+                    break;
+                case "shuffleOff":
+                    url += "/shuffle?state=false";
+                    break;
+                case "repeatAll":
+                    url += "/repeat?state=context";
+                    break;
+                case "repeatOne":
+                    url += "/repeat?state=track";
+                    break;
+                case "repeatOff":
+                    url += "/repeat?state=off";
+                    break;
             }
             Request.Builder builder = new Request.Builder()
                     .url(url)
@@ -501,10 +507,6 @@ public class SpotifyService {
         }).start();
     }
 
-    public interface QueueCallback {
-        void onQueueSuccess();
-        void onError();
-    }
     public void addToQueue(String trackID) {
         new Thread(() -> {
             OkHttpClient client = new OkHttpClient();

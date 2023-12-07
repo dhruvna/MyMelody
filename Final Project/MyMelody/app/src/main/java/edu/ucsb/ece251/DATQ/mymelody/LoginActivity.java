@@ -40,7 +40,6 @@ public class LoginActivity extends AppCompatActivity {
     private boolean isPlaying = false;
     private String shuffleState = "shuffleOff";
     private String repeatState = "repeatOff";
-    private String currentDeviceID;
     private static final int FETCH_INTERVAL = 1050;
     private final Handler handler = new Handler();
     @Override
@@ -249,21 +248,27 @@ public class LoginActivity extends AppCompatActivity {
         spotifyService.shuffleRepeat(accessToken, shufRep, new SpotifyService.shuffleRepeatCallback() {
             @Override
             public void onShuffleRepeatSuccess() {
-                if(shufRep.equals("shuffleOn")) {
-                    showToast("Shuffle on.");
-                    shuffleState = "shuffleOn";
-                } else if(shufRep.equals("shuffleOff")){
-                    showToast("Shuffle off.");
-                    shuffleState = "shuffleOff";
-                } else if(shufRep.equals("repeatAll")) {
-                    showToast("Repeat off.");
-                    repeatState = "repeatAll";
-                } else if(shufRep.equals("repeatOne")) {
-                    showToast("Repeat one on.");
-                    repeatState = "repeatOne";
-                } else if(shufRep.equals("repeatOff")) {
-                    showToast("Repeat off.");
-                    repeatState = "repeatOff";
+                switch (shufRep) {
+                    case "shuffleOn":
+                        showToast("Shuffle on.");
+                        shuffleState = "shuffleOn";
+                        break;
+                    case "shuffleOff":
+                        showToast("Shuffle off.");
+                        shuffleState = "shuffleOff";
+                        break;
+                    case "repeatAll":
+                        showToast("Repeat off.");
+                        repeatState = "repeatAll";
+                        break;
+                    case "repeatOne":
+                        showToast("Repeat one on.");
+                        repeatState = "repeatOne";
+                        break;
+                    case "repeatOff":
+                        showToast("Repeat off.");
+                        repeatState = "repeatOff";
+                        break;
                 }
             }
             @Override
@@ -276,20 +281,19 @@ public class LoginActivity extends AppCompatActivity {
         spotifyService.fetchCurrentDeviceStatus(accessToken, new SpotifyService.FetchDeviceStatusCallback() {
             @Override
             public void onDeviceStatusFetched(String deviceId, Boolean is_playing, String repeat_state, Boolean shuffle_state) {
-                currentDeviceID = deviceId;
                 isPlaying = is_playing;
-                if(repeat_state.equals("off")) {
-                    repeatState = "repeatOff";
-                } else if(repeat_state.equals("context")) {
-                    repeatState = "repeatAll";
-                } else if(repeat_state.equals("track")) {
-                    repeatState = "repeatOne";
+                switch (repeat_state) {
+                    case "off":
+                        repeatState = "repeatOff";
+                        break;
+                    case "context":
+                        repeatState = "repeatAll";
+                        break;
+                    case "track":
+                        repeatState = "repeatOne";
+                        break;
                 }
                 shuffleState = (shuffle_state) ? "shuffleOn" : "shuffleOff";
-//                Log.println(Log.VERBOSE, "Device ID Fetcher","Device ID: " + currentDeviceID);
-//                Log.println(Log.VERBOSE, "Device Status", "Is Playing: " + isPlaying +
-//                        "\nRepeat State: " + repeatState +
-//                        "\nShuffle State: " + shuffleState);
             }
             @Override
             public void onError() {
@@ -398,12 +402,16 @@ public class LoginActivity extends AppCompatActivity {
             shuffleBtn.setImageResource(R.drawable.shuffle);
         }
 
-        if(repeatState.equals("repeatOff")) {
-            repeatBtn.setImageResource(R.drawable.repeat);
-        } else if(repeatState.equals("repeatOne")) {
-            repeatBtn.setImageResource(R.drawable.repeat_one);
-        } else if(repeatState.equals("repeatAll")) {
-            repeatBtn.setImageResource(R.drawable.repeat_white);
+        switch (repeatState) {
+            case "repeatOff":
+                repeatBtn.setImageResource(R.drawable.repeat);
+                break;
+            case "repeatOne":
+                repeatBtn.setImageResource(R.drawable.repeat_one);
+                break;
+            case "repeatAll":
+                repeatBtn.setImageResource(R.drawable.repeat_white);
+                break;
         }
     }
     private void showToast(String message) {
