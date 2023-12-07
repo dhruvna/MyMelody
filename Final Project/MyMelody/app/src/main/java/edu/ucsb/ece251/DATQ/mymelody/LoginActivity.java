@@ -188,7 +188,6 @@ public class LoginActivity extends AppCompatActivity {
                         // Handle error
 
 //                        showToast("Failed to fetch current song information.");
-                        //showToast("Failed to fetch current song information.");
                         updateWidgetVisibility(false);
                     }
                 });
@@ -344,6 +343,9 @@ public class LoginActivity extends AppCompatActivity {
         PFP.setVisibility(View.INVISIBLE);
         updateWidgetVisibility(false);
         loggedIn = false;
+        if (handler != null) {
+            handler.removeCallbacksAndMessages(null);
+        }
     }
     private void setLoginPrompt() {
         String loginPrompt = "Welcome! " + "\n" +
