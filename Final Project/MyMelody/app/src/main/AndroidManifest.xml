@@ -21,6 +21,9 @@
             android:name=".ArtistActivity"
             android:exported="false" />
         <activity
+            android:name=".GoogleChartsWebView"
+            android:exported="false" />
+        <activity
             android:name=".LoginActivity"
             android:exported="true"
             android:label="@string/app_name"

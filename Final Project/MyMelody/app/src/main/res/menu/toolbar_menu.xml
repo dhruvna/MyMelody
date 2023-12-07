@@ -12,5 +12,9 @@
         android:id="@+id/tracks"
         android:title="Tracks"
         app:showAsAction="never" />
+    <item
+        android:id="@+id/charts"
+        android:title="Charts"
+        app:showAsAction="never" />
 
 </menu>

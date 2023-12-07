@@ -143,6 +143,11 @@ public class LoginActivity extends AppCompatActivity {
                 startActivity(trackIntent);
 //                finish();
                 return true;
+            } else if (myID == R.id.charts) {
+                Intent chartsIntent = new Intent(this, GoogleChartsWebView.class);
+                chartsIntent.putExtra("User Info", currentUser.toString());
+                startActivity(chartsIntent);
+//                finish();
             }
         } else {
             showToast("Log in first to see user information!");
