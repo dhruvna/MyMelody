@@ -1,6 +1,11 @@
 package edu.ucsb.ece251.DATQ.mymelody;
 
+import static android.content.Context.MODE_PRIVATE;
+import static android.content.Intent.getIntent;
+
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -9,15 +14,20 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.TextView;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+
 
 import java.util.ArrayList;
 
 
 public class ArtistAdapter extends ArrayAdapter<Artist> {
-    public ArtistAdapter(Context context, ArrayList<Artist> artists) {
+    private String Userid;
+    public ArtistAdapter(Context context, ArrayList<Artist> artists, String id) {
         super(context, 0, artists);
+        this.Userid = id;
     }
-
+    DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         ViewHolder holder;
@@ -45,6 +55,7 @@ public class ArtistAdapter extends ArrayAdapter<Artist> {
 
             holder.etArtistScore.setText(artist.getRating() >= 0 && artist.getRating()<=10 ? String.valueOf(artist.getRating()) : "");
 
+            onScoreChanged(artist, artist.getRating());
             TextWatcher textWatcher = new TextWatcher() {
                 // beforeTextChanged, onTextChanged, afterTextChanged implementation
                 @Override
@@ -73,6 +84,32 @@ public class ArtistAdapter extends ArrayAdapter<Artist> {
         }
 
         return convertView;
+    }
+
+    public void onScoreChanged(Artist artist, int newScore) {
+        artist.setRating(newScore);
+
+        databaseReference.child("artists" + Userid).child(artist.getId()).setValue(artist); // Update Firebase
+    }
+
+    public User parseUserString(String userString) {
+        String[] lines = userString.split("\n");
+        if (lines.length != 6) return null;
+        return new User(
+                lines[0].substring(lines[0].indexOf(": ") + 2),
+                lines[1].substring(lines[1].indexOf(": ") + 2),
+                lines[2].substring(lines[2].indexOf(": ") + 2),
+                lines[3].substring(lines[3].indexOf(": ") + 2),
+                lines[4].substring(lines[4].indexOf(": ") + 2),
+                lines[5].substring(lines[5].indexOf(": ") + 2)
+        );
+    }
+
+    private void saveArtistRating(Artist artist) {
+        SharedPreferences prefs = getContext().getSharedPreferences("ArtistPrefs", MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putInt(artist.getId(), artist.getRating());
+        editor.apply();
     }
 
     static class ViewHolder {

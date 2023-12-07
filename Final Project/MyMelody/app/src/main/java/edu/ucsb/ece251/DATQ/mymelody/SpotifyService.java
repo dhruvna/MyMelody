@@ -58,6 +58,85 @@ public class SpotifyService {
         }
         return null;
     }
+    public interface FetchTrackDetailsCallback {
+        void onTrackDetailsFetched(Track track);
+        void onError();
+    }
+
+    public interface FetchArtistDetailsCallback {
+        void onArtistDetailsFetched(Artist artist);
+        void onError();
+    }
+
+
+    public void fetchTrackDetails(String trackId, FetchTrackDetailsCallback fetchTrackDetailsCallback) {
+        new Thread(() -> {
+            OkHttpClient client = new OkHttpClient();
+            String url = "https://api.spotify.com/v1/tracks/" + trackId;
+
+            Request request = new Request.Builder()
+                    .url(url)
+                    .addHeader("Authorization", "Bearer " + accessToken)
+                    .build();
+
+            try (Response response = client.newCall(request).execute()) {
+                if (response.isSuccessful() && response.body() != null) {
+                    String responseData = response.body().string();
+                    JSONObject trackJson = new JSONObject(responseData);
+
+                    // Parse the JSON object to create a Track object
+                    String id = trackJson.getString("id");
+                    String name = trackJson.getString("name");
+
+                    Track track = new Track(id, name, 0);
+
+                    // Use Handler to run on UI thread
+                    activity.runOnUiThread(() -> fetchTrackDetailsCallback.onTrackDetailsFetched(track));
+                } else {
+                    // Handle response failure
+                    activity.runOnUiThread(fetchTrackDetailsCallback::onError);
+                }
+            } catch (Exception e) {
+                Log.e("SpotifyService", "Error fetching track details: " + e.getMessage());
+                activity.runOnUiThread(fetchTrackDetailsCallback::onError);
+            }
+        }).start();
+    }
+
+    public void fetchArtistDetails(String artistId, FetchArtistDetailsCallback fetchArtistDetailsCallback) {
+        new Thread(() -> {
+            OkHttpClient client = new OkHttpClient();
+            String url = "https://api.spotify.com/v1/artists/" + artistId;
+
+            Request request = new Request.Builder()
+                    .url(url)
+                    .addHeader("Authorization", "Bearer " + accessToken)
+                    .build();
+
+            try (Response response = client.newCall(request).execute()) {
+                if (response.isSuccessful() && response.body() != null) {
+                    String responseData = response.body().string();
+                    JSONObject trackJson = new JSONObject(responseData);
+
+                    // Parse the JSON object to create a Track object
+                    String id = trackJson.getString("id");
+                    String name = trackJson.getString("name");
+
+                    Artist artist = new Artist(id, name, 0);
+
+                    // Use Handler to run on UI thread
+                    activity.runOnUiThread(() -> fetchArtistDetailsCallback.onArtistDetailsFetched(artist));
+                } else {
+                    // Handle response failure
+                    activity.runOnUiThread(fetchArtistDetailsCallback::onError);
+                }
+            } catch (Exception e) {
+                Log.e("SpotifyService", "Error fetching artist details: " + e.getMessage());
+                activity.runOnUiThread(fetchArtistDetailsCallback::onError);
+            }
+        }).start();
+    }
+
 
     //Get User Info
     public interface FetchUserInfoCallback {
@@ -148,6 +227,8 @@ public class SpotifyService {
                         for(int i = 0; i < items.length(); i++) {
                             JSONObject track = items.getJSONObject(i);
                             tracks.append(track.getString("name"));
+                            tracks.append("%21");
+                            tracks.append(track.getString("id"));
                             tracks.append("%20");
                         }
                         String finalTracks = tracks.toString();
@@ -203,6 +284,8 @@ public class SpotifyService {
                         for(int i = 0; i < items.length(); i++) {
                             JSONObject artist = items.getJSONObject(i);
                             artists.append(artist.getString("name"));
+                            artists.append("%21");
+                            artists.append(artist.getString("id"));
                             artists.append("%20");
                         }
                         String finalArtists = artists.toString();
