@@ -27,7 +27,6 @@ import java.util.ArrayList;
 
 public class TrackAdapter extends ArrayAdapter<Track> {
     private String Userid;
-    private SpotifyService spotifyService;
     public TrackAdapter(Context context, ArrayList<Track> tracks, String id) {
         super(context, 0, tracks);
         this.Userid = id;
@@ -118,7 +117,7 @@ public class TrackAdapter extends ArrayAdapter<Track> {
             public void onClick(DialogInterface dialog, int which) {
                 // Handle the confirmation action here
                 Log.println(Log.VERBOSE, "CONFIRMATION", "Confirming queue request for " + track.getName());
-
+                addToQueue(track);
 //                handleLongClickAction(track);
             }
         });
@@ -132,6 +131,13 @@ public class TrackAdapter extends ArrayAdapter<Track> {
 
         AlertDialog dialog = builder.create();
         dialog.show();
+    }
+    private void addToQueue(Track track) {
+        if(track != null) {
+            String trackID = track.getId();
+//            SpotifyService spotifyService = new SpotifyService();
+//            spotifyService.addToQueue(trackID);
+        }
     }
 //    private void handleLongClickAction(Track track) {
 //        String trackID = track.getId();
