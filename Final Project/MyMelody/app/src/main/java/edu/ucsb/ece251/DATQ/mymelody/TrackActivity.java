@@ -1,6 +1,7 @@
 package edu.ucsb.ece251.DATQ.mymelody;
 
 import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
@@ -74,6 +75,15 @@ public class TrackActivity extends AppCompatActivity {
                 R.array.time_range_options, android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         timeRange.setAdapter(adapter);
+
+        trackListView.setOnItemLongClickListener((parent, view, position, id) -> {
+            // Get the selected track
+            Track selectedTrack = (Track) parent.getItemAtPosition(position);
+
+            // Show the confirmation dialog
+            showConfirmationDialog(selectedTrack, position);
+            return true; // Indicates that the callback consumed the long click
+        });
 
         timeRange.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -315,6 +325,42 @@ public class TrackActivity extends AppCompatActivity {
             sortTrackByScore(which == 0); // Ascending
         });
         builder.show();
+    }
+
+    private void showConfirmationDialog(Track track, int position) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this); // Use 'getActivity()' if in a fragment
+        builder.setTitle("Confirm Action");
+        builder.setMessage("Are you sure you want to perform this action on " + track.getName() + "?");
+
+        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                // Handle the confirmation action here
+                handleLongClickAction(track, position);
+            }
+        });
+
+        builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+    private void handleLongClickAction(Track track, int position) {
+        String trackID = track.getId();
+        spotifyService.addToQueue(trackID, new SpotifyService.QueueCallback() {
+            @Override
+            public void onQueueSuccess() {
+                showToast("Track added to queue");
+            }
+            @Override
+            public void onError() { Log.e("Queue Adder", "Failed to add track to queue");}
+        });
+        // Implement your action here, such as removing the track or updating it
     }
     private void showToast(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();

@@ -497,6 +497,34 @@ public class SpotifyService {
         }).start();
     }
 
+    public interface QueueCallback {
+        void onQueueSuccess();
+        void onError();
+    }
+    public void addToQueue(String trackID, QueueCallback callback) {
+        new Thread(() -> {
+            OkHttpClient client = new OkHttpClient();
+            String url = "https://api.spotify.com/v1/me/player/queue?uri=spotify%3Atrack%3A" + trackID;
+            Request.Builder builder = new Request.Builder()
+                    .url(url)
+                    .post(RequestBody.create("", null))
+                    .addHeader("Authorization", "Bearer " + accessToken);
+            Request request = builder.build();
+            Log.println(Log.VERBOSE, "Skip Song Request", "Sending: " + request);
+            try (Response response = client.newCall(request).execute()) {
+                if (response.isSuccessful()) {
+                    Log.println(Log.VERBOSE, "Queue Song Success", "Successfully queued song.");
+                    activity.runOnUiThread(callback::onQueueSuccess);
+                } else {
+                    Log.println(Log.VERBOSE, "Queue Song Success", "Failed to queue song.");
+                    activity.runOnUiThread(callback::onError);
+                }
+            } catch (Exception e) {
+                Log.println(Log.VERBOSE, "Queue Song Success", "Exception queuing song.");
+                activity.runOnUiThread(callback::onError);
+            }
+        }).start();
+    }
     private static void showToast(String message) {
         Toast.makeText(activity, message, Toast.LENGTH_SHORT).show();
     }
