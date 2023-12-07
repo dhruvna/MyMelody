@@ -52,10 +52,15 @@ public class TrackActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_track);
-
+        Bundle extras = getIntent().getExtras();
+        if (extras != null) {
+            String userInfo = extras.getString("User Info");
+            if (userInfo != null) currentUser = parseUserString(userInfo);
+            accessToken = currentUser.getAccessToken();
+        }
         spotifyService = new SpotifyService(this);
         trackArrayList = new ArrayList<>();
-        trackAdapter = new TrackAdapter(this, trackArrayList); // Initialize TrackAdapter with the track list
+        trackAdapter = new TrackAdapter(this, trackArrayList, currentUser.getId()); // Initialize TrackAdapter with the track list
         ListView trackListView = findViewById(R.id.TrackList);
         trackListView.setAdapter(trackAdapter); // Set the adapter for the ListView
         FirebaseApp.initializeApp(this);
@@ -126,12 +131,6 @@ public class TrackActivity extends AppCompatActivity {
                 }
             });
         }
-        Bundle extras = getIntent().getExtras();
-        if (extras != null) {
-            String userInfo = extras.getString("User Info");
-            if (userInfo != null) currentUser = parseUserString(userInfo);
-            accessToken = currentUser.getAccessToken();
-        }
         loadPreferences();
 
     }
@@ -182,7 +181,7 @@ public class TrackActivity extends AppCompatActivity {
         if (accessToken != null && trackArrayList.isEmpty()) {
             fetchUserTopTracks(accessToken, rangeSetting, numTracks);
         } else {
-            trackAdapter = new TrackAdapter(this, trackArrayList);
+            trackAdapter = new TrackAdapter(this, trackArrayList, currentUser.getId());
             ListView trackListView = findViewById(R.id.TrackList);
             trackListView.setAdapter(trackAdapter);
         }
@@ -235,7 +234,7 @@ public class TrackActivity extends AppCompatActivity {
     }
 
     private void checkAndStoreTrack(String trackId) {
-        databaseReference.child("tracks").child(trackId).addListenerForSingleValueEvent(new ValueEventListener() {
+        databaseReference.child("tracks" + currentUser.getId()).child(trackId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (!dataSnapshot.exists()) {
@@ -266,7 +265,7 @@ public class TrackActivity extends AppCompatActivity {
             @Override
             public void onTrackDetailsFetched(Track track) {
                 // Store in Firebase
-                databaseReference.child("tracks").child(trackId).setValue(track);
+                databaseReference.child("tracks" + currentUser.getId()).child(trackId).setValue(track);
                 trackArrayList.add(track);
                 trackAdapter.notifyDataSetChanged();
             }

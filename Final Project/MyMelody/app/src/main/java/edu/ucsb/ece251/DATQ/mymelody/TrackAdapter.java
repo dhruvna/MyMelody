@@ -20,8 +20,10 @@ import java.util.ArrayList;
 
 
 public class TrackAdapter extends ArrayAdapter<Track> {
-    public TrackAdapter(Context context, ArrayList<Track> tracks) {
+    private String Userid;
+    public TrackAdapter(Context context, ArrayList<Track> tracks, String id) {
         super(context, 0, tracks);
+        this.Userid = id;
     }
     DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
 
@@ -84,7 +86,7 @@ public class TrackAdapter extends ArrayAdapter<Track> {
     }
     public void onScoreChanged(Track track, int newScore) {
         track.setRating(newScore); // Update the score in the Track object
-        databaseReference.child("tracks").child(track.getId()).setValue(track); // Update Firebase
+        databaseReference.child("tracks" + Userid).child(track.getId()).setValue(track); // Update Firebase
     }
 
     private void saveTrackRating(Track track) {

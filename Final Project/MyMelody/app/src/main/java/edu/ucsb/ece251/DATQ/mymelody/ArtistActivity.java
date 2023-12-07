@@ -37,7 +37,6 @@ public class ArtistActivity extends AppCompatActivity {
     private SpotifyService spotifyService;
     private String accessToken;
     private User currentUser;
-    public boolean initiated = false;
     private boolean isDataLoaded = false;
     private int rangeSetting;
     final static int lastMonth = 0;
@@ -54,10 +53,16 @@ public class ArtistActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_artist);
+        Bundle extras = getIntent().getExtras();
+        if (extras != null) {
+            String userInfo = extras.getString("User Info");
+            if (userInfo != null) currentUser = parseUserString(userInfo);
+            accessToken = currentUser.getAccessToken();
+        }
 
         spotifyService = new SpotifyService(this);
         artistArrayList = new ArrayList<>();
-        artistAdapter = new ArtistAdapter(this, artistArrayList); // Initialize ArtistAdapter with the artist list
+        artistAdapter = new ArtistAdapter(this, artistArrayList, currentUser.getId()); // Initialize ArtistAdapter with the artist list
         ListView ArtistList = findViewById(R.id.ArtistList);
         ArtistList.setAdapter(artistAdapter); // Set the adapter for the ListView
         FirebaseApp.initializeApp(this);
@@ -73,7 +78,6 @@ public class ArtistActivity extends AppCompatActivity {
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         timeRange.setAdapter(adapter);
 
-        loadPreferences();
 
         timeRange.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -128,12 +132,7 @@ public class ArtistActivity extends AppCompatActivity {
             }
         });
 
-        Bundle extras = getIntent().getExtras();
-        if (extras != null) {
-            String userInfo = extras.getString("User Info");
-            if (userInfo != null) currentUser = parseUserString(userInfo);
-            accessToken = currentUser.getAccessToken();
-        }
+        loadPreferences();
     }
 
     private void savePreferences() {
@@ -177,7 +176,7 @@ public class ArtistActivity extends AppCompatActivity {
         if (accessToken != null && artistArrayList.isEmpty()) {
             fetchUserTopArtists(accessToken, rangeSetting, numArtists);
         } else {
-            artistAdapter = new ArtistAdapter(this, artistArrayList);
+            artistAdapter = new ArtistAdapter(this, artistArrayList, currentUser.getId());
             ListView artistListView = findViewById(R.id.ArtistList);
             artistListView.setAdapter(artistAdapter);
         }
@@ -229,7 +228,7 @@ public class ArtistActivity extends AppCompatActivity {
         });
     }
     private void checkAndStoreArtist(String artistId) {
-        databaseReference.child("artists").child(artistId).addListenerForSingleValueEvent(new ValueEventListener() {
+        databaseReference.child("artists" + currentUser.getId()).child(artistId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (!dataSnapshot.exists()) {
@@ -260,9 +259,8 @@ public class ArtistActivity extends AppCompatActivity {
             @Override
             public void onArtistDetailsFetched(Artist artist) {
                 // Store in Firebase
-                databaseReference.child("artists").child(artistId).setValue(artist);
+                databaseReference.child("artists" + currentUser.getId()).child(artistId).setValue(artist);
                 artistArrayList.add(artist);
-                artist.setSavedToFirebase(true);
                 artistAdapter.notifyDataSetChanged();
             }
 
