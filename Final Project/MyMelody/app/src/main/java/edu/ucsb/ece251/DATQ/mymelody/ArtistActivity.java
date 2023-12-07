@@ -202,8 +202,8 @@ public class ArtistActivity extends AppCompatActivity {
                 return scoreComparison;
             });
         }
-
         artistAdapter.notifyDataSetChanged();
+        savePreferences();
     }
 
     private void fetchUserTopArtists(String accessToken, int rangeSetting, int numArtists) {

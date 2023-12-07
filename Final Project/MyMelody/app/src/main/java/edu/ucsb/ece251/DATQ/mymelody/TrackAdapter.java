@@ -108,8 +108,8 @@ public class TrackAdapter extends ArrayAdapter<Track> {
 
     private void showConfirmationDialog(Track track) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this.getContext()); // Use 'getActivity()' if in a fragment
-        builder.setTitle("Confirm Action");
-        builder.setMessage("Are you sure you want to perform this action on " + track.getName() + "?");
+        builder.setTitle("Queue Song");
+        builder.setMessage("Do you want to queue " + track.getName() + "?");
 
         builder.setPositiveButton("Yes", (dialog, which) -> {
             // Handle the confirmation action here

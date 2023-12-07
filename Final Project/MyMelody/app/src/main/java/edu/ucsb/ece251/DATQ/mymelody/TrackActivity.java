@@ -130,8 +130,8 @@ public class TrackActivity extends AppCompatActivity {
                 }
             });
         }
-        loadPreferences();
 
+        loadPreferences();
     }
     private void savePreferences() {
         SharedPreferences prefs = getSharedPreferences("TrackPrefs", MODE_PRIVATE);
@@ -208,6 +208,7 @@ public class TrackActivity extends AppCompatActivity {
         }
 
         trackAdapter.notifyDataSetChanged();
+        savePreferences();
     }
 
     private void fetchUserTopTracks(String accessToken, int rangeSetting, int numTracks) {
@@ -303,7 +304,7 @@ public class TrackActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        //loadPreferences();
+        loadPreferences();
     }
     private void showSortingOptions() {
         String[] options = {"Sort Ascending", "Sort Descending"};
