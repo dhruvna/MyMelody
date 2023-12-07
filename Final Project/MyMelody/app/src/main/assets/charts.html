@@ -5,17 +5,18 @@
       google.charts.load('current', {'packages':['corechart']});
 
       // Function to draw the chart
-      function drawChart(genreData) {
-        var data = google.visualization.arrayToDataTable(genreData);
+      function updateChart(chartData) {
+        var data = google.visualization.arrayToDataTable(chartData);
 
         var options = {
-          title: 'User\'s Top Genres',
-          pieHole: 0.4, // For a donut chart, remove this line for a regular pie chart
+            title: 'User\'s Top Genres',
+            pieHole: 0.4, // Adjust as needed
         };
 
         var chart = new google.visualization.PieChart(document.getElementById('chart_div'));
         chart.draw(data, options);
       }
+
     </script>
 </head>
 <body>

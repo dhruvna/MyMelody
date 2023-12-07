@@ -210,16 +210,35 @@ public class ArtistActivity extends AppCompatActivity {
         spotifyService.fetchUserTopArtists(accessToken, rangeSetting, numArtists, new SpotifyService.FetchArtistCallback() {
             @Override
             public void onArtistFetched(String artists) {
-                String[] artistList = artists.split("%20");
-                int numArtistsFetched = Integer.parseInt(artistList[0]);
+                String[] artistBlocks = artists.split("%19"); // Split by %19 for each artist
+                String[] firstBlock = artistBlocks[0].split("%20", 2);
+                int numArtistsFetched = Integer.parseInt(firstBlock[0]);
                 artistArrayList.clear();
 
-                for (int i = 1; i <= numArtistsFetched; i++) {
-                    String[] artistInfo = artistList[i].split("%21");
-                    Log.println(Log.VERBOSE, "ArtistId", artistInfo[1]);
-                    checkAndStoreArtist(artistInfo[1]);
+                // Process the first artist block separately
+                processArtistBlock(firstBlock[1]);
+
+                for (int i = 1; i < artistBlocks.length; i++) {
+                    processArtistBlock(artistBlocks[i]);
                 }
                 artistAdapter.notifyDataSetChanged();
+            }
+            private void processArtistBlock(String block) {
+                String[] artistInfo = block.split("%21");
+                String artistName = artistInfo[0];
+                String[] idAndGenres = artistInfo[1].split("%20", 2);
+                String artistId = idAndGenres[0];
+                String genresString = idAndGenres.length > 1 ? idAndGenres[1] : "";
+                String[] genres = genresString.split(",");
+
+                // Process the artist's name, ID, and genres as needed
+                Log.println(Log.VERBOSE, "ArtistId", artistId);
+                for(String genre : genres) {
+                    if (!genre.isEmpty()) {
+                        Log.println(Log.VERBOSE, "Genre", genre);
+                    }
+                }
+                checkAndStoreArtist(artistId);
             }
             @Override
             public void onError() {

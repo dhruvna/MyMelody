@@ -37,7 +37,6 @@ public class User {
         String userString =  "id: " + id + "\n" +
                 "Username: " + username + "\n" +
                 "Email: " + email + "\n" +
-                //Html.fromHtml("<a href=" + profileLink + "> Profile </a>")
                 "Profile Link: " + profileLink + "\n" +
                 "PFP Link: " + pfpLink + "\n" +
                 "Access Token: " + accessToken + "\n"

@@ -289,7 +289,12 @@ public class SpotifyService {
                             artists.append("%20");
                             JSONArray genres = artist.getJSONArray("genres");
                             for(int j = 0; j < genres.length(); j++) {
-
+                                artists.append(genres.getString(j));
+                                if(j < genres.length() - 1) {
+                                    artists.append(",");
+                                }
+                            }if(i < items.length() - 1) {
+                                artists.append("%19");
                             }
                         }
                         String finalArtists = artists.toString();
