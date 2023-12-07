@@ -419,6 +419,18 @@ public class LoginActivity extends AppCompatActivity {
                 break;
         }
     }
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (handler != null) {
+            handler.removeCallbacksAndMessages(null);
+        }
+    }
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+    }
     private void showToast(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
