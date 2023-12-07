@@ -318,7 +318,7 @@ public class LoginActivity extends AppCompatActivity {
             }
             @Override
             public void onError() {
-                showToast("Failed to fetch user information.");
+                //showToast("Failed to fetch user information.");
             }
         });
     }
