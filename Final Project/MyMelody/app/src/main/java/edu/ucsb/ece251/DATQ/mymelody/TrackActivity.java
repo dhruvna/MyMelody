@@ -220,7 +220,7 @@ public class TrackActivity extends AppCompatActivity {
 
                 for (int i = 1; i <= numTracksFetched; i++) {
                     String[] trackInfo = trackList[i].split("%21"); // Assuming trackList[i] is the track ID
-                    Log.d("TrackId", trackInfo[1]);
+                    Log.println(Log.VERBOSE,"TrackId", trackInfo[1]);
                     checkAndStoreTrack(trackInfo[1]);
                 }
                 trackAdapter.notifyDataSetChanged();

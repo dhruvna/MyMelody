@@ -216,7 +216,7 @@ public class ArtistActivity extends AppCompatActivity {
 
                 for (int i = 1; i <= numArtistsFetched; i++) {
                     String[] artistInfo = artistList[i].split("%21");
-                    Log.d("ArtistId", artistInfo[1]);
+                    Log.println(Log.VERBOSE, "ArtistId", artistInfo[1]);
                     checkAndStoreArtist(artistInfo[1]);
                 }
                 artistAdapter.notifyDataSetChanged();

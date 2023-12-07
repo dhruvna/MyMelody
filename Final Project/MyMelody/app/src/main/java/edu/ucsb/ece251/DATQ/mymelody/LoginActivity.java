@@ -61,7 +61,10 @@ public class LoginActivity extends AppCompatActivity {
             loggedIn = true;
         });
         logoutButton.setOnClickListener(view-> {
-            if(spotifyService.logOut()) logout();
+            if(spotifyService.logOut()) {
+                Log.println(Log.VERBOSE, "Log Out Status", "Log out successful.");
+                logout();
+            }
         });
         PFP.setOnClickListener(view -> openProfile());
 
