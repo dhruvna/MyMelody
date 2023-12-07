@@ -1,7 +1,6 @@
 package edu.ucsb.ece251.DATQ.mymelody;
 
 import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
@@ -60,7 +59,7 @@ public class TrackActivity extends AppCompatActivity {
         }
         spotifyService = new SpotifyService(this);
         trackArrayList = new ArrayList<>();
-        trackAdapter = new TrackAdapter(this, trackArrayList, currentUser.getId()); // Initialize TrackAdapter with the track list
+        trackAdapter = new TrackAdapter(this, trackArrayList, currentUser.getId(), spotifyService); // Initialize TrackAdapter with the track list
         ListView trackListView = findViewById(R.id.TrackList);
         trackListView.setAdapter(trackAdapter); // Set the adapter for the ListView
         FirebaseApp.initializeApp(this);
@@ -181,7 +180,7 @@ public class TrackActivity extends AppCompatActivity {
         if (accessToken != null && trackArrayList.isEmpty()) {
             fetchUserTopTracks(accessToken, rangeSetting, numTracks);
         } else {
-            trackAdapter = new TrackAdapter(this, trackArrayList, currentUser.getId());
+            trackAdapter = new TrackAdapter(this, trackArrayList, currentUser.getId(), spotifyService);
             ListView trackListView = findViewById(R.id.TrackList);
             trackListView.setAdapter(trackAdapter);
         }

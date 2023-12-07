@@ -287,6 +287,10 @@ public class SpotifyService {
                             artists.append("%21");
                             artists.append(artist.getString("id"));
                             artists.append("%20");
+                            JSONArray genres = artist.getJSONArray("genres");
+                            for(int j = 0; j < genres.length(); j++) {
+
+                            }
                         }
                         String finalArtists = artists.toString();
                         // Use Handler to run on UI thread

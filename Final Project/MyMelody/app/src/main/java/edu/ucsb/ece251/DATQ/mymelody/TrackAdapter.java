@@ -12,11 +12,9 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -26,10 +24,13 @@ import java.util.ArrayList;
 
 
 public class TrackAdapter extends ArrayAdapter<Track> {
-    private String Userid;
-    public TrackAdapter(Context context, ArrayList<Track> tracks, String id) {
+    private final String Userid;
+    private final SpotifyService spotifyService; // Add this line
+
+    public TrackAdapter(Context context, ArrayList<Track> tracks, String id, SpotifyService spotifyService) {
         super(context, 0, tracks);
         this.Userid = id;
+        this.spotifyService = spotifyService;
     }
     DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
 
@@ -112,48 +113,19 @@ public class TrackAdapter extends ArrayAdapter<Track> {
         builder.setTitle("Confirm Action");
         builder.setMessage("Are you sure you want to perform this action on " + track.getName() + "?");
 
-        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                // Handle the confirmation action here
-                Log.println(Log.VERBOSE, "CONFIRMATION", "Confirming queue request for " + track.getName());
-                addToQueue(track);
-//                handleLongClickAction(track);
-            }
+        builder.setPositiveButton("Yes", (dialog, which) -> {
+            // Handle the confirmation action here
+            Log.println(Log.VERBOSE, "CONFIRMATION", "Confirming queue request for " + track.getName());
+            spotifyService.addToQueue(track.getId());
         });
-        builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                Log.println(Log.VERBOSE, "CONFIRMATION", "Queue request denied.");
-                dialog.dismiss();
-            }
+        builder.setNegativeButton("No", (dialog, which) -> {
+            Log.println(Log.VERBOSE, "CONFIRMATION", "Queue request denied.");
+            dialog.dismiss();
         });
 
         AlertDialog dialog = builder.create();
         dialog.show();
     }
-    private void addToQueue(Track track) {
-        if(track != null) {
-            String trackID = track.getId();
-//            SpotifyService spotifyService = new SpotifyService();
-//            spotifyService.addToQueue(trackID);
-        }
-    }
-//    private void handleLongClickAction(Track track) {
-//        String trackID = track.getId();
-//        spotifyService.addToQueue(trackID, new SpotifyService.QueueCallback() {
-//            @Override
-//            public void onQueueSuccess() {
-////                showToast("Track added to queue");
-//            }
-//            @Override
-//            public void onError() { Log.e("Queue Adder", "Failed to add track to queue");}
-//        });
-//        // Implement your action here, such as removing the track or updating it
-//    }
-//    private void showToast(String message) {
-//        Toast.makeText(this.getContext(), message, Toast.LENGTH_SHORT).show();
-//    }
     static class ViewHolder {
         TextView tvTrackName;
         EditText etTrackScore;

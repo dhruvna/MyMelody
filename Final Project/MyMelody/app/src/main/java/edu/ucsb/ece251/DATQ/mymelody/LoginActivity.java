@@ -170,6 +170,7 @@ public class LoginActivity extends AppCompatActivity {
                 spotifyService.fetchCurrentSong(new SpotifyService.FetchSongCallback() {
                     @Override
                     public void onSongFetched(String trackName, String artistName, String albumArtUrl, int progress, int duration) {
+//                        showToast("Received information about " + trackName);
                         updateStatus(currentUser.getAccessToken());
                         if(!currentSong.equals(trackName)) {
                             currentlyPlayingSongName.setText(trackName);
@@ -187,7 +188,7 @@ public class LoginActivity extends AppCompatActivity {
                     public void onError() {
                         // Handle error
 
-//                        showToast("Failed to fetch current song information.");
+                        showToast("Failed to fetch current song information.");
                         updateWidgetVisibility(false);
                     }
                 });
