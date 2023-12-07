@@ -501,7 +501,7 @@ public class SpotifyService {
         void onQueueSuccess();
         void onError();
     }
-    public void addToQueue(String trackID, QueueCallback callback) {
+    public void addToQueue(String trackID) {
         new Thread(() -> {
             OkHttpClient client = new OkHttpClient();
             String url = "https://api.spotify.com/v1/me/player/queue?uri=spotify%3Atrack%3A" + trackID;
@@ -514,14 +514,14 @@ public class SpotifyService {
             try (Response response = client.newCall(request).execute()) {
                 if (response.isSuccessful()) {
                     Log.println(Log.VERBOSE, "Queue Song Success", "Successfully queued song.");
-                    activity.runOnUiThread(callback::onQueueSuccess);
+//                    activity.runOnUiThread(callback::onQueueSuccess);
                 } else {
                     Log.println(Log.VERBOSE, "Queue Song Success", "Failed to queue song.");
-                    activity.runOnUiThread(callback::onError);
+//                    activity.runOnUiThread(callback::onError);
                 }
             } catch (Exception e) {
                 Log.println(Log.VERBOSE, "Queue Song Success", "Exception queuing song.");
-                activity.runOnUiThread(callback::onError);
+//                activity.runOnUiThread(callback::onError);
             }
         }).start();
     }

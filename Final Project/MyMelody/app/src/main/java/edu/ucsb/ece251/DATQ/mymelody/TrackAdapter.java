@@ -2,16 +2,22 @@ package edu.ucsb.ece251.DATQ.mymelody;
 
 import static android.content.Context.MODE_PRIVATE;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -21,6 +27,7 @@ import java.util.ArrayList;
 
 public class TrackAdapter extends ArrayAdapter<Track> {
     private String Userid;
+    private SpotifyService spotifyService;
     public TrackAdapter(Context context, ArrayList<Track> tracks, String id) {
         super(context, 0, tracks);
         this.Userid = id;
@@ -43,9 +50,14 @@ public class TrackAdapter extends ArrayAdapter<Track> {
         }
 
         Track track = getItem(position);
+        convertView.setOnClickListener(v -> {
+            Log.println(Log.VERBOSE, "Test onclick", "TESTING on click for: " + track.getId());
+            showConfirmationDialog(track);
+        });
 
         if (track != null) {
             holder.tvTrackName.setText(track.getName());
+
 
             // Remove the existing TextWatcher
             if (holder.etTrackScore.getTag() instanceof TextWatcher) {
@@ -95,9 +107,49 @@ public class TrackAdapter extends ArrayAdapter<Track> {
         editor.putInt(track.getId(), track.getRating());
         editor.apply();
     }
+
+    private void showConfirmationDialog(Track track) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this.getContext()); // Use 'getActivity()' if in a fragment
+        builder.setTitle("Confirm Action");
+        builder.setMessage("Are you sure you want to perform this action on " + track.getName() + "?");
+
+        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                // Handle the confirmation action here
+                Log.println(Log.VERBOSE, "CONFIRMATION", "Confirming queue request for " + track.getName());
+
+//                handleLongClickAction(track);
+            }
+        });
+        builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                Log.println(Log.VERBOSE, "CONFIRMATION", "Queue request denied.");
+                dialog.dismiss();
+            }
+        });
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+//    private void handleLongClickAction(Track track) {
+//        String trackID = track.getId();
+//        spotifyService.addToQueue(trackID, new SpotifyService.QueueCallback() {
+//            @Override
+//            public void onQueueSuccess() {
+////                showToast("Track added to queue");
+//            }
+//            @Override
+//            public void onError() { Log.e("Queue Adder", "Failed to add track to queue");}
+//        });
+//        // Implement your action here, such as removing the track or updating it
+//    }
+//    private void showToast(String message) {
+//        Toast.makeText(this.getContext(), message, Toast.LENGTH_SHORT).show();
+//    }
     static class ViewHolder {
         TextView tvTrackName;
         EditText etTrackScore;
     }
-
 }
