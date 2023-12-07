@@ -63,12 +63,6 @@ public class SpotifyService {
         void onError();
     }
 
-    public interface FetchArtistDetailsCallback {
-        void onArtistDetailsFetched(Artist artist);
-        void onError();
-    }
-
-
     public void fetchTrackDetails(String trackId, FetchTrackDetailsCallback fetchTrackDetailsCallback) {
         new Thread(() -> {
             OkHttpClient client = new OkHttpClient();
@@ -101,6 +95,11 @@ public class SpotifyService {
                 activity.runOnUiThread(fetchTrackDetailsCallback::onError);
             }
         }).start();
+    }
+
+    public interface FetchArtistDetailsCallback {
+        void onArtistDetailsFetched(Artist artist);
+        void onError();
     }
 
     public void fetchArtistDetails(String artistId, FetchArtistDetailsCallback fetchArtistDetailsCallback) {
