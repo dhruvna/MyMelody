@@ -226,13 +226,21 @@ public class ArtistActivity extends AppCompatActivity {
             private void processArtistBlock(String block) {
                 String[] artistInfo = block.split("%21");
                 String artistName = artistInfo[0];
-                String[] idAndGenres = artistInfo[1].split("%20", 2);
-                String artistId = idAndGenres[0];
-                String genresString = idAndGenres.length > 1 ? idAndGenres[1] : "";
+
+                // Split the remaining part by "%20" to separate the artist ID and the URL + genres
+                String[] idAndUrlAndGenres = artistInfo[1].split("%20", 2);
+                String artistId = idAndUrlAndGenres[0];
+
+                // Split the URL + genres part by "%18" to separate the artist URL from the genres
+                String[] urlAndGenres = idAndUrlAndGenres[1].split("%18", 2);
+                String artistPFPUrl = urlAndGenres[0]; // This is the profile URL
+                String genresString = urlAndGenres.length > 1 ? urlAndGenres[1] : "";
+
                 String[] genres = genresString.split(",");
 
                 // Process the artist's name, ID, and genres as needed
                 Log.println(Log.VERBOSE, "ArtistId", artistId);
+                Log.println(Log.VERBOSE, "ArtistPFP", artistPFPUrl);
                 for(String genre : genres) {
                     if (!genre.isEmpty()) {
                         Log.println(Log.VERBOSE, "Genre", genre);
