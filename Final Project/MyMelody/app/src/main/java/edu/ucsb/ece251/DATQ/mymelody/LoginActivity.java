@@ -429,6 +429,7 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        setupFetchCurrentTrackTask();
 
     }
     private void showToast(String message) {
