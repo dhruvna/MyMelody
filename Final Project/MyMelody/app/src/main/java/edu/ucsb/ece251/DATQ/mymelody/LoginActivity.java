@@ -1,6 +1,7 @@
 package edu.ucsb.ece251.DATQ.mymelody;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -55,10 +56,7 @@ public class LoginActivity extends AppCompatActivity {
         loginButton = findViewById(R.id.LoginButton);
         logoutButton = findViewById(R.id.LogoutButton);
         spotifyService = new SpotifyService(this);
-        loginButton.setOnClickListener(view -> {
-            spotifyService.authenticateSpotify(this);
-            loggedIn = true;
-        });
+        loginButton.setOnClickListener(view -> spotifyService.authenticateSpotify(this));
         logoutButton.setOnClickListener(view-> {
             if(spotifyService.logOut()) {
                 Log.println(Log.VERBOSE, "Log Out Status", "Log out successful.");
@@ -81,9 +79,8 @@ public class LoginActivity extends AppCompatActivity {
         repeatBtn = findViewById(R.id.repeatButton);
         ImageView fastForwardBtn = findViewById(R.id.fastForwardButton);
         goBackBtn.setOnClickListener(v-> {
-            if(loggedIn) {
+            if(loggedIn)
                 skipSong(currentUser.getAccessToken(), "previous");
-            }
         });
         playPauseBtn.setOnClickListener(v-> {
             if(loggedIn) {
@@ -93,16 +90,14 @@ public class LoginActivity extends AppCompatActivity {
 
         });
         fastForwardBtn.setOnClickListener(v-> {
-            if(loggedIn) {
+            if(loggedIn)
                 skipSong(currentUser.getAccessToken(), "next");
-            }
         });
         shuffleBtn.setOnClickListener(v-> {
-            if(shuffleState.equals("shuffleOff")) {
+            if(shuffleState.equals("shuffleOff"))
                 shuffleRepeat(currentUser.getAccessToken(), "shuffleOn");
-            } else if (shuffleState.equals("shuffleOn")) {
+            else if (shuffleState.equals("shuffleOn"))
                 shuffleRepeat(currentUser.getAccessToken(), "shuffleOff");
-            }
         });
         repeatBtn.setOnClickListener(v-> {
             if(repeatState.equals("repeatAll")) {
@@ -157,11 +152,6 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void setupFetchCurrentTrackTask() {
-        // If not logged in, don't continue
-        // Fetch the currently playing track
-        // Load the album art into the ImageView using Glide or Picasso
-        // Handle error
-        // Schedule the next execution
         Runnable fetchCurrentTrackRunnable = new Runnable() {
             @Override
             public void run() {
@@ -175,6 +165,7 @@ public class LoginActivity extends AppCompatActivity {
                     @Override
                     public void onSongFetched(String trackName, String artistName, String albumArtUrl, int progress, int duration) {
 //                        showToast("Received information about " + trackName);
+                        updateWidgetVisibility(true);
                         updateStatus(currentUser.getAccessToken());
                         if(!currentSong.equals(trackName)) {
                             currentlyPlayingSongName.setText(trackName);
@@ -182,25 +173,22 @@ public class LoginActivity extends AppCompatActivity {
                             Picasso.get().load(albumArtUrl).into(currentlyPlayingAlbumArt);
                             currentSong = trackName;
                         }
-
                         // Load the album art into the ImageView using Glide or Picasso
                         updateProgressBar(progress, duration);
-                        updateWidgetVisibility(true);
+
                     }
 
                     @Override
                     public void onError() {
                         // Handle error
-
                         showToast("Failed to fetch current song information.");
                         updateWidgetVisibility(false);
                     }
                 });
 
                 // Schedule the next execution
-                if (loggedIn) {
+                if (loggedIn)
                     handler.postDelayed(this, FETCH_INTERVAL);
-                }
             }
         };
         // Start the initial fetch
@@ -219,9 +207,9 @@ public class LoginActivity extends AppCompatActivity {
         if (widget != null) {
             Log.d("LoginActivity", "Updating widget visibility: " + isVisible); // Debugging log
             widget.setVisibility(isVisible ? View.VISIBLE : View.INVISIBLE);
-        } else {
-            Log.e("LoginActivity", "Widget container not found. Make sure the ID is correct.");
         }
+        else
+            Log.e("LoginActivity", "Widget container not found. Make sure the ID is correct.");
     }
     private void skipSong(String accessToken, String direction) {
         spotifyService.skipSong(accessToken, direction, new SpotifyService.skipSongCallback() {
@@ -239,9 +227,10 @@ public class LoginActivity extends AppCompatActivity {
         spotifyService.playPause(accessToken, isPlaying, new SpotifyService.playPauseCallback() {
             @Override
             public void onPlayPauseSuccess() {
-                if(!isPlaying) {
+                if(!isPlaying)
                     showToast("Playback Paused.");
-                } else showToast("Playback Resumed.");
+                else
+                    showToast("Playback Resumed.");
             }
             @Override
             public void onError() {
@@ -333,6 +322,7 @@ public class LoginActivity extends AppCompatActivity {
             Log.println(Log.VERBOSE, "Testing token after back button", accessToken);
         }
         if(accessToken != null) {
+            loggedIn = true;
             setLoginPrompt();
             loginButton.setVisibility(View.INVISIBLE);
             logoutButton.setVisibility(View.VISIBLE);
@@ -346,6 +336,7 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
     private void logout() {
+        toolbar.setTitle("My Melody");
         LoginPrompt.setText(R.string.login_msg);
         showToast("Logged out.");
         loginButton.setVisibility(View.VISIBLE);
@@ -425,12 +416,37 @@ public class LoginActivity extends AppCompatActivity {
         if (handler != null) {
             handler.removeCallbacksAndMessages(null);
         }
+        SharedPreferences prefs = getSharedPreferences("LoginPrefs", MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        if(loggedIn) {
+            editor.putString("AccessToken", currentUser.getAccessToken());
+            editor.putBoolean("LoginStatus", loggedIn);
+            editor.putString("CurrentUser", currentUser.toString());
+            editor.apply();
+        }
     }
     @Override
     protected void onResume() {
         super.onResume();
-        setupFetchCurrentTrackTask();
-
+        SharedPreferences prefs = getSharedPreferences("LoginPrefs", MODE_PRIVATE);
+        String accessToken = prefs.getString("AccessToken", null);
+        if(accessToken != null) {
+            Log.println(Log.VERBOSE, "Access Token on Resume", accessToken);
+            loggedIn = prefs.getBoolean("LoginStatus", true);
+            currentUser = parseUserString(prefs.getString("CurrentUser", null));
+            setLoginPrompt();
+            loginButton.setVisibility(View.INVISIBLE);
+            logoutButton.setVisibility(View.VISIBLE);
+            fetchUserInfo(accessToken);
+            // Fetch and display the currently playing track
+            updateStatus(accessToken);
+            setupFetchCurrentTrackTask();
+        }
+    }
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.d("LoginActivity", "Activity is being destroyed");
     }
     private void showToast(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
