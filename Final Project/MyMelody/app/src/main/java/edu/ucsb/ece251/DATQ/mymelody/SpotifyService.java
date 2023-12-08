@@ -399,41 +399,57 @@ public class SpotifyService {
         }).start();
     }
 
-
-    public interface playPauseCallback {
-        void onPlayPauseSuccess();
+    public interface shufRepPlayPauseCallback {
+        void onShufRepPlayPauseSuccess();
         void onError();
     }
-    public void playPause(String accessToken, boolean isPlaying, playPauseCallback callback) {
+    public void shufRepPlayPause(String accessToken, String ShufRepPlayPause, shufRepPlayPauseCallback callback) {
         new Thread(() -> {
             OkHttpClient client = new OkHttpClient();
             String url = "https://api.spotify.com/v1/me/player";
-            if(!isPlaying) {
-                url +="/pause";
-            } else {
-                url +="/play";
+            switch (ShufRepPlayPause) {
+                case "pause":
+                    url +="/pause";
+                    break;
+                case "play":
+                    url +="/play";
+                    break;
+                case "shuffleOn":
+                    url += "/shuffle?state=true";
+                    break;
+                case "shuffleOff":
+                    url += "/shuffle?state=false";
+                    break;
+                case "repeatAll":
+                    url += "/repeat?state=context";
+                    break;
+                case "repeatOne":
+                    url += "/repeat?state=track";
+                    break;
+                case "repeatOff":
+                    url += "/repeat?state=off";
+                    break;
             }
             Request.Builder builder = new Request.Builder()
                     .url(url)
                     .put(RequestBody.create("", null))
                     .addHeader("Authorization", "Bearer " + accessToken);
             Request request = builder.build();
-            Log.println(Log.VERBOSE, "Play/Pause Request", "Sending: " + request);
             try (Response response = client.newCall(request).execute()) {
                 if (response.isSuccessful()) {
-                    Log.println(Log.VERBOSE, "Play/Pause Status", "Play/Pause success");
-                    activity.runOnUiThread(callback::onPlayPauseSuccess);
+                    Log.println(Log.VERBOSE, "ShufRep/PlayPause Status", ShufRepPlayPause + " success");
+                    activity.runOnUiThread(callback::onShufRepPlayPauseSuccess);
                 } else {
-                    Log.println(Log.VERBOSE, "Play/Pause Status", "Failed to play/pause track");
+                    Log.println(Log.VERBOSE, "ShufRep/PlayPause Status", "Failed to " + ShufRepPlayPause + " track");
                     activity.runOnUiThread(callback::onError);
                 }
             } catch (Exception e) {
-                Log.println(Log.VERBOSE, "Play/Pause Status", "Exception with play/pause request");
+                Log.println(Log.VERBOSE, "ShufRep/PlayPause Status", "Exception with ShufRep/PlayPause request");
                 activity.runOnUiThread(callback::onError);
             }
         }).start();
     }
-
+//    Post Requests *****************
     public interface skipSongCallback {
         void onSkipSongSuccess();
         void onError();
@@ -467,53 +483,6 @@ public class SpotifyService {
             }
         }).start();
     }
-
-    public interface shuffleRepeatCallback {
-        void onShuffleRepeatSuccess();
-        void onError();
-    }
-    public void shuffleRepeat(String accessToken, String shufRep, shuffleRepeatCallback callback) {
-        new Thread(() -> {
-            OkHttpClient client = new OkHttpClient();
-            String url = "https://api.spotify.com/v1/me/player";
-            switch (shufRep) {
-                case "shuffleOn":
-                    url += "/shuffle?state=true";
-                    break;
-                case "shuffleOff":
-                    url += "/shuffle?state=false";
-                    break;
-                case "repeatAll":
-                    url += "/repeat?state=context";
-                    break;
-                case "repeatOne":
-                    url += "/repeat?state=track";
-                    break;
-                case "repeatOff":
-                    url += "/repeat?state=off";
-                    break;
-            }
-            Request.Builder builder = new Request.Builder()
-                    .url(url)
-                    .put(RequestBody.create("", null))
-                    .addHeader("Authorization", "Bearer " + accessToken);
-            Request request = builder.build();
-            Log.println(Log.VERBOSE, "Shuffle/Repeat Request", "Sending: " + request);
-            try (Response response = client.newCall(request).execute()) {
-                if (response.isSuccessful()) {
-                    Log.println(Log.VERBOSE, "Shuffle/Repeat Status", "Shuffle/Repeat success");
-                    activity.runOnUiThread(callback::onShuffleRepeatSuccess);
-                } else {
-                    Log.println(Log.VERBOSE, "Shuffle/Repeat Status", "Failed to shuffle/repeat track");
-                    activity.runOnUiThread(callback::onError);
-                }
-            } catch (Exception e) {
-                Log.println(Log.VERBOSE, "Shuffle/Repeat Status", "Exception with shuffle/repeat request");
-                activity.runOnUiThread(callback::onError);
-            }
-        }).start();
-    }
-
     public void addToQueue(String trackID) {
         new Thread(() -> {
             OkHttpClient client = new OkHttpClient();
@@ -527,14 +496,11 @@ public class SpotifyService {
             try (Response response = client.newCall(request).execute()) {
                 if (response.isSuccessful()) {
                     Log.println(Log.VERBOSE, "Queue Song Success", "Successfully queued song.");
-//                    activity.runOnUiThread(callback::onQueueSuccess);
                 } else {
                     Log.println(Log.VERBOSE, "Queue Song Success", "Failed to queue song.");
-//                    activity.runOnUiThread(callback::onError);
                 }
             } catch (Exception e) {
                 Log.println(Log.VERBOSE, "Queue Song Success", "Exception queuing song.");
-//                activity.runOnUiThread(callback::onError);
             }
         }).start();
     }

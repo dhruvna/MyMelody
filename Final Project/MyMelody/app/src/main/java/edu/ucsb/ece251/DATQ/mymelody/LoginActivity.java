@@ -85,7 +85,13 @@ public class LoginActivity extends AppCompatActivity {
         playPauseBtn.setOnClickListener(v-> {
             if(loggedIn) {
                 isPlaying = !isPlaying;
-                playPause(currentUser.getAccessToken(), isPlaying);
+                if(isPlaying) {
+                    shufRepPlayPause(currentUser.getAccessToken(), "play");
+                }
+                else {
+                    shufRepPlayPause(currentUser.getAccessToken(), "pause");
+                }
+
             }
 
         });
@@ -95,22 +101,22 @@ public class LoginActivity extends AppCompatActivity {
         });
         shuffleBtn.setOnClickListener(v-> {
             if(shuffleState.equals("shuffleOff"))
-                shuffleRepeat(currentUser.getAccessToken(), "shuffleOn");
+                shufRepPlayPause(currentUser.getAccessToken(), "shuffleOn");
             else if (shuffleState.equals("shuffleOn"))
-                shuffleRepeat(currentUser.getAccessToken(), "shuffleOff");
+                shufRepPlayPause(currentUser.getAccessToken(), "shuffleOff");
         });
         repeatBtn.setOnClickListener(v-> {
             if(repeatState.equals("repeatAll")) {
                 Log.println(Log.VERBOSE, "Repeat State", "CURRENTLY IN REPEAT ALL, GOING TO REPEAT ONE");
-                shuffleRepeat(currentUser.getAccessToken(), "repeatOne");
+                shufRepPlayPause(currentUser.getAccessToken(), "repeatOne");
             }
             if(repeatState.equals("repeatOne")) {
                 Log.println(Log.VERBOSE, "Repeat State", "CURRENTLY IN REPEAT ONE, GOING TO REPEAT OFF");
-                shuffleRepeat(currentUser.getAccessToken(), "repeatOff");
+                shufRepPlayPause(currentUser.getAccessToken(), "repeatOff");
             }
             if(repeatState.equals("repeatOff")) {
                 Log.println(Log.VERBOSE, "Repeat State", "CURRENTLY IN REPEAT OFF, GOING TO REPEAT ALL");
-                shuffleRepeat(currentUser.getAccessToken(), "repeatAll");
+                shufRepPlayPause(currentUser.getAccessToken(), "repeatAll");
             }
         });
     }
@@ -223,26 +229,19 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
     }
-    private void playPause(String accessToken, boolean isPlaying) {
-        spotifyService.playPause(accessToken, isPlaying, new SpotifyService.playPauseCallback() {
+    private void shufRepPlayPause(String accessToken, String ShufRepPlayPause) {
+        spotifyService.shufRepPlayPause(accessToken, ShufRepPlayPause, new SpotifyService.shufRepPlayPauseCallback() {
             @Override
-            public void onPlayPauseSuccess() {
-                if(!isPlaying)
-                    showToast("Playback Paused.");
-                else
-                    showToast("Playback Resumed.");
-            }
-            @Override
-            public void onError() {
-                showToast("Failed to play/pause current track.");
-            }
-        });
-    }
-    private void shuffleRepeat(String accessToken, String shufRep) {
-        spotifyService.shuffleRepeat(accessToken, shufRep, new SpotifyService.shuffleRepeatCallback() {
-            @Override
-            public void onShuffleRepeatSuccess() {
-                switch (shufRep) {
+            public void onShufRepPlayPauseSuccess() {
+                switch (ShufRepPlayPause) {
+                    case "pause":
+                        showToast("Playback Paused.");
+                        isPlaying = false;
+                        break;
+                    case "play":
+                        showToast("Playback Resumed.");
+                        isPlaying = true;
+                        break;
                     case "shuffleOn":
                         showToast("Shuffle on.");
                         shuffleState = "shuffleOn";
