@@ -399,6 +399,7 @@ public class SpotifyService {
         }).start();
     }
 
+//    Put Requests *****************
     public interface shufRepPlayPauseCallback {
         void onShufRepPlayPauseSuccess();
         void onError();
@@ -449,7 +450,8 @@ public class SpotifyService {
             }
         }).start();
     }
-//    Post Requests *****************
+
+    //    Post Requests *****************
     public interface skipSongCallback {
         void onSkipSongSuccess();
         void onError();

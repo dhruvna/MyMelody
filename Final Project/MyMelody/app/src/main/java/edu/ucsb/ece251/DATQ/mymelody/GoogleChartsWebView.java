@@ -47,23 +47,41 @@ public class GoogleChartsWebView extends AppCompatActivity{
 
                 visualizeDataInChart(genreCount);
             }
+
             private void processArtistBlock(String block, Map<String, Integer> genreCount) {
                 String[] artistInfo = block.split("%21");
-                String[] idAndGenres = artistInfo[1].split("%20", 2);
-                String genresString = idAndGenres.length > 1 ? idAndGenres[1] : "";
+                String artistName = artistInfo[0];
+                String[] idUrlAndGenres = artistInfo[1].split("%20", 2);
+                String artistId = idUrlAndGenres[0];
+
+                // The profile URL and genres are split by "%18"
+                String[] urlAndGenres = idUrlAndGenres[1].split("%18", 2);
+                String artistPFPUrl = urlAndGenres[0]; // Artist Profile Picture URL
+                String genresString = urlAndGenres.length > 1 ? urlAndGenres[1] : "";
                 String[] genres = genresString.split(",");
 
+                // Process and count genres
                 for (String genre : genres) {
                     if (!genre.isEmpty()) {
                         genreCount.put(genre, genreCount.getOrDefault(genre, 0) + 1);
                     }
                 }
+
+                // Store artist name, id, and profile URL for future use
+                // For example, store them in a map or class member (not shown here)
+                storeArtistInfoForLaterUse(artistId, artistName, artistPFPUrl);
             }
+
             @Override
             public void onError() {
                 showToast("Failed to fetch top artists.");
             }
         });
+    }
+
+    private void storeArtistInfoForLaterUse(String artistId, String artistName, String artistPFPUrl) {
+        // Implementation depends on how you want to store and use this data later.
+        // This could involve storing in a map, list, or class member.
     }
     private void visualizeDataInChart(Map<String, Integer> genreCount) {
         WebView webView = findViewById(R.id.googleCharts);
