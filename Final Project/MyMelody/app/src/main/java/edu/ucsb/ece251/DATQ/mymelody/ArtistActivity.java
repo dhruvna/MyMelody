@@ -160,6 +160,9 @@ public class ArtistActivity extends AppCompatActivity {
         }
         else{
             isDataLoaded = true;
+            artistAdapter = new ArtistAdapter(this, artistArrayList, currentUser.getId());
+            ListView artistListView = findViewById(R.id.ArtistList);
+            artistListView.setAdapter(artistAdapter);
         }
 
         int seekBarPosition = prefs.getInt("seekBarPosition", 9);
@@ -254,6 +257,16 @@ public class ArtistActivity extends AppCompatActivity {
             }
         });
     }
+
+    private boolean isArtistInList(Artist artist) {
+        for (Artist existingArtist : artistArrayList) {
+            if (existingArtist.getId().equals(artist.getId())) {
+                // Found a matching track in the list
+                return true;
+            }
+        }
+        return false; // No matching track found
+    }
     private void checkAndStoreArtist(String artistId) {
         databaseReference.child("artists" + currentUser.getId()).child(artistId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -266,8 +279,10 @@ public class ArtistActivity extends AppCompatActivity {
 
                     Artist artist = dataSnapshot.getValue(Artist.class);
                     if (artist != null) {
-                        artistArrayList.add(artist);
-                        artistAdapter.notifyDataSetChanged();
+                        if (!isArtistInList(artist)) {
+                            artistArrayList.add(artist);
+                            artistAdapter.notifyDataSetChanged();
+                        }
                     }
                 }
             }

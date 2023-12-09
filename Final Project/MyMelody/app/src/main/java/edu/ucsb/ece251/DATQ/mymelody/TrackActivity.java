@@ -37,6 +37,7 @@ public class TrackActivity extends AppCompatActivity {
     private String accessToken;
     private User currentUser;
     private boolean isDataLoaded = false;
+    private boolean slider = false;
     private int rangeSetting;
     final static int lastMonth = 0;
     final static int last6Months = 1;
@@ -106,7 +107,7 @@ public class TrackActivity extends AppCompatActivity {
                 // Another interface callback
             }
         });
-
+        slider = false;
         if(trackSeekBar != null) {
             trackSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
                 @Override
@@ -118,20 +119,25 @@ public class TrackActivity extends AppCompatActivity {
                 @Override
                 public void onStartTrackingTouch(SeekBar seekBar) {
                     // Optionally implement
+                    slider = true;
                 }
 
                 @Override
                 public void onStopTrackingTouch(SeekBar seekBar) {
                     // Optionally implement
                     // Fetch tracks here if you want to fetch them immediately after user selection
-                    //if (trackArrayList.isEmpty()) {
-                    fetchUserTopTracks(accessToken, rangeSetting, numTracks);
-                    //}
+                    if(slider) {
+                        fetchUserTopTracks(accessToken, rangeSetting, numTracks);
+                    }
+
+                    slider = false;
+
                 }
             });
         }
 
         loadPreferences();
+
     }
     private void savePreferences() {
         SharedPreferences prefs = getSharedPreferences("TrackPrefs", MODE_PRIVATE);
@@ -151,20 +157,25 @@ public class TrackActivity extends AppCompatActivity {
         SharedPreferences prefs = getSharedPreferences("TrackPrefs", MODE_PRIVATE);
         Gson gson = new Gson();
         String json = prefs.getString("trackList", null);
+
         Type type = new TypeToken<ArrayList<Track>>() {}.getType();
         trackArrayList = gson.fromJson(json, type);
+        if (trackArrayList == null) {
+            trackArrayList = new ArrayList<>();
+            Log.d("TrackArrayList","Empty");
+            isDataLoaded = false;
+        }
         if (trackArrayList != null) {
             Log.d("LoadData", "Loaded track list size: " + trackArrayList.size());
             isDataLoaded = true;
             for (int i = 0; i < Math.min(5, trackArrayList.size()); i++) {
                 Log.d("LoadData", "Track " + i + ": " + trackArrayList.get(i).getName() + ", Rating: " + trackArrayList.get(i).getRating());
             }
+            trackAdapter = new TrackAdapter(this, trackArrayList, currentUser.getId(), spotifyService);
+            ListView trackListView = findViewById(R.id.TrackList);
+            trackListView.setAdapter(trackAdapter);
         }
-        if (trackArrayList == null) {
-            trackArrayList = new ArrayList<>();
-            Log.d("TrackArrayList","Empty");
-            isDataLoaded = false;
-        }
+
 
         int seekBarPosition = prefs.getInt("seekBarPosition", 9);
         numTracks = seekBarPosition + 1;
@@ -232,6 +243,15 @@ public class TrackActivity extends AppCompatActivity {
             }
         });
     }
+    private boolean isTrackInList(Track track) {
+        for (Track existingTrack : trackArrayList) {
+            if (existingTrack.getId().equals(track.getId())) {
+                // Found a matching track in the list
+                return true;
+            }
+        }
+        return false; // No matching track found
+    }
 
     private void checkAndStoreTrack(String trackId) {
         databaseReference.child("tracks" + currentUser.getId()).child(trackId).addListenerForSingleValueEvent(new ValueEventListener() {
@@ -245,8 +265,11 @@ public class TrackActivity extends AppCompatActivity {
                     // Track exists in Firebase, use it
                     Track track = dataSnapshot.getValue(Track.class);
                     if (track != null) {
-                        trackArrayList.add(track);
-                        trackAdapter.notifyDataSetChanged();
+                        if (!isTrackInList(track))
+                        {
+                            trackArrayList.add(track);
+                            trackAdapter.notifyDataSetChanged();
+                        }
                     }
                 }
             }
