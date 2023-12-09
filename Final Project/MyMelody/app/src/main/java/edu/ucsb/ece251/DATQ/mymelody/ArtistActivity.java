@@ -62,7 +62,7 @@ public class ArtistActivity extends AppCompatActivity {
 
         spotifyService = new SpotifyService(this);
         artistArrayList = new ArrayList<>();
-        artistAdapter = new ArtistAdapter(this, artistArrayList, currentUser.getId()); // Initialize ArtistAdapter with the artist list
+        artistAdapter = new ArtistAdapter(this, artistArrayList, currentUser.getId(), spotifyService); // Initialize ArtistAdapter with the artist list
         ListView ArtistList = findViewById(R.id.ArtistList);
         ArtistList.setAdapter(artistAdapter); // Set the adapter for the ListView
         FirebaseApp.initializeApp(this);
@@ -127,7 +127,7 @@ public class ArtistActivity extends AppCompatActivity {
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
                 // Optionally implement
-                // Fetch tracks here if you want to fetch them immediately after user selection
+                // Fetch artists here if you want to fetch them immediately after user selection
                 fetchUserTopArtists(accessToken, rangeSetting, numArtists);
             }
         });
@@ -158,9 +158,9 @@ public class ArtistActivity extends AppCompatActivity {
             artistArrayList = new ArrayList<>();
             isDataLoaded = false;
         }
-        else{
+        if(artistArrayList!=null){
             isDataLoaded = true;
-            artistAdapter = new ArtistAdapter(this, artistArrayList, currentUser.getId());
+            artistAdapter = new ArtistAdapter(this, artistArrayList, currentUser.getId(), spotifyService);
             ListView artistListView = findViewById(R.id.ArtistList);
             artistListView.setAdapter(artistAdapter);
         }
@@ -179,7 +179,7 @@ public class ArtistActivity extends AppCompatActivity {
         if (accessToken != null && artistArrayList.isEmpty()) {
             fetchUserTopArtists(accessToken, rangeSetting, numArtists);
         } else {
-            artistAdapter = new ArtistAdapter(this, artistArrayList, currentUser.getId());
+            artistAdapter = new ArtistAdapter(this, artistArrayList, currentUser.getId(), spotifyService);
             ListView artistListView = findViewById(R.id.ArtistList);
             artistListView.setAdapter(artistAdapter);
         }
@@ -261,11 +261,11 @@ public class ArtistActivity extends AppCompatActivity {
     private boolean isArtistInList(Artist artist) {
         for (Artist existingArtist : artistArrayList) {
             if (existingArtist.getId().equals(artist.getId())) {
-                // Found a matching track in the list
+                // Found a matching artist in the list
                 return true;
             }
         }
-        return false; // No matching track found
+        return false; // No matching artist found
     }
     private void checkAndStoreArtist(String artistId) {
         databaseReference.child("artists" + currentUser.getId()).child(artistId).addListenerForSingleValueEvent(new ValueEventListener() {

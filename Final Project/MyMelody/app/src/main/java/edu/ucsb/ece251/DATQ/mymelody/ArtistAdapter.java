@@ -23,9 +23,11 @@ import java.util.ArrayList;
 
 public class ArtistAdapter extends ArrayAdapter<Artist> {
     private String Userid;
-    public ArtistAdapter(Context context, ArrayList<Artist> artists, String id) {
+    private final SpotifyService spotifyService;
+    public ArtistAdapter(Context context, ArrayList<Artist> artists, String id, SpotifyService spotifyService) {
         super(context, 0, artists);
         this.Userid = id;
+        this.spotifyService = spotifyService;
     }
     DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
     @Override
