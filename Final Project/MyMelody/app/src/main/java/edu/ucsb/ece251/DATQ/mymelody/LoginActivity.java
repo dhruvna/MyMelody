@@ -61,6 +61,7 @@ public class LoginActivity extends AppCompatActivity {
             if(spotifyService.logOut()) {
                 Log.println(Log.VERBOSE, "Log Out Status", "Log out successful.");
                 logout();
+                clearLoginPreferences();
             }
         });
         PFP.setOnClickListener(view -> openProfile());
@@ -78,6 +79,18 @@ public class LoginActivity extends AppCompatActivity {
         shuffleBtn = findViewById(R.id.shuffleButton);
         repeatBtn = findViewById(R.id.repeatButton);
         ImageView fastForwardBtn = findViewById(R.id.fastForwardButton);
+
+        if (savedInstanceState != null) {
+            // Restore the logged-in state and current user
+            loggedIn = savedInstanceState.getBoolean("LoggedIn", false);
+            String userString = savedInstanceState.getString("CurrentUser");
+            if (userString != null) {
+                currentUser = parseUserString(userString);
+                // Update the UI with the restored user details
+                updateUIWithUserDetails();
+            }
+        }
+
         goBackBtn.setOnClickListener(v-> {
             if(loggedIn)
                 skipSong(currentUser.getAccessToken(), "previous");
@@ -119,7 +132,28 @@ public class LoginActivity extends AppCompatActivity {
                 shufRepPlayPause(currentUser.getAccessToken(), "repeatAll");
             }
         });
+
     }
+    private void updateUIWithUserDetails() {
+        if (currentUser != null) {
+            toolbar.setTitle(currentUser.getUsername());
+            String pfpURL = currentUser.getPFPLink();
+            Picasso.get().load(pfpURL).into(PFP);
+            // Set visibility of login/logout buttons based on loggedIn state
+            loginButton.setVisibility(loggedIn ? View.INVISIBLE : View.VISIBLE);
+            logoutButton.setVisibility(loggedIn ? View.VISIBLE : View.INVISIBLE);
+        }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putBoolean("LoggedIn", loggedIn);
+        if (currentUser != null) {
+            outState.putString("CurrentUser", currentUser.toString());
+        }
+    }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -343,6 +377,7 @@ public class LoginActivity extends AppCompatActivity {
         PFP.setVisibility(View.INVISIBLE);
         updateWidgetVisibility(false);
         loggedIn = false;
+        clearLoginPreferences();
         if (handler != null) {
             handler.removeCallbacksAndMessages(null);
         }
@@ -422,30 +457,47 @@ public class LoginActivity extends AppCompatActivity {
             editor.putBoolean("LoginStatus", loggedIn);
             editor.putString("CurrentUser", currentUser.toString());
             editor.apply();
+        } else {
+            editor.clear();
         }
+        editor.apply();
     }
     @Override
     protected void onResume() {
         super.onResume();
-        SharedPreferences prefs = getSharedPreferences("LoginPrefs", MODE_PRIVATE);
-        String accessToken = prefs.getString("AccessToken", null);
-        if(accessToken != null) {
-            Log.println(Log.VERBOSE, "Access Token on Resume", accessToken);
-            loggedIn = prefs.getBoolean("LoginStatus", true);
-            currentUser = parseUserString(prefs.getString("CurrentUser", null));
-            setLoginPrompt();
-            loginButton.setVisibility(View.INVISIBLE);
-            logoutButton.setVisibility(View.VISIBLE);
-            fetchUserInfo(accessToken);
-            // Fetch and display the currently playing track
-            updateStatus(accessToken);
-            setupFetchCurrentTrackTask();
+        if(loggedIn){
+            SharedPreferences prefs = getSharedPreferences("LoginPrefs", MODE_PRIVATE);
+            String accessToken = prefs.getString("AccessToken", null);
+            if(accessToken != null) {
+                Log.println(Log.VERBOSE, "Access Token on Resume", accessToken);
+                loggedIn = prefs.getBoolean("LoginStatus", true);
+                currentUser = parseUserString(prefs.getString("CurrentUser", null));
+                setLoginPrompt();
+                loginButton.setVisibility(View.INVISIBLE);
+                logoutButton.setVisibility(View.VISIBLE);
+                fetchUserInfo(accessToken);
+                // Fetch and display the currently playing track
+                updateStatus(accessToken);
+                setupFetchCurrentTrackTask();
+            }
         }
+    }
+
+    private void clearLoginPreferences() {
+        SharedPreferences prefs = getSharedPreferences("LoginPrefs", MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.clear(); // This will clear all the data in "LoginPrefs"
+        editor.apply(); // Don't forget to commit the changes
     }
     @Override
     protected void onDestroy() {
         super.onDestroy();
         Log.d("LoginActivity", "Activity is being destroyed");
+        logout();
+        clearLoginPreferences();
+        if (handler != null) {
+            handler.removeCallbacksAndMessages(null);
+        }
     }
     private void showToast(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
