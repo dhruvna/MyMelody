@@ -384,13 +384,10 @@ public class SpotifyService {
                 if (!response.isSuccessful()) {
                     throw new IOException("Unexpected code " + response);
                 }
-
                 String responseData = response.body().string(); // Automatically closed after this statement
                 if (responseData.isEmpty()) {
-                    activity.runOnUiThread(() -> callback.onNoActiveSession());
-                    return;
+                    activity.runOnUiThread(callback::onNoActiveSession);
                 }
-
                 JSONObject jsonResponse = new JSONObject(responseData);
                 JSONObject device = jsonResponse.getJSONObject("device");
                 String deviceId = device.getString("id");
@@ -398,23 +395,6 @@ public class SpotifyService {
                 String repeat_state = jsonResponse.getString("repeat_state");
                 Boolean shuffle_state = jsonResponse.getBoolean("shuffle_state");
                 activity.runOnUiThread(() -> callback.onDeviceStatusFetched(deviceId, is_playing, repeat_state, shuffle_state));
-
-//                if (response.isSuccessful() && response.body() != null) {
-//                    String responseData = response.body().string();
-//                    JSONObject jsonResponse = new JSONObject(responseData);
-//                    if (!jsonResponse.isNull("device")) {
-//                        JSONObject device = jsonResponse.getJSONObject("device");
-//                        String deviceId = device.getString("id");
-//                        Boolean is_playing = jsonResponse.getBoolean("is_playing");
-//                        String repeat_state = jsonResponse.getString("repeat_state");
-//                        Boolean shuffle_state = jsonResponse.getBoolean("shuffle_state");
-//                        activity.runOnUiThread(() -> callback.onDeviceStatusFetched(deviceId, is_playing, repeat_state, shuffle_state));
-//                    } else {
-//                        activity.runOnUiThread(callback::onError);
-//                    }
-//                } else {
-//                    activity.runOnUiThread(callback::onError);
-//                }
             } catch (Exception e) {
                 Log.e("SpotifyService", "Error fetching device status", e); // Example logging
                 activity.runOnUiThread(callback::onError);
