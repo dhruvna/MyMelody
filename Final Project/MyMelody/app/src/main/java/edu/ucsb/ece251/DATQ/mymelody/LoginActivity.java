@@ -378,18 +378,42 @@ public class LoginActivity extends AppCompatActivity {
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         String accessToken = spotifyService.handleAuthResponse(intent);
-        Log.println(Log.VERBOSE, "Testing OnNewIntent", accessToken);
-        login(accessToken);
+        Bundle extras = getIntent().getExtras();
+        if (extras != null) {
+            String userInfo = extras.getString("currentUser");
+            if (userInfo != null) currentUser = parseUserString(userInfo);
+            accessToken = currentUser.getAccessToken();
+            Log.println(Log.VERBOSE, "Testing token after back button", accessToken);
+        }
+        if(accessToken != null) {
+            loggedIn = true;
+            setLoginPrompt();
+            loginButton.setVisibility(View.INVISIBLE);
+            logoutButton.setVisibility(View.VISIBLE);
+            fetchUserInfo(accessToken);
+            // Fetch and display the currently playing track
+            updateStatus(accessToken);
+            setupFetchCurrentTrackTask();
+        } else {
+            LoginPrompt.setText(R.string.fail_msg);
+            showToast("Log in failure.");
+        }
     }
-    private void login(String accessToken) {
-        loggedIn = true;
-        setLoginPrompt();
-        loginButton.setVisibility(View.INVISIBLE);
-        logoutButton.setVisibility(View.VISIBLE);
-        // Fetch and display the currently playing track
-        updateStatus(accessToken);
-        setupFetchCurrentTrackTask();
-    }
+//    protected void onNewIntent(Intent intent) {
+//        super.onNewIntent(intent);
+//        String accessToken = spotifyService.handleAuthResponse(intent);
+//        Log.println(Log.VERBOSE, "Testing OnNewIntent", accessToken);
+//        login(accessToken);
+//    }
+//    private void login(String accessToken) {
+//        loggedIn = true;
+//        setLoginPrompt();
+//        loginButton.setVisibility(View.INVISIBLE);
+//        logoutButton.setVisibility(View.VISIBLE);
+//        // Fetch and display the currently playing track
+//        updateStatus(accessToken);
+//        setupFetchCurrentTrackTask();
+//    }
     private void logout() {
         toolbar.setTitle("My Melody");
         LoginPrompt.setText(R.string.login_msg);
