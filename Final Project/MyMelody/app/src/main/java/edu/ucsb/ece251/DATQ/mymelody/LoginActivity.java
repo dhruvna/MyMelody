@@ -2,6 +2,7 @@ package edu.ucsb.ece251.DATQ.mymelody;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -43,6 +44,8 @@ public class LoginActivity extends AppCompatActivity {
     private String repeatState = "repeatOff";
     private static final int FETCH_INTERVAL = 1050;
     private final Handler handler = new Handler();
+    private int selectedRange = 0;
+    private int fetchCount = 0;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -215,6 +218,7 @@ public class LoginActivity extends AppCompatActivity {
                         }
                         // Load the album art into the ImageView using Glide or Picasso
                         updateProgressBar(progress, duration);
+                        currentlyPlayingAlbumArt.setVisibility(View.VISIBLE); // Assuming this is the ImageView for the album art
 
                     }
 
@@ -233,6 +237,11 @@ public class LoginActivity extends AppCompatActivity {
         };
         // Start the initial fetch
         handler.post(fetchCurrentTrackRunnable);
+    }
+    private void hidePlayerUI() {
+        currentlyPlayingSongName.setVisibility(View.GONE);  // Assuming this is the TextView for the song name
+        currentlyPlayingArtistName.setVisibility(View.GONE); // Assuming this is the TextView for the artist name
+        currentlyPlayingAlbumArt.setVisibility(View.GONE); // Assuming this is the ImageView for the album art
     }
     private void updateProgressBar(int progress, int duration) {
         if (duration > 0) {
@@ -262,6 +271,25 @@ public class LoginActivity extends AppCompatActivity {
                 showToast("Failed to skip to " + direction + " track.");
             }
         });
+    }
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+
+        SharedPreferences prefs = getSharedPreferences("LoginPrefs", MODE_PRIVATE);
+        String accessToken = prefs.getString("AccessToken", null);
+        if(accessToken != null) {
+            Log.println(Log.VERBOSE, "Access Token on Resume", accessToken);
+            loggedIn = prefs.getBoolean("LoginStatus", true);
+            currentUser = parseUserString(prefs.getString("CurrentUser", null));
+            setLoginPrompt();
+            loginButton.setVisibility(View.INVISIBLE);
+            logoutButton.setVisibility(View.VISIBLE);
+            fetchUserInfo(accessToken);
+            // Fetch and display the currently playing track
+            updateStatus(accessToken);
+            setupFetchCurrentTrackTask();
+        }
     }
     private void shufRepPlayPause(String accessToken, String ShufRepPlayPause) {
         spotifyService.shufRepPlayPause(accessToken, ShufRepPlayPause, new SpotifyService.shufRepPlayPauseCallback() {
@@ -378,6 +406,7 @@ public class LoginActivity extends AppCompatActivity {
         updateWidgetVisibility(false);
         loggedIn = false;
         clearLoginPreferences();
+        hidePlayerUI();
         if (handler != null) {
             handler.removeCallbacksAndMessages(null);
         }

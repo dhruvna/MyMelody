@@ -305,7 +305,7 @@ public class SpotifyService {
                         activity.runOnUiThread(() -> callback.onArtistFetched(finalArtists));
                     } else {
                         // Run on the main thread
-                        activity.runOnUiThread(() -> showToast("No top artists found"));
+//                        activity.runOnUiThread(() -> showToast("No top artists found"));
                     }
                 }
             } catch (Exception e) {

@@ -1,7 +1,15 @@
 package edu.ucsb.ece251.DATQ.mymelody;
 
 import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
 import android.webkit.WebView;
+import android.webkit.WebViewClient;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.SeekBar;
+import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -13,6 +21,12 @@ public class GoogleChartsWebView extends AppCompatActivity{
     private SpotifyService spotifyService;
     private String accessToken;
     private User currentUser;
+    SeekBar genreSeekBar;
+    private int fetchCount;
+    private int selectedRange;
+    private TextView genreCountTextView;
+    private boolean isPageLoaded = false; // Flag to check if the WebView page has loaded
+    private Map<String, Integer> genreCountReady = null; // Store genre count when ready
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -24,11 +38,77 @@ public class GoogleChartsWebView extends AppCompatActivity{
             accessToken = currentUser.getAccessToken();
         }
         spotifyService = new SpotifyService(this);
+
+        genreSeekBar = findViewById(R.id.genreSeekBar);
+        genreCountTextView = findViewById(R.id.genreCountTextView);
+        Spinner timeRange = findViewById(R.id.timeRange);
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
+                R.array.time_range_options, android.R.layout.simple_spinner_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        timeRange.setAdapter(adapter);
+        timeRange.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String selectedTimeRange = (String) parent.getItemAtPosition(position);
+                switch(selectedTimeRange) {
+                    case "Last Month":
+                        selectedRange = 0;
+                        break;
+                    case "Last 6 Months":
+                        selectedRange = 1;
+                        break;
+                    case "All Time":
+                        selectedRange = 2;
+                        break;
+                }
+                // Handle the selected item
+                Log.println(Log.VERBOSE, "Range selected", "Range: " + selectedTimeRange);
+                fetchTopArtists(accessToken, selectedRange, fetchCount);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                // Another interface callback
+            }
+        });
+
+        genreSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                fetchCount = progress + 1;  // Since the range is 1 to 50
+                genreCountTextView.setText(fetchCount + " Artists");
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                // Optionally implement
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                // Optionally implement
+                // Fetch artists here if you want to fetch them immediately after user selection
+                fetchTopArtists(accessToken, selectedRange, fetchCount);
+            }
+        });
+
         fetchTopArtists(accessToken, 1, 10);
         WebView webView = findViewById(R.id.googleCharts);
         webView.getSettings().setJavaScriptEnabled(true);
+        webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                super.onPageFinished(view, url);
+                isPageLoaded = true;
+                if (genreCountReady != null) {
+                    visualizeDataInChart(genreCountReady);
+                }
+            }
+        });
         // Load a URL that hosts your Google Chart
         webView.loadUrl("file:///android_asset/charts.html");
+
+
     }
 
     private void fetchTopArtists(String accessToken, int rangeSetting, int numArtists) {
@@ -84,13 +164,13 @@ public class GoogleChartsWebView extends AppCompatActivity{
         // This could involve storing in a map, list, or class member.
     }
     private void visualizeDataInChart(Map<String, Integer> genreCount) {
-        WebView webView = findViewById(R.id.googleCharts);
-
-        // Convert genreCount map to a suitable format for Google Charts
-        String chartData = convertGenreCountToChartData(genreCount);
-
-        // Update the chart in WebView
-        webView.evaluateJavascript("updateChart(" + chartData + ");", null);
+        if (isPageLoaded) {
+            WebView webView = findViewById(R.id.googleCharts);
+            String chartData = convertGenreCountToChartData(genreCount);
+            webView.evaluateJavascript("updateChart(" + chartData + ");", null);
+        } else {
+            genreCountReady = genreCount; // Store the data until the page is loaded
+        }
     }
 
     private String convertGenreCountToChartData(Map<String, Integer> genreCount) {

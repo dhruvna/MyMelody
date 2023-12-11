@@ -16,6 +16,8 @@ android {
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         manifestPlaceholders["appAuthRedirectScheme"] = "edu.ucsb.ece251.DATQ.mymelody"
+        manifestPlaceholders["redirectSchemeName"] = "mymelody"
+        manifestPlaceholders["redirectHostName"] = "callback"
 
     }
 

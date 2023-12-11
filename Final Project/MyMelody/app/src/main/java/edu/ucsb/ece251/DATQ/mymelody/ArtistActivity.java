@@ -1,6 +1,7 @@
 package edu.ucsb.ece251.DATQ.mymelody;
 
 import android.app.AlertDialog;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
@@ -44,7 +45,6 @@ public class ArtistActivity extends AppCompatActivity {
     final static int allTime = 2;
     private TextView artistCountTextView;
     private int numArtists = 10;  // Default value
-
     SeekBar artistSeekBar;
 
     DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();

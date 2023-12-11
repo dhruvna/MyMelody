@@ -1,6 +1,7 @@
 package edu.ucsb.ece251.DATQ.mymelody;
 
 import android.app.AlertDialog;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
@@ -329,6 +330,7 @@ public class TrackActivity extends AppCompatActivity {
         super.onResume();
         loadPreferences();
     }
+
     private void showSortingOptions() {
         String[] options = {"Sort Ascending", "Sort Descending"};
 
