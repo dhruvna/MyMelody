@@ -44,8 +44,6 @@ public class LoginActivity extends AppCompatActivity {
     private String repeatState = "repeatOff";
     private static final int FETCH_INTERVAL = 1050;
     private final Handler handler = new Handler();
-    private int selectedRange = 0;
-    private int fetchCount = 0;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -351,6 +349,10 @@ public class LoginActivity extends AppCompatActivity {
                 shuffleState = (shuffle_state) ? "shuffleOn" : "shuffleOff";
             }
             @Override
+            public void onNoActiveSession() {
+                showToast("NO ACTIVE SESSION");
+            }
+            @Override
             public void onError() {
                 Log.println(Log.VERBOSE, "Device ID Error","Failed to fetch current device ID");
             }
@@ -372,29 +374,21 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
     }
+    //Only gets called after login authorization
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         String accessToken = spotifyService.handleAuthResponse(intent);
-        Bundle extras = getIntent().getExtras();
-        if (extras != null) {
-            String userInfo = extras.getString("currentUser");
-            if (userInfo != null) currentUser = parseUserString(userInfo);
-            accessToken = currentUser.getAccessToken();
-            Log.println(Log.VERBOSE, "Testing token after back button", accessToken);
-        }
-        if(accessToken != null) {
-            loggedIn = true;
-            setLoginPrompt();
-            loginButton.setVisibility(View.INVISIBLE);
-            logoutButton.setVisibility(View.VISIBLE);
-            fetchUserInfo(accessToken);
-            // Fetch and display the currently playing track
-            updateStatus(accessToken);
-            setupFetchCurrentTrackTask();
-        } else {
-            LoginPrompt.setText(R.string.fail_msg);
-            showToast("Log in failure.");
-        }
+        Log.println(Log.VERBOSE, "Testing OnNewIntent", accessToken);
+        login(accessToken);
+    }
+    private void login(String accessToken) {
+        loggedIn = true;
+        setLoginPrompt();
+        loginButton.setVisibility(View.INVISIBLE);
+        logoutButton.setVisibility(View.VISIBLE);
+        // Fetch and display the currently playing track
+        updateStatus(accessToken);
+        setupFetchCurrentTrackTask();
     }
     private void logout() {
         toolbar.setTitle("My Melody");
@@ -448,7 +442,9 @@ public class LoginActivity extends AppCompatActivity {
         return String.format(Locale.getDefault(), "%d:%02d", minutes, seconds);
     }
     private void updateStatus(String accessToken) {
+        Log.println(Log.VERBOSE, "Update Status", "Update Status: Before fetchDeviceStatus");
         fetchDeviceStatus(accessToken);
+        Log.println(Log.VERBOSE, "Update Status", "Update Status: After fetchDeviceStatus");
         if(!isPlaying) {
             playPauseBtn.setImageResource(R.drawable.play);
         } else {
