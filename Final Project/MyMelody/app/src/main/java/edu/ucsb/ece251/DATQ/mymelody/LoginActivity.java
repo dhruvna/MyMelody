@@ -279,7 +279,7 @@ public class LoginActivity extends AppCompatActivity {
         SharedPreferences prefs = getSharedPreferences("LoginPrefs", MODE_PRIVATE);
         String accessToken = prefs.getString("AccessToken", null);
         if(accessToken != null) {
-            Log.println(Log.VERBOSE, "Access Token on Resume", accessToken);
+            Log.println(Log.VERBOSE, "Access Token on Change", accessToken);
             loggedIn = prefs.getBoolean("LoginStatus", true);
             currentUser = parseUserString(prefs.getString("CurrentUser", null));
             setLoginPrompt();
@@ -522,11 +522,6 @@ public class LoginActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         Log.d("LoginActivity", "Activity is being destroyed");
-        logout();
-        clearLoginPreferences();
-        if (handler != null) {
-            handler.removeCallbacksAndMessages(null);
-        }
     }
     private void showToast(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
