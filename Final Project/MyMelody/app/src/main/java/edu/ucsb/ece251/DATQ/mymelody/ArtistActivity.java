@@ -277,8 +277,10 @@ public class ArtistActivity extends AppCompatActivity {
                 Log.d("ArtistActivity", "Displaying artist: " + artist.getName() + " - " + artist.getArtistURL() + " - " + artist.getArtistURL());
                 // Store in Firebase
                 databaseReference.child("artists" + currentUser.getId()).child(artistId).setValue(artist);
-                artistArrayList.add(artist);
-                artistAdapter.notifyDataSetChanged();
+                if (!isArtistInList(artist)) {
+                    artistArrayList.add(artist);
+                    artistAdapter.notifyDataSetChanged();
+                }
             }
 
             @Override

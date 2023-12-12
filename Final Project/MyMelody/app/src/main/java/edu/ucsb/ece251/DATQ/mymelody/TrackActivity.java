@@ -277,8 +277,10 @@ public class TrackActivity extends AppCompatActivity {
                 Log.d("TrackActivity", "Displaying track: " + track.getName() + " - " + track.getArtist() + " - " + track.getAlbumCover());
                 // Store in Firebase
                 databaseReference.child("tracks" + currentUser.getId()).child(trackId).setValue(track);
-                trackArrayList.add(track);
-                trackAdapter.notifyDataSetChanged();
+                if (!isTrackInList(track)) {
+                    trackArrayList.add(track);
+                    trackAdapter.notifyDataSetChanged();
+                }
             }
 
             @Override
