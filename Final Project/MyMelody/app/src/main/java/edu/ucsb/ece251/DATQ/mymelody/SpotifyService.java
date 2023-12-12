@@ -384,6 +384,7 @@ public class SpotifyService {
                 String responseData = response.body().string(); // Automatically closed after this statement
                 if (responseData.isEmpty()) {
                     activity.runOnUiThread(callback::onNoActiveSession);
+                    return;
                 }
                 JSONObject jsonResponse = new JSONObject(responseData);
                 JSONObject device = jsonResponse.getJSONObject("device");
