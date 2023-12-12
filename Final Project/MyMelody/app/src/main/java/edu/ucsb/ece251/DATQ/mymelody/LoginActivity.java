@@ -171,19 +171,17 @@ public class LoginActivity extends AppCompatActivity {
                 Intent artistIntent = new Intent(this, ArtistActivity.class);
                 artistIntent.putExtra("User Info", currentUser.toString());
                 startActivity(artistIntent);
-//                finish();
                 return true;
             } else if (myID == R.id.tracks){
                 Intent trackIntent = new Intent(this, TrackActivity.class);
                 trackIntent.putExtra("User Info", currentUser.toString());
                 startActivity(trackIntent);
-//                finish();
                 return true;
             } else if (myID == R.id.charts) {
                 Intent chartsIntent = new Intent(this, GoogleChartsWebView.class);
                 chartsIntent.putExtra("User Info", currentUser.toString());
                 startActivity(chartsIntent);
-//                finish();
+                return true;
             }
         } else {
             showToast("Log in first to see user information!");
@@ -214,12 +212,16 @@ public class LoginActivity extends AppCompatActivity {
                             Picasso.get().load(albumArtUrl).into(currentlyPlayingAlbumArt);
                             currentSong = trackName;
                         }
-                        // Load the album art into the ImageView using Glide or Picasso
+                        // Load the album art into the ImageView using Picasso
                         updateProgressBar(progress, duration);
-                        currentlyPlayingAlbumArt.setVisibility(View.VISIBLE); // Assuming this is the ImageView for the album art
+                        currentlyPlayingAlbumArt.setVisibility(View.VISIBLE);
 
                     }
-
+                    @Override
+                    public void onNoActiveSession() {
+                        Log.println(Log.VERBOSE, "Player Status", "No Active Session");
+                        updateWidgetVisibility(false);
+                    }
                     @Override
                     public void onError() {
                         // Handle error
@@ -227,7 +229,6 @@ public class LoginActivity extends AppCompatActivity {
                         updateWidgetVisibility(false);
                     }
                 });
-
                 // Schedule the next execution
                 if (loggedIn)
                     handler.postDelayed(this, FETCH_INTERVAL);
@@ -237,9 +238,11 @@ public class LoginActivity extends AppCompatActivity {
         handler.post(fetchCurrentTrackRunnable);
     }
     private void hidePlayerUI() {
-        currentlyPlayingSongName.setVisibility(View.GONE);  // Assuming this is the TextView for the song name
-        currentlyPlayingArtistName.setVisibility(View.GONE); // Assuming this is the TextView for the artist name
-        currentlyPlayingAlbumArt.setVisibility(View.GONE); // Assuming this is the ImageView for the album art
+        currentlyPlayingSongName.setVisibility(View.GONE);
+        currentlyPlayingArtistName.setVisibility(View.GONE);
+        currentlyPlayingAlbumArt.setVisibility(View.GONE);
+        View widget = findViewById(R.id.spotifyWidgetContainer);
+        widget.setVisibility(View.INVISIBLE);
     }
     private void updateProgressBar(int progress, int duration) {
         if (duration > 0) {
@@ -518,8 +521,8 @@ public class LoginActivity extends AppCompatActivity {
     private void clearLoginPreferences() {
         SharedPreferences prefs = getSharedPreferences("LoginPrefs", MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
-        editor.clear(); // This will clear all the data in "LoginPrefs"
-        editor.apply(); // Don't forget to commit the changes
+        editor.clear();
+        editor.apply();
     }
     @Override
     protected void onDestroy() {

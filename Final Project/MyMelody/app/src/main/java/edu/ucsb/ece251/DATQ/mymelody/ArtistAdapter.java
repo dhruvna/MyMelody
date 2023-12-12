@@ -80,14 +80,11 @@ public class ArtistAdapter extends ArrayAdapter<Artist> {
             holder.etArtistScore.setText(artist.getRating() >= 0 && artist.getRating()<=10 ? String.valueOf(artist.getRating()) : "");
             onScoreChanged(artist, artist.getRating());
             TextWatcher textWatcher = new TextWatcher() {
-                // beforeTextChanged, onTextChanged, afterTextChanged implementation
                 @Override
                 public void beforeTextChanged(CharSequence charSequence, int start, int count, int after) {
-                    // No action needed here for this example
                 }
                 @Override
                 public void onTextChanged(CharSequence charSequence, int start, int before, int count) {
-                    // No action needed here for this example
                 }
                 @Override
                 public void afterTextChanged(Editable s) {
@@ -96,11 +93,9 @@ public class ArtistAdapter extends ArrayAdapter<Artist> {
                         artist.setRating(rating);
                         saveArtistRating(artist);
                     } catch (NumberFormatException e) {
-                        artist.setRating(0); // Or handle this as you see fit
+                        artist.setRating(0);
                     }
                 }
-
-                // Other methods (beforeTextChanged, onTextChanged) can remain empty if not needed
             };
 
             holder.etArtistScore.addTextChangedListener(textWatcher);

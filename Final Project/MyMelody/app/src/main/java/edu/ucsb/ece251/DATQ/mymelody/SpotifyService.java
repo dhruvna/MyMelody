@@ -254,7 +254,7 @@ public class SpotifyService {
                             }
                             String artists = artistsBuilder.toString();
                             JSONArray album = track.getJSONObject("album").getJSONArray("images");
-                            JSONObject albumImage = album.getJSONObject(0); // Assuming the first image is the largest
+                            JSONObject albumImage = album.getJSONObject(0);
                             String albumCover = albumImage.getString("url");
                             String trackUrl = track.getJSONObject("external_urls").getString("spotify");
                             Track newTrack = new Track(trackID, trackName, 0, artists, albumCover, previewUrl, trackUrl);
@@ -347,6 +347,7 @@ public class SpotifyService {
 
     public interface FetchSongCallback {
         void onSongFetched(String songName, String artistName, String albumArtUrl, int progress, int duration);
+        void onNoActiveSession();
         void onError();
     }
     public void fetchCurrentSong(FetchSongCallback callback) {
@@ -384,6 +385,7 @@ public class SpotifyService {
                 } else if(responseData.equals("EMPTY_RESPONSE")){
                     // Handle response failure
                     showToast("No song currently playing.");
+                    activity.runOnUiThread(callback::onNoActiveSession);
                 }
             } catch (Exception e) {
                 Log.println(Log.ERROR, "Track Fetcher", "Error fetching current track: " + e.getMessage());
@@ -411,7 +413,7 @@ public class SpotifyService {
                 if (!response.isSuccessful()) {
                     throw new IOException("Unexpected code " + response);
                 }
-                String responseData = response.body().string(); // Automatically closed after this statement
+                String responseData = response.body().string();
                 if (responseData.isEmpty()) {
                     activity.runOnUiThread(callback::onNoActiveSession);
                     return;
@@ -424,7 +426,7 @@ public class SpotifyService {
                 Boolean shuffle_state = jsonResponse.getBoolean("shuffle_state");
                 activity.runOnUiThread(() -> callback.onDeviceStatusFetched(deviceId, is_playing, repeat_state, shuffle_state));
             } catch (Exception e) {
-                Log.e("SpotifyService", "Error fetching device status", e); // Example logging
+                Log.e("SpotifyService", "Error fetching device status", e);
                 activity.runOnUiThread(callback::onError);
             }
         }).start();

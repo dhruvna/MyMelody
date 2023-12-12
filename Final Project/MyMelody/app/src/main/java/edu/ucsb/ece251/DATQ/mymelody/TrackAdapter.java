@@ -122,15 +122,10 @@ public class TrackAdapter extends ArrayAdapter<Track> {
             holder.etTrackScore.setText(track.getRating() >= 0 && track.getRating()<=10 ? String.valueOf(track.getRating()) : "");
             onScoreChanged(track, track.getRating());
             TextWatcher textWatcher = new TextWatcher() {
-                // beforeTextChanged, onTextChanged, afterTextChanged implementation
                 @Override
-                public void beforeTextChanged(CharSequence charSequence, int start, int count, int after) {
-                    // No action needed here for this example
-                }
+                public void beforeTextChanged(CharSequence charSequence, int start, int count, int after) { }
                 @Override
-                public void onTextChanged(CharSequence charSequence, int start, int before, int count) {
-                    // No action needed here for this example
-                }
+                public void onTextChanged(CharSequence charSequence, int start, int before, int count) { }
                 @Override
                 public void afterTextChanged(Editable s) {
                     try {
@@ -138,11 +133,9 @@ public class TrackAdapter extends ArrayAdapter<Track> {
                         track.setRating(rating);
                         saveTrackRating(track);
                     } catch (NumberFormatException e) {
-                        track.setRating(0); // Or handle this as you see fit
+                        track.setRating(0);
                     }
                 }
-
-                // Other methods (beforeTextChanged, onTextChanged) can remain empty if not needed
             };
 
             holder.etTrackScore.addTextChangedListener(textWatcher);

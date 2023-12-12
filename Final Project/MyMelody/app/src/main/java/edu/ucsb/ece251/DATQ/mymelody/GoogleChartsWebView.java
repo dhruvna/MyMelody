@@ -69,7 +69,6 @@ public class GoogleChartsWebView extends AppCompatActivity{
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
-                // Another interface callback
             }
         });
 
@@ -82,13 +81,11 @@ public class GoogleChartsWebView extends AppCompatActivity{
 
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
-                // Optionally implement
             }
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                // Optionally implement
-                // Fetch artists here if you want to fetch them immediately after user selection
+                // Fetch artists immediately after user selection
                 fetchTopArtists(accessToken, selectedRange, fetchCount);
             }
         });

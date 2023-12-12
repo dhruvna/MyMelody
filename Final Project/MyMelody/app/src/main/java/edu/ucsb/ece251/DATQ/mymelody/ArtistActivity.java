@@ -104,7 +104,6 @@ public class ArtistActivity extends AppCompatActivity {
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
-                // Another interface callback
             }
         });
         slider = false;
@@ -118,14 +117,12 @@ public class ArtistActivity extends AppCompatActivity {
 
                 @Override
                 public void onStartTrackingTouch(SeekBar seekBar) {
-                    // Optionally implement
                     slider = true;
                 }
 
                 @Override
                 public void onStopTrackingTouch(SeekBar seekBar) {
-                    // Optionally implement
-                    // Fetch artists here if you want to fetch them immediately after user selection
+                    // Fetch artists here immediately after user selection
                     if (slider) {
                         fetchUserTopArtists(accessToken, rangeSetting, numArtists);
                     }
@@ -305,8 +302,7 @@ public class ArtistActivity extends AppCompatActivity {
     }
 
     private void handleTimeRangeSelection(int rangeSetting, int numArtists) {
-        // Implement your logic based on the selected time range
-        // For example, fetch data for 'Last Month', 'Last 6 Months', or 'All Time'
+        // Fetch data for 'Last Month', 'Last 6 Months', or 'All Time'
         fetchUserTopArtists(accessToken, rangeSetting, numArtists);
         artistAdapter.notifyDataSetChanged();
     }
