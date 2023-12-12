@@ -3,7 +3,7 @@ package edu.ucsb.ece251.DATQ.mymelody;
 public class Track {
     private String id;
     private String name;
-    private int rating;
+    private Integer rating;
     public Track() {} //need for firebase
     public Track(String id,String name, int rating) {
         this.id = id;

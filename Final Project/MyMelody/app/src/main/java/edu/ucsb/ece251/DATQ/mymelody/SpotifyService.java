@@ -15,6 +15,8 @@
  import org.json.JSONObject;
 
  import java.io.IOException;
+ import java.util.ArrayList;
+ import java.util.List;
 
  import okhttp3.OkHttpClient;
  import okhttp3.Request;
@@ -193,7 +195,7 @@ public class SpotifyService {
 
     //Tracks/Artists/etc calls
     public interface FetchTrackCallback {
-        void onTrackFetched(String tracks);
+        void onTrackFetched(List<Track> tracks);
         void onError();
     }
     public void fetchUserTopTracks(String accessToken, int rangeSetting, int numTracks, FetchTrackCallback callback) {
@@ -219,27 +221,26 @@ public class SpotifyService {
             try (Response response = client.newCall(request).execute()) {
                 if(response.isSuccessful() && response.body() != null) {
                     Log.println(Log.VERBOSE, "Track Fetcher", "Received response for tracks!");
+                    List<Track> trackList = new ArrayList<>();
                     String responseData = response.body().string();
                     JSONObject jsonResponse = new JSONObject(responseData);
                     // Extract user information from the JSON object
                     JSONArray items = jsonResponse.getJSONArray("items");
                     Log.println(Log.VERBOSE, "num tracks", "received " + items.length() + "track");
                     if (items.length() > 0) {
-                        StringBuilder tracks = new StringBuilder("" + items.length() + "%20");
                         for(int i = 0; i < items.length(); i++) {
                             JSONObject track = items.getJSONObject(i);
-                            tracks.append(track.getString("name"));
-                            tracks.append("%21");
-                            tracks.append(track.getString("id"));
-                            tracks.append("%20");
+                            String trackID = track.getString("id");
+                            String trackName = track.getString("name");
+                            Track newTrack = new Track(trackID, trackName, 0);
+                            trackList.add(newTrack);
                         }
-                        String finalTracks = tracks.toString();
-                        // Use Handler to run on UI thread
-                        Log.println(Log.VERBOSE, "Finished track fetch", "Ready to run on main thread");
-                        activity.runOnUiThread(() -> callback.onTrackFetched(finalTracks));
-                    } else {
-                        // Run on the main thread
-                        activity.runOnUiThread(() -> showToast("No top tracks found"));
+                        if (!trackList.isEmpty()) {
+                            Log.println(Log.VERBOSE, "Finished track fetch", "Ready to run on main thread");
+                            activity.runOnUiThread(() -> callback.onTrackFetched(trackList));
+                        } else {
+                            activity.runOnUiThread(() -> showToast("No top tracks found"));
+                        }
                     }
                 }
             } catch (Exception e) {

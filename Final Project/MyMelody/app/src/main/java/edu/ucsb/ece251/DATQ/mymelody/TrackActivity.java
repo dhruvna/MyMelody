@@ -28,6 +28,7 @@ import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.List;
 
 public class TrackActivity extends AppCompatActivity {
     private ArrayList<Track> trackArrayList; // Use Track model
@@ -224,15 +225,11 @@ public class TrackActivity extends AppCompatActivity {
     private void fetchUserTopTracks(String accessToken, int rangeSetting, int numTracks) {
         spotifyService.fetchUserTopTracks(accessToken, rangeSetting, numTracks, new SpotifyService.FetchTrackCallback() {
             @Override
-            public void onTrackFetched(String tracks) {
-                String[] trackList = tracks.split("%20");
-                int numTracksFetched = Integer.parseInt(trackList[0]);
+            public void onTrackFetched(List<Track> tracks) {
                 trackArrayList.clear();
 
-                for (int i = 1; i <= numTracksFetched; i++) {
-                    String[] trackInfo = trackList[i].split("%21"); // Assuming trackList[i] is the track ID
-                    Log.println(Log.VERBOSE,"TrackId", trackInfo[1]);
-                    checkAndStoreTrack(trackInfo[1]);
+                for (int i = 0; i <= tracks.size()-1; i++) {
+                    checkAndStoreTrack(tracks.get(i).getId());
                 }
                 trackAdapter.notifyDataSetChanged();
             }
