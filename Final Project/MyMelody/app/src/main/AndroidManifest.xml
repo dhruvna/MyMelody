@@ -22,7 +22,6 @@
             android:exported="false" />
         <activity
             android:name=".GoogleChartsWebView"
-            android:configChanges="orientation|screenSize"
             android:exported="false" />
         <activity
             android:name=".LoginActivity"

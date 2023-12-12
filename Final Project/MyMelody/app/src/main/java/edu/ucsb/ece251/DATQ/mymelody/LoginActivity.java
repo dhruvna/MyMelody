@@ -223,7 +223,7 @@ public class LoginActivity extends AppCompatActivity {
                     @Override
                     public void onError() {
                         // Handle error
-                        showToast("Failed to fetch current song information.");
+//                        showToast("Failed to fetch current song information.");
                         updateWidgetVisibility(false);
                     }
                 });
@@ -350,7 +350,7 @@ public class LoginActivity extends AppCompatActivity {
             }
             @Override
             public void onNoActiveSession() {
-                showToast("NO ACTIVE SESSION");
+//                showToast("NO ACTIVE SESSION");
             }
             @Override
             public void onError() {
@@ -466,9 +466,7 @@ public class LoginActivity extends AppCompatActivity {
         return String.format(Locale.getDefault(), "%d:%02d", minutes, seconds);
     }
     private void updateStatus(String accessToken) {
-        Log.println(Log.VERBOSE, "Update Status", "Update Status: Before fetchDeviceStatus");
         fetchDeviceStatus(accessToken);
-        Log.println(Log.VERBOSE, "Update Status", "Update Status: After fetchDeviceStatus");
         if(!isPlaying) {
             playPauseBtn.setImageResource(R.drawable.play);
         } else {

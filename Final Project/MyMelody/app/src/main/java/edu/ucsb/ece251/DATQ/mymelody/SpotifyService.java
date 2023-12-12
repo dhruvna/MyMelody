@@ -354,7 +354,7 @@ public class SpotifyService {
                     int duration = track.getInt("duration_ms");
                     // Use Handler to run on UI thread
                     activity.runOnUiThread(() -> callback.onSongFetched(trackName, artistName, albumArtUrl, progress, duration));
-                } else {
+                } else if(responseData.equals("EMPTY_RESPONSE")){
                     // Handle response failure
                     showToast("No song currently playing.");
                 }
