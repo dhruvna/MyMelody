@@ -237,14 +237,10 @@ public class LoginActivity extends AppCompatActivity {
         // Start the initial fetch
         handler.post(fetchCurrentTrackRunnable);
     }
-    private void hidePlayerUI() {
-        currentlyPlayingSongName.setVisibility(View.GONE);
-        currentlyPlayingArtistName.setVisibility(View.GONE);
-        currentlyPlayingAlbumArt.setVisibility(View.GONE);
-        View widget = findViewById(R.id.spotifyWidgetContainer);
-        widget.setVisibility(View.INVISIBLE);
-    }
     private void updateProgressBar(int progress, int duration) {
+        currentlyPlayingSongName.setVisibility(View.VISIBLE);
+        currentlyPlayingArtistName.setVisibility(View.VISIBLE);
+        currentlyPlayingAlbumArt.setVisibility(View.VISIBLE);
         if (duration > 0) {
             long progressPercentage = (100L * progress) / duration;
             songProgressBar.setProgress((int) progressPercentage);
@@ -257,6 +253,12 @@ public class LoginActivity extends AppCompatActivity {
         if (widget != null) {
             Log.d("LoginActivity", "Updating widget visibility: " + isVisible); // Debugging log
             widget.setVisibility(isVisible ? View.VISIBLE : View.INVISIBLE);
+            if(!isVisible) {
+                currentlyPlayingSongName.setVisibility(View.GONE);
+                currentlyPlayingArtistName.setVisibility(View.GONE);
+                currentlyPlayingAlbumArt.setVisibility(View.GONE);
+                widget.setVisibility(View.INVISIBLE);
+            }
         }
         else
             Log.e("LoginActivity", "Widget container not found. Make sure the ID is correct.");
@@ -409,13 +411,12 @@ public class LoginActivity extends AppCompatActivity {
         loginButton.setVisibility(View.VISIBLE);
         logoutButton.setVisibility(View.INVISIBLE);
         PFP.setVisibility(View.INVISIBLE);
-        updateWidgetVisibility(false);
         loggedIn = false;
         clearLoginPreferences();
-        hidePlayerUI();
         if (handler != null) {
             handler.removeCallbacksAndMessages(null);
         }
+        updateWidgetVisibility(false);
     }
     private void setLoginPrompt() {
         String loginPrompt = "Welcome! " + "\n" +
