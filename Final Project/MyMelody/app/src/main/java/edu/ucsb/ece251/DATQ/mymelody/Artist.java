@@ -5,12 +5,15 @@ public class Artist {
     private String name;
     private int rating;
     private String[] genres;
-    private String pfpURL;
+    private String artistURL;
+    private String spotifyURL;
     public Artist(){} //need for firebase
-    public Artist(String id, String name, int rating) {
+    public Artist(String id, String name, int rating, String artistUrl, String spotifyUrl) {
         this.id = id;
         this.name = name;
         this.rating = rating;
+        this.artistURL = artistUrl;
+        this.spotifyURL = spotifyUrl;
     }
     // Getters and setters
     public void setName(String name) {
@@ -20,11 +23,11 @@ public class Artist {
         return name;
     }
     public String getId(){return id; }
-    private void setGenres(String[] genres) { this.genres = genres; }
+    public void setGenres(String[] genres) { this.genres = genres; }
 
     private String[] getGenres() { return genres;}
-    private void setURL(String pfpURL) {this.pfpURL = pfpURL; }
-    private String getURL() { return pfpURL; }
+    public String getSpotifyURL() { return spotifyURL; }
+    public String getArtistURL() { return artistURL; }
     public int getRating() {
         return rating;
     }

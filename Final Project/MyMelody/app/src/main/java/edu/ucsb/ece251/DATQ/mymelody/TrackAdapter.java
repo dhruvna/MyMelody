@@ -32,7 +32,7 @@ public class TrackAdapter extends ArrayAdapter<Track> {
     private final String Userid;
     private final SpotifyService spotifyService;
     private boolean scrollEnabled = false;
-    private Context context;
+    private final Context context;
     private MediaPlayer mediaPlayer;
     public TrackAdapter(Context context, ArrayList<Track> tracks, String id, SpotifyService spotifyService) {
         super(context, 0, tracks);
@@ -159,9 +159,8 @@ public class TrackAdapter extends ArrayAdapter<Track> {
                 mediaPlayer.setDataSource(previewUrl);
                 mediaPlayer.prepare();
                 mediaPlayer.start();
-                mediaPlayer.setOnCompletionListener(mp -> {
-                    mp.release(); // Release the media player resources
-                });
+                // Release the media player resources
+                mediaPlayer.setOnCompletionListener(MediaPlayer::release);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -180,14 +179,13 @@ public class TrackAdapter extends ArrayAdapter<Track> {
             playSongSnippet(track.getPreviewUrl());
         });
 
-        builder.setNegativeButton("No", (dialog, which) -> {
-            dialog.dismiss();
-        });
+        builder.setNegativeButton("No", (dialog, which) -> dialog.dismiss());
 
         builder.create().show();
     }
     public void onScoreChanged(Track track, int newScore) {
         track.setRating(newScore); // Update the score in the Track object
+
         databaseReference.child("tracks" + Userid).child(track.getId()).setValue(track); // Update Firebase
     }
 

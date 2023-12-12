@@ -28,6 +28,7 @@ import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.List;
 
 public class ArtistActivity extends AppCompatActivity {
     private ArrayList<Artist> artistArrayList;
@@ -36,6 +37,7 @@ public class ArtistActivity extends AppCompatActivity {
     private String accessToken;
     private User currentUser;
     private boolean isDataLoaded = false;
+    private boolean slider = false;
     private int rangeSetting;
     final static int lastMonth = 0;
     final static int last6Months = 1;
@@ -43,7 +45,6 @@ public class ArtistActivity extends AppCompatActivity {
     private TextView artistCountTextView;
     private int numArtists = 10;  // Default value
     SeekBar artistSeekBar;
-
     DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
 
     @Override
@@ -60,11 +61,11 @@ public class ArtistActivity extends AppCompatActivity {
         spotifyService = new SpotifyService(this);
         artistArrayList = new ArrayList<>();
         artistAdapter = new ArtistAdapter(this, artistArrayList, currentUser.getId()); // Initialize ArtistAdapter with the artist list
-        ListView ArtistList = findViewById(R.id.ArtistList);
-        ArtistList.setAdapter(artistAdapter); // Set the adapter for the ListView
+        ListView artistListView = findViewById(R.id.ArtistList);
+        artistListView.setAdapter(artistAdapter); // Set the adapter for the ListView
         FirebaseApp.initializeApp(this);
-        artistSeekBar = findViewById(R.id.artistSeekBar);
         artistCountTextView = findViewById(R.id.artistCountTextView);
+        artistSeekBar = findViewById(R.id.artistSeekBar);
 
         Button sortButton = findViewById(R.id.btnSortArtists);
         sortButton.setOnClickListener(view -> showSortingOptions());
@@ -74,7 +75,6 @@ public class ArtistActivity extends AppCompatActivity {
                 R.array.time_range_options, android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         timeRange.setAdapter(adapter);
-
 
         timeRange.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -97,8 +97,7 @@ public class ArtistActivity extends AppCompatActivity {
                 {
                     isDataLoaded = false;
                 }
-                else
-                {
+                else {
                     handleTimeRangeSelection(rangeSetting, numArtists);
                 }
             }
@@ -108,26 +107,33 @@ public class ArtistActivity extends AppCompatActivity {
                 // Another interface callback
             }
         });
+        slider = false;
+        if(artistSeekBar != null) {
+            artistSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                @Override
+                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                    numArtists = progress + 1;  // Since the range is 1 to 50
+                    artistCountTextView.setText(numArtists + " Artists");
+                }
 
-        artistSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                numArtists = progress + 1;  // Since the range is 1 to 50
-                artistCountTextView.setText(numArtists + " Artists");
-            }
+                @Override
+                public void onStartTrackingTouch(SeekBar seekBar) {
+                    // Optionally implement
+                    slider = true;
+                }
 
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-                // Optionally implement
-            }
+                @Override
+                public void onStopTrackingTouch(SeekBar seekBar) {
+                    // Optionally implement
+                    // Fetch artists here if you want to fetch them immediately after user selection
+                    if (slider) {
+                        fetchUserTopArtists(accessToken, rangeSetting, numArtists);
+                    }
 
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-                // Optionally implement
-                // Fetch artists here if you want to fetch them immediately after user selection
-                fetchUserTopArtists(accessToken, rangeSetting, numArtists);
-            }
-        });
+                    slider = false;
+                }
+            });
+        }
 
         loadPreferences();
     }
@@ -137,6 +143,7 @@ public class ArtistActivity extends AppCompatActivity {
         SharedPreferences.Editor editor = prefs.edit();
         Gson gson = new Gson();
         String json = gson.toJson(artistArrayList);
+        Log.d("SaveData", "Saving JSON: " + json);
         editor.putString("artistList", json);
         editor.putInt("numArtists", numArtists);
         editor.putInt("rangeSetting", rangeSetting);
@@ -153,10 +160,15 @@ public class ArtistActivity extends AppCompatActivity {
 
         if (artistArrayList == null) {
             artistArrayList = new ArrayList<>();
+            Log.d("ArtistArrayList","Empty");
             isDataLoaded = false;
         }
         if(artistArrayList!=null){
+            Log.d("LoadData", "Loaded artist list size: " + artistArrayList.size());
             isDataLoaded = true;
+            for (int i = 0; i < Math.min(5, artistArrayList.size()); i++) {
+                Log.d("LoadData", "Artist " + i + ": " + artistArrayList.get(i).getName() + ", PFP: " + artistArrayList.get(i).getArtistURL());
+            }
             artistAdapter = new ArtistAdapter(this, artistArrayList, currentUser.getId());
             ListView artistListView = findViewById(R.id.ArtistList);
             artistListView.setAdapter(artistAdapter);
@@ -209,44 +221,13 @@ public class ArtistActivity extends AppCompatActivity {
     private void fetchUserTopArtists(String accessToken, int rangeSetting, int numArtists) {
         spotifyService.fetchUserTopArtists(accessToken, rangeSetting, numArtists, new SpotifyService.FetchArtistCallback() {
             @Override
-            public void onArtistFetched(String artists) {
-                String[] artistBlocks = artists.split("%19"); // Split by %19 for each artist
-                String[] firstBlock = artistBlocks[0].split("%20", 2);
-                int numArtistsFetched = Integer.parseInt(firstBlock[0]);
+            public void onArtistFetched(List<Artist> artists) {
                 artistArrayList.clear();
 
-                // Process the first artist block separately
-                processArtistBlock(firstBlock[1]);
-
-                for (int i = 1; i < artistBlocks.length; i++) {
-                    processArtistBlock(artistBlocks[i]);
+                for (int i = 0; i <= artists.size()-1; i++) {
+                    checkAndStoreArtist(artists.get(i).getId());
                 }
                 artistAdapter.notifyDataSetChanged();
-            }
-            private void processArtistBlock(String block) {
-                String[] artistInfo = block.split("%21");
-                String artistName = artistInfo[0];
-
-                // Split the remaining part by "%20" to separate the artist ID and the URL + genres
-                String[] idAndUrlAndGenres = artistInfo[1].split("%20", 2);
-                String artistId = idAndUrlAndGenres[0];
-
-                // Split the URL + genres part by "%18" to separate the artist URL from the genres
-                String[] urlAndGenres = idAndUrlAndGenres[1].split("%18", 2);
-                String artistPFPUrl = urlAndGenres[0]; // This is the profile URL
-                String genresString = urlAndGenres.length > 1 ? urlAndGenres[1] : "";
-
-                String[] genres = genresString.split(",");
-
-                // Process the artist's name, ID, and genres as needed
-                Log.println(Log.VERBOSE, "ArtistId", artistId);
-                Log.println(Log.VERBOSE, "ArtistPFP", artistPFPUrl);
-                for(String genre : genres) {
-                    if (!genre.isEmpty()) {
-                        Log.println(Log.VERBOSE, "Genre", genre);
-                    }
-                }
-                checkAndStoreArtist(artistId);
             }
             @Override
             public void onError() {
@@ -273,7 +254,7 @@ public class ArtistActivity extends AppCompatActivity {
                     fetchArtistDetailsFromSpotifyAndStore(artistId);
                 } else {
                     Log.d("Firebase", "Data updated: " + dataSnapshot.getValue());
-
+                    // Artist exists in Firebase, use it
                     Artist artist = dataSnapshot.getValue(Artist.class);
                     if (artist != null) {
                         if (!isArtistInList(artist)) {
@@ -293,10 +274,10 @@ public class ArtistActivity extends AppCompatActivity {
 
     private void fetchArtistDetailsFromSpotifyAndStore(String artistId) {
         // Fetch artist details from Spotify
-        // This is a placeholder, you need to implement this based on your SpotifyService
         spotifyService.fetchArtistDetails(artistId, new SpotifyService.FetchArtistDetailsCallback() {
             @Override
             public void onArtistDetailsFetched(Artist artist) {
+                Log.d("ArtistActivity", "Displaying artist: " + artist.getName() + " - " + artist.getArtistURL() + " - " + artist.getArtistURL());
                 // Store in Firebase
                 databaseReference.child("artists" + currentUser.getId()).child(artistId).setValue(artist);
                 artistArrayList.add(artist);
@@ -339,6 +320,7 @@ public class ArtistActivity extends AppCompatActivity {
         super.onResume();
         loadPreferences();
     }
+
     private void showSortingOptions() {
         String[] options = {"Sort Ascending", "Sort Descending"};
 

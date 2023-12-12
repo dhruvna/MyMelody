@@ -15,6 +15,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class GoogleChartsWebView extends AppCompatActivity{
@@ -114,18 +115,18 @@ public class GoogleChartsWebView extends AppCompatActivity{
     private void fetchTopArtists(String accessToken, int rangeSetting, int numArtists) {
         spotifyService.fetchUserTopArtists(accessToken, rangeSetting, numArtists, new SpotifyService.FetchArtistCallback() {
             @Override
-            public void onArtistFetched(String artists) {
-                String[] artistBlocks = artists.split("%19"); // Split by %19 for each artist
-                String[] firstBlock = artistBlocks[0].split("%20", 2);
-                Map<String, Integer> genreCount = new HashMap<>();
-
-                processArtistBlock(firstBlock[1], genreCount);
-
-                for (int i = 1; i < artistBlocks.length; i++) {
-                    processArtistBlock(artistBlocks[i], genreCount);
-                }
-
-                visualizeDataInChart(genreCount);
+            public void onArtistFetched( List<Artist> artists) {
+//                String[] artistBlocks = artists.split("%19"); // Split by %19 for each artist
+//                String[] firstBlock = artistBlocks[0].split("%20", 2);
+//                Map<String, Integer> genreCount = new HashMap<>();
+//
+//                processArtistBlock(firstBlock[1], genreCount);
+//
+//                for (int i = 1; i < artistBlocks.length; i++) {
+//                    processArtistBlock(artistBlocks[i], genreCount);
+//                }
+//
+//                visualizeDataInChart(genreCount);
             }
 
             private void processArtistBlock(String block, Map<String, Integer> genreCount) {

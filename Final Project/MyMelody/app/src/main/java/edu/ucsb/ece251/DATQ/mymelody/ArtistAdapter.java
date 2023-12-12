@@ -3,28 +3,36 @@ package edu.ucsb.ece251.DATQ.mymelody;
 import static android.content.Context.MODE_PRIVATE;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.text.Editable;
+import android.text.TextUtils;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 
 
 public class ArtistAdapter extends ArrayAdapter<Artist> {
     private final String Userid;
+    private final Context context;
 
     public ArtistAdapter(Context context, ArrayList<Artist> artists, String id) {
         super(context, 0, artists);
         this.Userid = id;
+        this.context = context;
     }
     DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
     @Override
@@ -34,18 +42,35 @@ public class ArtistAdapter extends ArrayAdapter<Artist> {
         if (convertView == null) {
             convertView = LayoutInflater.from(getContext()).inflate(R.layout.artistlist, parent, false); // Ensure this is the correct layout
             holder = new ViewHolder();
+            holder.artistPFP = convertView.findViewById(R.id.artistPFP);
             holder.tvArtistName = convertView.findViewById(R.id.tvArtistName);
+            holder.tvArtistName.setSelected(false);
             holder.etArtistScore = convertView.findViewById(R.id.etArtistScore);
 
             convertView.setTag(holder);
         } else {
             holder = (ViewHolder) convertView.getTag();
         }
-
         Artist artist = getItem(position);
 
+        holder.artistPFP.setOnClickListener(v -> {
+            String spotifyUrl = artist.getSpotifyURL();
+            Log.println(Log.VERBOSE, "Artist Url", spotifyUrl);
+            if (!TextUtils.isEmpty(spotifyUrl)) {
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(spotifyUrl));
+                context.startActivity(intent);
+            }
+        });
         if (artist != null) {
+            Log.d("ArtistAdapter", "Received artist: " + artist.getName() + " - " + artist.getArtistURL() + " - " + artist.getSpotifyURL());
             holder.tvArtistName.setText(artist.getName());
+
+            if (artist.getArtistURL() != null) {
+                Picasso.get().load(artist.getArtistURL()).into(holder.artistPFP);
+            } else {
+                // Set a placeholder image or handle the case where albumCover URL is empty
+                holder.artistPFP.setImageResource(R.drawable.spotify);
+            }
 
             // Remove the existing TextWatcher
             if (holder.etArtistScore.getTag() instanceof TextWatcher) {
@@ -53,7 +78,6 @@ public class ArtistAdapter extends ArrayAdapter<Artist> {
             }
 
             holder.etArtistScore.setText(artist.getRating() >= 0 && artist.getRating()<=10 ? String.valueOf(artist.getRating()) : "");
-
             onScoreChanged(artist, artist.getRating());
             TextWatcher textWatcher = new TextWatcher() {
                 // beforeTextChanged, onTextChanged, afterTextChanged implementation
@@ -70,6 +94,7 @@ public class ArtistAdapter extends ArrayAdapter<Artist> {
                     try {
                         int rating = Integer.parseInt(s.toString());
                         artist.setRating(rating);
+                        saveArtistRating(artist);
                     } catch (NumberFormatException e) {
                         artist.setRating(0); // Or handle this as you see fit
                     }
@@ -91,19 +116,6 @@ public class ArtistAdapter extends ArrayAdapter<Artist> {
         databaseReference.child("artists" + Userid).child(artist.getId()).setValue(artist); // Update Firebase
     }
 
-    public User parseUserString(String userString) {
-        String[] lines = userString.split("\n");
-        if (lines.length != 6) return null;
-        return new User(
-                lines[0].substring(lines[0].indexOf(": ") + 2),
-                lines[1].substring(lines[1].indexOf(": ") + 2),
-                lines[2].substring(lines[2].indexOf(": ") + 2),
-                lines[3].substring(lines[3].indexOf(": ") + 2),
-                lines[4].substring(lines[4].indexOf(": ") + 2),
-                lines[5].substring(lines[5].indexOf(": ") + 2)
-        );
-    }
-
     private void saveArtistRating(Artist artist) {
         SharedPreferences prefs = getContext().getSharedPreferences("ArtistPrefs", MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
@@ -112,6 +124,7 @@ public class ArtistAdapter extends ArrayAdapter<Artist> {
     }
 
     static class ViewHolder {
+        ImageView artistPFP;
         TextView tvArtistName;
         EditText etArtistScore;
     }

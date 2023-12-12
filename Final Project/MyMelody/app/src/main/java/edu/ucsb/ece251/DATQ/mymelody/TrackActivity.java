@@ -47,7 +47,6 @@ public class TrackActivity extends AppCompatActivity {
     SeekBar trackSeekBar;
     DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -58,6 +57,7 @@ public class TrackActivity extends AppCompatActivity {
             if (userInfo != null) currentUser = parseUserString(userInfo);
             accessToken = currentUser.getAccessToken();
         }
+
         spotifyService = new SpotifyService(this);
         trackArrayList = new ArrayList<>();
         trackAdapter = new TrackAdapter(this, trackArrayList, currentUser.getId(), spotifyService); // Initialize TrackAdapter with the track list
@@ -131,14 +131,13 @@ public class TrackActivity extends AppCompatActivity {
                     }
 
                     slider = false;
-
                 }
             });
         }
 
         loadPreferences();
-
     }
+
     private void savePreferences() {
         SharedPreferences prefs = getSharedPreferences("TrackPrefs", MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
@@ -152,14 +151,13 @@ public class TrackActivity extends AppCompatActivity {
         editor.apply();
     }
 
-
     private void loadPreferences() {
         SharedPreferences prefs = getSharedPreferences("TrackPrefs", MODE_PRIVATE);
         Gson gson = new Gson();
         String json = prefs.getString("trackList", null);
-
         Type type = new TypeToken<ArrayList<Track>>() {}.getType();
         trackArrayList = gson.fromJson(json, type);
+
         if (trackArrayList == null) {
             trackArrayList = new ArrayList<>();
             Log.d("TrackArrayList","Empty");
@@ -175,7 +173,6 @@ public class TrackActivity extends AppCompatActivity {
             ListView trackListView = findViewById(R.id.TrackList);
             trackListView.setAdapter(trackAdapter);
         }
-
 
         int seekBarPosition = prefs.getInt("seekBarPosition", 9);
         numTracks = seekBarPosition + 1;
@@ -217,7 +214,6 @@ public class TrackActivity extends AppCompatActivity {
                 return scoreComparison;
             });
         }
-
         trackAdapter.notifyDataSetChanged();
         savePreferences();
     }
@@ -239,6 +235,7 @@ public class TrackActivity extends AppCompatActivity {
             }
         });
     }
+
     private boolean isTrackInList(Track track) {
         for (Track existingTrack : trackArrayList) {
             if (existingTrack.getId().equals(track.getId())) {
@@ -248,7 +245,6 @@ public class TrackActivity extends AppCompatActivity {
         }
         return false; // No matching track found
     }
-
     private void checkAndStoreTrack(String trackId) {
         databaseReference.child("tracks" + currentUser.getId()).child(trackId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -261,8 +257,7 @@ public class TrackActivity extends AppCompatActivity {
                     // Track exists in Firebase, use it
                     Track track = dataSnapshot.getValue(Track.class);
                     if (track != null) {
-                        if (!isTrackInList(track))
-                        {
+                        if (!isTrackInList(track)) {
                             trackArrayList.add(track);
                             trackAdapter.notifyDataSetChanged();
                         }
@@ -279,7 +274,6 @@ public class TrackActivity extends AppCompatActivity {
 
     private void fetchTrackDetailsFromSpotifyAndStore(String trackId) {
         // Fetch track details from Spotify
-        // This is a placeholder, you need to implement this based on your SpotifyService
         spotifyService.fetchTrackDetails(trackId, new SpotifyService.FetchTrackDetailsCallback() {
             @Override
             public void onTrackDetailsFetched(Track track) {

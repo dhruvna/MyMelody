@@ -127,26 +127,27 @@ public class SpotifyService {
                     .url(url)
                     .addHeader("Authorization", "Bearer " + accessToken)
                     .build();
-
             try (Response response = client.newCall(request).execute()) {
                 if (response.isSuccessful() && response.body() != null) {
                     String responseData = response.body().string();
-                    JSONObject trackJson = new JSONObject(responseData);
+                    JSONObject artistJson = new JSONObject(responseData);
 
                     // Parse the JSON object to create a Track object
-                    String id = trackJson.getString("id");
-                    String name = trackJson.getString("name");
+                    String artistID = artistJson.getString("id");
+                    String artistName = artistJson.getString("name");
+                    String artistPFPUrl = artistJson.getJSONArray("images").getJSONObject(0).getString("url");
+                    String artistUrl = artistJson.getJSONObject("external_urls").getString("spotify");
 
-                    Artist artist = new Artist(id, name, 0);
-
+                    Artist newArtist = new Artist(artistID, artistName, 0, artistPFPUrl, artistUrl);
+                    Log.d("SpotifyService", "Created artist: " + newArtist.getName() + " - " + newArtist.getArtistURL() + " - " + newArtist.getSpotifyURL());
                     // Use Handler to run on UI thread
-                    activity.runOnUiThread(() -> fetchArtistDetailsCallback.onArtistDetailsFetched(artist));
+                    activity.runOnUiThread(() -> fetchArtistDetailsCallback.onArtistDetailsFetched(newArtist));
                 } else {
                     // Handle response failure
                     activity.runOnUiThread(fetchArtistDetailsCallback::onError);
                 }
             } catch (Exception e) {
-                Log.e("SpotifyService", "Error fetching artist details: " + e.getMessage());
+                Log.e("SpotifyService", "Error fetching track details: " + e.getMessage());
                 activity.runOnUiThread(fetchArtistDetailsCallback::onError);
             }
         }).start();
@@ -276,7 +277,7 @@ public class SpotifyService {
     }
 
     public interface FetchArtistCallback {
-        void onArtistFetched(String artists);
+        void onArtistFetched(List<Artist> artistList);
         void onError();
     }
     public void fetchUserTopArtists(String accessToken, int rangeSetting, int numArtists, FetchArtistCallback callback) {
@@ -299,42 +300,38 @@ public class SpotifyService {
                     .url(url)
                     .addHeader("Authorization", "Bearer " + accessToken)
                     .build();
+
             try (Response response = client.newCall(request).execute()) {
-                if(response.isSuccessful() && response.body() != null) {
+                if (response.isSuccessful() && response.body() != null) {
                     Log.println(Log.VERBOSE, "Artist Fetcher", "Received response for artists!");
+                    List<Artist> artistList = new ArrayList<>();
                     String responseData = response.body().string();
                     JSONObject jsonResponse = new JSONObject(responseData);
                     // Extract user information from the JSON object
                     JSONArray items = jsonResponse.getJSONArray("items");
                     Log.println(Log.VERBOSE, "num artists", "received " + items.length() + "artists");
                     if (items.length() > 0) {
-                        StringBuilder artists = new StringBuilder("" + items.length() + "%20");
-                        for(int i = 0; i < items.length(); i++) {
+                        for (int i = 0; i < items.length(); i++) {
                             JSONObject artist = items.getJSONObject(i);
-                            artists.append(artist.getString("name"));
-                            artists.append("%21");
-                            artists.append(artist.getString("id"));
-                            artists.append("%20");
-                            String artistPFPUrl = artist.getJSONArray("images").getJSONObject(0).getString("url");
-                            artists.append(artistPFPUrl);
-                            artists.append("%18");
-                            JSONArray genres = artist.getJSONArray("genres");
-                            for(int j = 0; j < genres.length(); j++) {
-                                artists.append(genres.getString(j));
-                                if(j < genres.length() - 1) {
-                                    artists.append(",");
-                                }
-                            }if(i < items.length() - 1) {
-                                artists.append("%19");
-                            }
+                            String artistID = artist.getString("id");
+                            String artistName = artist.getString("name");
+                            JSONObject artistPFP = artist.getJSONArray("images").getJSONObject(0);
+                            String artistPFPUrl = artistPFP.getString("url");
+                            String artistUrl = artist.getJSONObject("external_urls").getString("spotify");
+                            Artist newArtist = new Artist(artistID, artistName, 0, artistPFPUrl, artistUrl);
+                            Log.d("SpotifyService", "Created artist: " + newArtist.getName() + " - " + newArtist.getArtistURL() + " - " + newArtist.getSpotifyURL());
+                            artistList.add(newArtist);
                         }
-                        String finalArtists = artists.toString();
-                        // Use Handler to run on UI thread
-                        Log.println(Log.VERBOSE, "Finished artist fetch", "Ready to run on main thread");
-                        activity.runOnUiThread(() -> callback.onArtistFetched(finalArtists));
+                        if (!artistList.isEmpty()) {
+                            Log.println(Log.VERBOSE, "Finished track fetch", "Ready to run on main thread");
+                            activity.runOnUiThread(() -> callback.onArtistFetched(artistList));
+                        } else {
+                            activity.runOnUiThread(() -> showToast("No top tracks found"));
+                        }
                     }
                 }
-            } catch (Exception e) {
+            }
+             catch (Exception e) {
                 // Run on the main thread
                 activity.runOnUiThread(callback::onError);
             }

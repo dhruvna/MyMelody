@@ -8,19 +8,31 @@
         android:orientation="horizontal"
         android:padding="8dp">
 
+        <ImageView
+            android:id="@+id/artistPFP"
+            android:layout_width= "32dp"
+            android:layout_height="32dp"
+            android:layout_weight="1"
+            android:layout_gravity="center"
+            android:text="Artist PFP"
+            android:textSize="16sp" />
         <TextView
             android:id="@+id/tvArtistName"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="3"
-            android:textSize="16sp"
-            android:text="Track Name" />
+            android:layout_weight="5"
+            android:textSize="12sp"
+            android:ellipsize="marquee"
+            android:marqueeRepeatLimit="marquee_forever"
+            android:singleLine="true"
+            android:scrollHorizontally="true"
+            android:text="Artist Name" />
 
         <EditText
             android:id="@+id/etArtistScore"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_weight="3"
             android:inputType="number"
             android:ems="2"
             android:textSize="16sp"
