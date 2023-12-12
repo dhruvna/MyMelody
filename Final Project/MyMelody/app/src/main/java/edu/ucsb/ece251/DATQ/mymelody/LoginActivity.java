@@ -399,21 +399,6 @@ public class LoginActivity extends AppCompatActivity {
             showToast("Log in failure.");
         }
     }
-//    protected void onNewIntent(Intent intent) {
-//        super.onNewIntent(intent);
-//        String accessToken = spotifyService.handleAuthResponse(intent);
-//        Log.println(Log.VERBOSE, "Testing OnNewIntent", accessToken);
-//        login(accessToken);
-//    }
-//    private void login(String accessToken) {
-//        loggedIn = true;
-//        setLoginPrompt();
-//        loginButton.setVisibility(View.INVISIBLE);
-//        logoutButton.setVisibility(View.VISIBLE);
-//        // Fetch and display the currently playing track
-//        updateStatus(accessToken);
-//        setupFetchCurrentTrackTask();
-//    }
     private void logout() {
         toolbar.setTitle("My Melody");
         LoginPrompt.setText(R.string.login_msg);

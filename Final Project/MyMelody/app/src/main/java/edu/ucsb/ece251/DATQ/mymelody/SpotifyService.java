@@ -306,9 +306,6 @@ public class SpotifyService {
                         // Use Handler to run on UI thread
                         Log.println(Log.VERBOSE, "Finished artist fetch", "Ready to run on main thread");
                         activity.runOnUiThread(() -> callback.onArtistFetched(finalArtists));
-                    } else {
-                        // Run on the main thread
-//                        activity.runOnUiThread(() -> showToast("No top artists found"));
                     }
                 }
             } catch (Exception e) {

@@ -1,11 +1,9 @@
 package edu.ucsb.ece251.DATQ.mymelody;
 
 import static android.content.Context.MODE_PRIVATE;
-import static android.content.Intent.getIntent;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -14,20 +12,19 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.TextView;
+
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-
 
 import java.util.ArrayList;
 
 
 public class ArtistAdapter extends ArrayAdapter<Artist> {
-    private String Userid;
-    private final SpotifyService spotifyService;
-    public ArtistAdapter(Context context, ArrayList<Artist> artists, String id, SpotifyService spotifyService) {
+    private final String Userid;
+
+    public ArtistAdapter(Context context, ArrayList<Artist> artists, String id) {
         super(context, 0, artists);
         this.Userid = id;
-        this.spotifyService = spotifyService;
     }
     DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
     @Override

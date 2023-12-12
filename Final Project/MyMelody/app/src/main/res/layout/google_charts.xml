@@ -34,13 +34,13 @@
 
     <SeekBar
         android:id="@+id/genreSeekBar"
-        android:layout_width="411dp"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:max="49"
         android:progress="9"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/timeRange" />
 

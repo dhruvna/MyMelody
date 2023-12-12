@@ -1,7 +1,6 @@
 package edu.ucsb.ece251.DATQ.mymelody;
 
 import android.app.AlertDialog;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
@@ -15,22 +14,20 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-
-import com.google.firebase.FirebaseApp;
-import com.google.firebase.database.ValueEventListener;
-import androidx.annotation.NonNull;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 
 public class ArtistActivity extends AppCompatActivity {
     private ArrayList<Artist> artistArrayList;
@@ -62,7 +59,7 @@ public class ArtistActivity extends AppCompatActivity {
 
         spotifyService = new SpotifyService(this);
         artistArrayList = new ArrayList<>();
-        artistAdapter = new ArtistAdapter(this, artistArrayList, currentUser.getId(), spotifyService); // Initialize ArtistAdapter with the artist list
+        artistAdapter = new ArtistAdapter(this, artistArrayList, currentUser.getId()); // Initialize ArtistAdapter with the artist list
         ListView ArtistList = findViewById(R.id.ArtistList);
         ArtistList.setAdapter(artistAdapter); // Set the adapter for the ListView
         FirebaseApp.initializeApp(this);
@@ -160,7 +157,7 @@ public class ArtistActivity extends AppCompatActivity {
         }
         if(artistArrayList!=null){
             isDataLoaded = true;
-            artistAdapter = new ArtistAdapter(this, artistArrayList, currentUser.getId(), spotifyService);
+            artistAdapter = new ArtistAdapter(this, artistArrayList, currentUser.getId());
             ListView artistListView = findViewById(R.id.ArtistList);
             artistListView.setAdapter(artistAdapter);
         }
@@ -179,7 +176,7 @@ public class ArtistActivity extends AppCompatActivity {
         if (accessToken != null && artistArrayList.isEmpty()) {
             fetchUserTopArtists(accessToken, rangeSetting, numArtists);
         } else {
-            artistAdapter = new ArtistAdapter(this, artistArrayList, currentUser.getId(), spotifyService);
+            artistAdapter = new ArtistAdapter(this, artistArrayList, currentUser.getId());
             ListView artistListView = findViewById(R.id.ArtistList);
             artistListView.setAdapter(artistAdapter);
         }
