@@ -160,8 +160,7 @@ public class GoogleChartsWebView extends AppCompatActivity{
     }
 
     private void storeArtistInfoForLaterUse(String artistId, String artistName, String artistPFPUrl) {
-        // Implementation depends on how you want to store and use this data later.
-        // This could involve storing in a map, list, or class member.
+        // Next steps...
     }
     private void visualizeDataInChart(Map<String, Integer> genreCount) {
         if (isPageLoaded) {
@@ -174,15 +173,12 @@ public class GoogleChartsWebView extends AppCompatActivity{
     }
 
     private String convertGenreCountToChartData(Map<String, Integer> genreCount) {
-        // Start with the array structure and column definitions for Google Charts
         StringBuilder chartData = new StringBuilder("[['Genre', 'Count'],");
 
         for (Map.Entry<String, Integer> entry : genreCount.entrySet()) {
-            // Each entry in the format: ['Genre', count],
             chartData.append("['").append(entry.getKey()).append("', ").append(entry.getValue()).append("],");
         }
 
-        // Remove the last comma and close the array
         if (chartData.length() > 0) chartData.setLength(chartData.length() - 1);
         chartData.append("]");
 

@@ -72,7 +72,7 @@ public class TrackAdapter extends ArrayAdapter<Track> {
             String displayText = track.getName() + " - " + track.getArtist(); // Combining track name with artist name
             holder.tvTrackName.setText(displayText);
 
-            if (!track.getAlbumCover().isEmpty()) {
+            if (track.getAlbumCover() != null && !track.getAlbumCover().isEmpty()) {
                 Picasso.get().load(track.getAlbumCover()).into(holder.albumCover);
             } else {
                 // Set a placeholder image or handle the case where albumCover URL is empty
