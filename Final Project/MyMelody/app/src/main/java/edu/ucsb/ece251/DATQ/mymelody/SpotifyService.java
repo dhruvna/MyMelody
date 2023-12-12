@@ -94,8 +94,10 @@ public class SpotifyService {
                         artistsBuilder.append(artistJson.getString("name"));
                     }
                     String artists = artistsBuilder.toString();
-                    Track track = new Track(id, name, 0, artists);
-
+                    JSONArray album = trackJson.getJSONObject("album").getJSONArray("images");
+                    JSONObject albumImage = album.getJSONObject(0); // Assuming the first image is the largest
+                    String albumCover = albumImage.getString("url");
+                    Track track = new Track(id, name, 0, artists, albumCover);
                     // Use Handler to run on UI thread
                     activity.runOnUiThread(() -> fetchTrackDetailsCallback.onTrackDetailsFetched(track));
                 } else {
@@ -247,7 +249,10 @@ public class SpotifyService {
                                 artistsBuilder.append(artistJson.getString("name"));
                             }
                             String artists = artistsBuilder.toString();
-                            Track newTrack = new Track(trackID, trackName, 0, artists);
+                            JSONArray album = track.getJSONObject("album").getJSONArray("images");
+                            JSONObject albumImage = album.getJSONObject(0); // Assuming the first image is the largest
+                            String albumCover = albumImage.getString("url");
+                            Track newTrack = new Track(trackID, trackName, 0, artists, albumCover);
                             Log.d("SpotifyService", "Created track: " + newTrack.getName() + " - " + newTrack.getArtist());
                             trackList.add(newTrack);
                         }

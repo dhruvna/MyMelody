@@ -283,7 +283,7 @@ public class TrackActivity extends AppCompatActivity {
         spotifyService.fetchTrackDetails(trackId, new SpotifyService.FetchTrackDetailsCallback() {
             @Override
             public void onTrackDetailsFetched(Track track) {
-                Log.d("TrackActivity", "Displaying track: " + track.getName() + " - " + track.getArtist());
+                Log.d("TrackActivity", "Displaying track: " + track.getName() + " - " + track.getArtist() + " - " + track.getAlbumCover());
                 // Store in Firebase
                 databaseReference.child("tracks" + currentUser.getId()).child(trackId).setValue(track);
                 trackArrayList.add(track);

@@ -13,18 +13,20 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 
 
 public class TrackAdapter extends ArrayAdapter<Track> {
     private final String Userid;
-    private final SpotifyService spotifyService; // Add this line
-
+    private final SpotifyService spotifyService;
+    private boolean scrollEnabled = false;
     public TrackAdapter(Context context, ArrayList<Track> tracks, String id, SpotifyService spotifyService) {
         super(context, 0, tracks);
         this.Userid = id;
@@ -37,9 +39,11 @@ public class TrackAdapter extends ArrayAdapter<Track> {
         ViewHolder holder;
 
         if (convertView == null) {
-            convertView = LayoutInflater.from(getContext()).inflate(R.layout.tracklist, parent, false); // Ensure this is the correct layout
+            convertView = LayoutInflater.from(getContext()).inflate(R.layout.tracklist, parent, false);
             holder = new ViewHolder();
+            holder.albumCover = convertView.findViewById(R.id.albumCover);
             holder.tvTrackName = convertView.findViewById(R.id.tvTrackName);
+            holder.tvTrackName.setSelected(false);
             holder.etTrackScore = convertView.findViewById(R.id.etTrackScore);
 
             convertView.setTag(holder);
@@ -49,14 +53,31 @@ public class TrackAdapter extends ArrayAdapter<Track> {
 
         Track track = getItem(position);
         convertView.setOnClickListener(v -> {
+            if (!scrollEnabled) {
+                holder.tvTrackName.setSelected(true);
+                scrollEnabled = true;
+            } else {
+                holder.tvTrackName.setSelected(false);
+                scrollEnabled = false;
+            }
+        });
+        convertView.setOnLongClickListener(v -> {
             Log.println(Log.VERBOSE, "Test onclick", "TESTING on click for: " + track.getId());
             showConfirmationDialog(track);
+            return false;
         });
 
         if (track != null) {
             Log.d("TrackAdapter", "Received track: " + track.getName() + " - " + track.getArtist());
             String displayText = track.getName() + " - " + track.getArtist(); // Combining track name with artist name
             holder.tvTrackName.setText(displayText);
+
+            if (!track.getAlbumCover().isEmpty()) {
+                Picasso.get().load(track.getAlbumCover()).into(holder.albumCover);
+            } else {
+                // Set a placeholder image or handle the case where albumCover URL is empty
+                holder.albumCover.setImageResource(R.drawable.spotify);
+            }
 
 
             // Remove the existing TextWatcher
@@ -127,6 +148,7 @@ public class TrackAdapter extends ArrayAdapter<Track> {
         dialog.show();
     }
     static class ViewHolder {
+        ImageView albumCover;
         TextView tvTrackName;
         EditText etTrackScore;
     }
