@@ -4,11 +4,13 @@ public class Track {
     private String id;
     private String name;
     private Integer rating;
+    private String artist;
     public Track() {} //need for firebase
-    public Track(String id,String name, int rating) {
+    public Track(String id,String name, int rating, String artist) {
         this.id = id;
         this.name = name;
         this.rating = rating;
+        this.artist = artist;
     }
 
     // Getters and setters
@@ -29,5 +31,9 @@ public class Track {
     public void setRating(int rating) {
         this.rating = rating;
     }
+    public String getArtist() {
+        return artist;
+    }
+
 }
 

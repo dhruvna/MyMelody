@@ -54,7 +54,9 @@ public class TrackAdapter extends ArrayAdapter<Track> {
         });
 
         if (track != null) {
-            holder.tvTrackName.setText(track.getName());
+            Log.d("TrackAdapter", "Received track: " + track.getName() + " - " + track.getArtist());
+            String displayText = track.getName() + " - " + track.getArtist(); // Combining track name with artist name
+            holder.tvTrackName.setText(displayText);
 
 
             // Remove the existing TextWatcher

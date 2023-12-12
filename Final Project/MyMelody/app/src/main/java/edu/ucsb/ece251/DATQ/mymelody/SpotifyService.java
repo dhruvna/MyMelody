@@ -86,8 +86,15 @@ public class SpotifyService {
                     // Parse the JSON object to create a Track object
                     String id = trackJson.getString("id");
                     String name = trackJson.getString("name");
-
-                    Track track = new Track(id, name, 0);
+                    JSONArray artistsJson = trackJson.getJSONArray("artists");
+                    StringBuilder artistsBuilder = new StringBuilder();
+                    for (int j = 0; j < artistsJson.length(); j++) {
+                        JSONObject artistJson = artistsJson.getJSONObject(j);
+                        if (j > 0) artistsBuilder.append(", ");
+                        artistsBuilder.append(artistJson.getString("name"));
+                    }
+                    String artists = artistsBuilder.toString();
+                    Track track = new Track(id, name, 0, artists);
 
                     // Use Handler to run on UI thread
                     activity.runOnUiThread(() -> fetchTrackDetailsCallback.onTrackDetailsFetched(track));
@@ -232,7 +239,16 @@ public class SpotifyService {
                             JSONObject track = items.getJSONObject(i);
                             String trackID = track.getString("id");
                             String trackName = track.getString("name");
-                            Track newTrack = new Track(trackID, trackName, 0);
+                            JSONArray artistsJson = track.getJSONArray("artists");
+                            StringBuilder artistsBuilder = new StringBuilder();
+                            for (int j = 0; j < artistsJson.length(); j++) {
+                                JSONObject artistJson = artistsJson.getJSONObject(j);
+                                if (j > 0) artistsBuilder.append(", ");
+                                artistsBuilder.append(artistJson.getString("name"));
+                            }
+                            String artists = artistsBuilder.toString();
+                            Track newTrack = new Track(trackID, trackName, 0, artists);
+                            Log.d("SpotifyService", "Created track: " + newTrack.getName() + " - " + newTrack.getArtist());
                             trackList.add(newTrack);
                         }
                         if (!trackList.isEmpty()) {
