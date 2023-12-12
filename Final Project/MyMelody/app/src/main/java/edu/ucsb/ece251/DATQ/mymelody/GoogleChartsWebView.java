@@ -109,59 +109,28 @@ public class GoogleChartsWebView extends AppCompatActivity{
         // Load a URL that hosts your Google Chart
         webView.loadUrl("file:///android_asset/charts.html");
 
-
     }
 
     private void fetchTopArtists(String accessToken, int rangeSetting, int numArtists) {
         spotifyService.fetchUserTopArtists(accessToken, rangeSetting, numArtists, new SpotifyService.FetchArtistCallback() {
             @Override
             public void onArtistFetched( List<Artist> artists) {
-//                String[] artistBlocks = artists.split("%19"); // Split by %19 for each artist
-//                String[] firstBlock = artistBlocks[0].split("%20", 2);
-//                Map<String, Integer> genreCount = new HashMap<>();
-//
-//                processArtistBlock(firstBlock[1], genreCount);
-//
-//                for (int i = 1; i < artistBlocks.length; i++) {
-//                    processArtistBlock(artistBlocks[i], genreCount);
-//                }
-//
-//                visualizeDataInChart(genreCount);
-            }
-
-            private void processArtistBlock(String block, Map<String, Integer> genreCount) {
-                String[] artistInfo = block.split("%21");
-                String artistName = artistInfo[0];
-                String[] idUrlAndGenres = artistInfo[1].split("%20", 2);
-                String artistId = idUrlAndGenres[0];
-
-                // The profile URL and genres are split by "%18"
-                String[] urlAndGenres = idUrlAndGenres[1].split("%18", 2);
-                String artistPFPUrl = urlAndGenres[0]; // Artist Profile Picture URL
-                String genresString = urlAndGenres.length > 1 ? urlAndGenres[1] : "";
-                String[] genres = genresString.split(",");
-
-                // Process and count genres
-                for (String genre : genres) {
-                    if (!genre.isEmpty()) {
-                        genreCount.put(genre, genreCount.getOrDefault(genre, 0) + 1);
+                Map<String, Integer> genreCount = new HashMap<>();
+                for(int i = 0; i < artists.size()-1; i++) {
+                    List<String> genres = artists.get(i).getGenres();
+                    for (String genre : genres) {
+                        if (!genre.isEmpty()) {
+                            genreCount.put(genre, genreCount.getOrDefault(genre, 0) + 1);
+                        }
                     }
                 }
-
-                // Store artist name, id, and profile URL for future use
-                // For example, store them in a map or class member (not shown here)
-                storeArtistInfoForLaterUse(artistId, artistName, artistPFPUrl);
+                visualizeDataInChart(genreCount);
             }
-
             @Override
             public void onError() {
                 showToast("Failed to fetch top artists.");
             }
         });
-    }
-
-    private void storeArtistInfoForLaterUse(String artistId, String artistName, String artistPFPUrl) {
-        // Next steps...
     }
     private void visualizeDataInChart(Map<String, Integer> genreCount) {
         if (isPageLoaded) {

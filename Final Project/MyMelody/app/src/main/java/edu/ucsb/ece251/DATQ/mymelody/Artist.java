@@ -1,10 +1,12 @@
 package edu.ucsb.ece251.DATQ.mymelody;
 
+import java.util.List;
+
 public class Artist {
     private String id;
     private String name;
     private int rating;
-    private String[] genres;
+    private List<String> genres;
     private String artistURL;
     private String spotifyURL;
     public Artist(){} //need for firebase
@@ -23,9 +25,9 @@ public class Artist {
         return name;
     }
     public String getId(){return id; }
-    public void setGenres(String[] genres) { this.genres = genres; }
+    public void setGenres(List<String> genres) { this.genres = genres; }
 
-    private String[] getGenres() { return genres;}
+    public List<String> getGenres() { return genres;}
     public String getSpotifyURL() { return spotifyURL; }
     public String getArtistURL() { return artistURL; }
     public int getRating() {

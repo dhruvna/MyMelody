@@ -319,7 +319,14 @@ public class SpotifyService {
                             String artistPFPUrl = artistPFP.getString("url");
                             String artistUrl = artist.getJSONObject("external_urls").getString("spotify");
                             Artist newArtist = new Artist(artistID, artistName, 0, artistPFPUrl, artistUrl);
+                            JSONArray genresArray = artist.getJSONArray("genres");
+                            List<String> genres = new ArrayList<>();
+                            for (int j = 0; j < genresArray.length(); j++) {
+                                genres.add(genresArray.getString(j));
+                            }
+                            newArtist.setGenres(genres);
                             Log.d("SpotifyService", "Created artist: " + newArtist.getName() + " - " + newArtist.getArtistURL() + " - " + newArtist.getSpotifyURL());
+                            Log.println(Log.VERBOSE, "Genre", newArtist.getGenres().toString());
                             artistList.add(newArtist);
                         }
                         if (!artistList.isEmpty()) {
