@@ -6,13 +6,17 @@ public class Track {
     private Integer rating;
     private String artist;
     private String albumCover;
+    private String previewUrl;
+    private String trackUrl;
     public Track() {} //need for firebase
-    public Track(String id,String name, int rating, String artist, String albumCover) {
+    public Track(String id,String name, int rating, String artist, String albumCover, String previewUrl, String trackUrl) {
         this.id = id;
         this.name = name;
         this.rating = rating;
         this.artist = artist;
         this.albumCover = albumCover;
+        this.previewUrl = previewUrl;
+        this.trackUrl = trackUrl;
     }
 
     // Getters and setters
@@ -38,6 +42,11 @@ public class Track {
     public String getAlbumCover() {
         return albumCover;
     }
-
+    public String getPreviewUrl() {
+        return previewUrl;
+    }
+    public String getTrackUrl() {
+        return trackUrl;
+    }
 }
 

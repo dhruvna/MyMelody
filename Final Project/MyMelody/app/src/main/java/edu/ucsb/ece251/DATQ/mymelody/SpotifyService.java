@@ -86,6 +86,7 @@ public class SpotifyService {
                     // Parse the JSON object to create a Track object
                     String id = trackJson.getString("id");
                     String name = trackJson.getString("name");
+                    String previewUrl = trackJson.getString("preview_url");
                     JSONArray artistsJson = trackJson.getJSONArray("artists");
                     StringBuilder artistsBuilder = new StringBuilder();
                     for (int j = 0; j < artistsJson.length(); j++) {
@@ -97,7 +98,8 @@ public class SpotifyService {
                     JSONArray album = trackJson.getJSONObject("album").getJSONArray("images");
                     JSONObject albumImage = album.getJSONObject(0); // Assuming the first image is the largest
                     String albumCover = albumImage.getString("url");
-                    Track track = new Track(id, name, 0, artists, albumCover);
+                    String trackUrl = trackJson.getJSONObject("external_urls").getString("spotify");
+                    Track track = new Track(id, name, 0, artists, albumCover, previewUrl, trackUrl);
                     // Use Handler to run on UI thread
                     activity.runOnUiThread(() -> fetchTrackDetailsCallback.onTrackDetailsFetched(track));
                 } else {
@@ -241,6 +243,7 @@ public class SpotifyService {
                             JSONObject track = items.getJSONObject(i);
                             String trackID = track.getString("id");
                             String trackName = track.getString("name");
+                            String previewUrl = track.getString("preview_url");
                             JSONArray artistsJson = track.getJSONArray("artists");
                             StringBuilder artistsBuilder = new StringBuilder();
                             for (int j = 0; j < artistsJson.length(); j++) {
@@ -252,8 +255,9 @@ public class SpotifyService {
                             JSONArray album = track.getJSONObject("album").getJSONArray("images");
                             JSONObject albumImage = album.getJSONObject(0); // Assuming the first image is the largest
                             String albumCover = albumImage.getString("url");
-                            Track newTrack = new Track(trackID, trackName, 0, artists, albumCover);
-                            Log.d("SpotifyService", "Created track: " + newTrack.getName() + " - " + newTrack.getArtist());
+                            String trackUrl = track.getJSONObject("external_urls").getString("spotify");
+                            Track newTrack = new Track(trackID, trackName, 0, artists, albumCover, previewUrl, trackUrl);
+                            Log.d("SpotifyService", "Created track: " + newTrack.getName() + " - " + newTrack.getArtist() + " - " + trackUrl);
                             trackList.add(newTrack);
                         }
                         if (!trackList.isEmpty()) {

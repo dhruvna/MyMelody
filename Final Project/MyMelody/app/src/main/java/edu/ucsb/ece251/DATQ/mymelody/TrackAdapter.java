@@ -4,8 +4,12 @@ import static android.content.Context.MODE_PRIVATE;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.media.MediaPlayer;
+import android.net.Uri;
 import android.text.Editable;
+import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -20,6 +24,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.squareup.picasso.Picasso;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 
@@ -27,10 +32,13 @@ public class TrackAdapter extends ArrayAdapter<Track> {
     private final String Userid;
     private final SpotifyService spotifyService;
     private boolean scrollEnabled = false;
+    private Context context;
+    private MediaPlayer mediaPlayer;
     public TrackAdapter(Context context, ArrayList<Track> tracks, String id, SpotifyService spotifyService) {
         super(context, 0, tracks);
         this.Userid = id;
         this.spotifyService = spotifyService;
+        this.context = context;
     }
     DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
 
@@ -52,7 +60,7 @@ public class TrackAdapter extends ArrayAdapter<Track> {
         }
 
         Track track = getItem(position);
-        convertView.setOnClickListener(v -> {
+        holder.tvTrackName.setOnClickListener(v -> {
             if (!scrollEnabled) {
                 holder.tvTrackName.setSelected(true);
                 scrollEnabled = true;
@@ -61,14 +69,40 @@ public class TrackAdapter extends ArrayAdapter<Track> {
                 scrollEnabled = false;
             }
         });
-        convertView.setOnLongClickListener(v -> {
+        holder.tvTrackName.setOnLongClickListener(v -> {
             Log.println(Log.VERBOSE, "Test onclick", "TESTING on click for: " + track.getId());
             showConfirmationDialog(track);
             return false;
         });
+        holder.albumCover.setOnClickListener(v -> {
+            String spotifyUrl = track.getTrackUrl();
+            Log.println(Log.VERBOSE, "Track Url", spotifyUrl);
+            if (!TextUtils.isEmpty(spotifyUrl)) {
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(spotifyUrl));
+                context.startActivity(intent);
+            }
+        });
+
+        holder.albumCover.setOnLongClickListener(v -> {
+            if (mediaPlayer != null && mediaPlayer.isPlaying()) {
+                // If MediaPlayer is playing, pause it
+                mediaPlayer.pause();
+                mediaPlayer.release(); // Release the MediaPlayer resources
+                mediaPlayer = null; // Set it to null
+
+                // Update UI or provide feedback (e.g., change the icon to play)
+            } else if (track != null && track.getPreviewUrl() != null && !track.getPreviewUrl().isEmpty()) {
+                // Play the song snippet using the preview URL
+                showPlaybackConfirmationDialog(track);
+            } else {
+                // Handle the case where the preview URL is not available
+                Log.d("TrackAdapter", "Preview URL is not available for this track.");
+            }
+            return true; // Return true to indicate that the long click event is consumed
+        });
 
         if (track != null) {
-            Log.d("TrackAdapter", "Received track: " + track.getName() + " - " + track.getArtist());
+            Log.d("TrackAdapter", "Received track: " + track.getName() + " - " + track.getArtist() + " - " + track.getPreviewUrl());
             String displayText = track.getName() + " - " + track.getArtist(); // Combining track name with artist name
             holder.tvTrackName.setText(displayText);
 
@@ -116,6 +150,41 @@ public class TrackAdapter extends ArrayAdapter<Track> {
         }
 
         return convertView;
+    }
+
+    private void playSongSnippet(String previewUrl) {
+        if (mediaPlayer == null) {
+            mediaPlayer = new MediaPlayer();
+            try {
+                mediaPlayer.setDataSource(previewUrl);
+                mediaPlayer.prepare();
+                mediaPlayer.start();
+                mediaPlayer.setOnCompletionListener(mp -> {
+                    mp.release(); // Release the media player resources
+                });
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            // Resume playback if it was paused
+            mediaPlayer.start();
+        }
+    }
+    private void showPlaybackConfirmationDialog(Track track) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle("Play Song Snippet");
+        builder.setMessage("Do you want to play a snippet of " + track.getName() + "?");
+
+        builder.setPositiveButton("Yes", (dialog, which) -> {
+            // Play the song snippet using the preview URL
+            playSongSnippet(track.getPreviewUrl());
+        });
+
+        builder.setNegativeButton("No", (dialog, which) -> {
+            dialog.dismiss();
+        });
+
+        builder.create().show();
     }
     public void onScoreChanged(Track track, int newScore) {
         track.setRating(newScore); // Update the score in the Track object
