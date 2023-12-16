@@ -18,7 +18,6 @@ public class Track {
         this.previewUrl = previewUrl;
         this.trackUrl = trackUrl;
     }
-
     // Getters and setters
     public String getName() {
         return name;
