@@ -14,7 +14,6 @@
  import org.json.JSONArray;
  import org.json.JSONObject;
 
- import java.io.IOException;
  import java.util.ArrayList;
  import java.util.List;
 
@@ -99,7 +98,7 @@ public class SpotifyService {
                             String albumCover = albumImage.getString("url");
                             String trackUrl = track.getJSONObject("external_urls").getString("spotify");
                             Track newTrack = new Track(trackID, trackName, 0, artists, albumCover, previewUrl, trackUrl);
-                            Log.d("SpotifyService", "Created track: " + newTrack.getName() + " - " + newTrack.getArtist() + " - " + trackUrl);
+                            Log.println(Log.VERBOSE, "Spotify Service", "Created track: " + newTrack.getName() + " - " + newTrack.getArtist() + " - " + trackUrl);
                             trackList.add(newTrack);
                         }
                         if (!trackList.isEmpty()) {
@@ -152,7 +151,7 @@ public class SpotifyService {
                                 genres.add(genresArray.getString(j));
                             }
                             newArtist.setGenres(genres);
-                            Log.d("SpotifyService", "Created artist: " + newArtist.getName() + " - " + newArtist.getArtistURL() + " - " + newArtist.getSpotifyURL());
+                            Log.println(Log.VERBOSE, "Spotify Service", "Created artist: " + newArtist.getName() + " - " + newArtist.getArtistURL() + " - " + newArtist.getSpotifyURL());
                             Log.println(Log.VERBOSE, "Genre", newArtist.getGenres().toString());
                             artistList.add(newArtist);
                         }
@@ -181,26 +180,19 @@ public class SpotifyService {
         void onError();
     }
     public void fetchCurrentSong(FetchSongCallback callback) {
-        new Thread(() -> {
-            String url = "https://api.spotify.com/v1/me/player/currently-playing?market=US";
-            Request request = new Request.Builder()
-                    .url(url)
-                    .addHeader("Authorization", "Bearer " + accessToken)
-                    .build();
-            try (Response response = client.newCall(request).execute()) {
-                if(!response.isSuccessful()) {
-                    showToast("No active session");
-                    return;
-                }
-                String responseData = response.body() != null ? response.body().string() : "";
-                if (!responseData.isEmpty() && !responseData.equals("EMPTY_RESPONSE")) {
+        String url = "https://api.spotify.com/v1/me/player/currently-playing?market=US";
+        executeSpotifyRequest(accessToken, url, "GET", new ResponseHandler() {
+            @Override
+            public void onSuccess(String responseData) {
+                try {
                     Log.println(Log.VERBOSE, "Current Song Fetcher", "Received response for current song");
                     JSONObject jsonResponse = new JSONObject(responseData);
                     if (jsonResponse.isNull("item")) {
                         showToast("No song currently playing.");
+                        activity.runOnUiThread(callback::onNoActiveSession);
                         return;
                     }
-                    // Extract track information
+                    // Extract current song information
                     JSONObject track = jsonResponse.getJSONObject("item");
                     String trackName = track.getString("name");
                     JSONArray artistsArray = track.getJSONArray("artists");
@@ -209,18 +201,17 @@ public class SpotifyService {
                     String albumArtUrl = album.getJSONArray("images").getJSONObject(0).getString("url"); // Assuming first image
                     int progress = jsonResponse.getInt("progress_ms");
                     int duration = track.getInt("duration_ms");
-                    // Use Handler to run on UI thread
                     activity.runOnUiThread(() -> callback.onSongFetched(trackName, artistName, albumArtUrl, progress, duration));
-                } else if(responseData.equals("EMPTY_RESPONSE")){
-                    // Handle response failure
-                    showToast("No song currently playing.");
-                    activity.runOnUiThread(callback::onNoActiveSession);
+                } catch (Exception e) {
+                    Log.e("SpotifyService", "Error fetching current song: " + e.getMessage());
+                    activity.runOnUiThread(callback::onError);
                 }
-            } catch (Exception e) {
-                Log.println(Log.ERROR, "Track Fetcher", "Error fetching current track: " + e.getMessage());
+            }
+            @Override
+            public void onError() {
                 activity.runOnUiThread(callback::onError);
             }
-        }).start();
+        });
     }
 
     public interface FetchTrackDetailsCallback {
@@ -229,20 +220,13 @@ public class SpotifyService {
     }
 
     public void fetchTrackDetails(String trackId, FetchTrackDetailsCallback fetchTrackDetailsCallback) {
-        new Thread(() -> {
-            String url = "https://api.spotify.com/v1/tracks/" + trackId;
-
-            Request request = new Request.Builder()
-                    .url(url)
-                    .addHeader("Authorization", "Bearer " + accessToken)
-                    .build();
-
-            try (Response response = client.newCall(request).execute()) {
-                if (response.isSuccessful() && response.body() != null) {
-                    String responseData = response.body().string();
+        String url = "https://api.spotify.com/v1/tracks/" + trackId;
+        executeSpotifyRequest(accessToken, url, "GET", new ResponseHandler() {
+            @Override
+            public void onSuccess(String responseData) {
+                try {
                     JSONObject trackJson = new JSONObject(responseData);
-
-                    // Parse the JSON object to create a Track object
+                    // Extract track details from JSON
                     String id = trackJson.getString("id");
                     String name = trackJson.getString("name");
                     String previewUrl = trackJson.getString("preview_url");
@@ -259,17 +243,18 @@ public class SpotifyService {
                     String albumCover = albumImage.getString("url");
                     String trackUrl = trackJson.getJSONObject("external_urls").getString("spotify");
                     Track track = new Track(id, name, 0, artists, albumCover, previewUrl, trackUrl);
-                    // Use Handler to run on UI thread
                     activity.runOnUiThread(() -> fetchTrackDetailsCallback.onTrackDetailsFetched(track));
-                } else {
-                    // Handle response failure
+                } catch (Exception e) {
+                    Log.e("SpotifyService", "Error processing track data: " + e.getMessage());
                     activity.runOnUiThread(fetchTrackDetailsCallback::onError);
                 }
-            } catch (Exception e) {
-                Log.e("SpotifyService", "Error fetching track details: " + e.getMessage());
+            }
+
+            @Override
+            public void onError() {
                 activity.runOnUiThread(fetchTrackDetailsCallback::onError);
             }
-        }).start();
+        });
     }
 
     public interface FetchArtistDetailsCallback {
@@ -277,18 +262,14 @@ public class SpotifyService {
         void onError();
     }
     public void fetchArtistDetails(String artistId, FetchArtistDetailsCallback fetchArtistDetailsCallback) {
-        new Thread(() -> {
-            String url = "https://api.spotify.com/v1/artists/" + artistId;
-
-            Request request = new Request.Builder()
-                    .url(url)
-                    .addHeader("Authorization", "Bearer " + accessToken)
-                    .build();
-            try (Response response = client.newCall(request).execute()) {
-                if (response.isSuccessful() && response.body() != null) {
-                    String responseData = response.body().string();
+        String url = "https://api.spotify.com/v1/artists/" + artistId;
+        executeSpotifyRequest(accessToken, url, "GET", new ResponseHandler() {
+            @Override
+            public void onSuccess(String responseData) {
+                // Process the response and invoke callback with artist details
+                // Similar to existing implementation
+                try {
                     JSONObject artistJson = new JSONObject(responseData);
-
                     // Parse the JSON object to create a Track object
                     String artistID = artistJson.getString("id");
                     String artistName = artistJson.getString("name");
@@ -296,18 +277,20 @@ public class SpotifyService {
                     String artistUrl = artistJson.getJSONObject("external_urls").getString("spotify");
 
                     Artist newArtist = new Artist(artistID, artistName, 0, artistPFPUrl, artistUrl);
-                    Log.d("SpotifyService", "Created artist: " + newArtist.getName() + " - " + newArtist.getArtistURL() + " - " + newArtist.getSpotifyURL());
+                    Log.println(Log.VERBOSE, "Spotify Service", "Created artist: " + newArtist.getName() + " - " + newArtist.getArtistURL() + " - " + newArtist.getSpotifyURL());
                     // Use Handler to run on UI thread
                     activity.runOnUiThread(() -> fetchArtistDetailsCallback.onArtistDetailsFetched(newArtist));
-                } else {
-                    // Handle response failure
+                } catch (Exception e) {
+                    Log.e("SpotifyService", "Error processing artist data: " + e.getMessage());
                     activity.runOnUiThread(fetchArtistDetailsCallback::onError);
                 }
-            } catch (Exception e) {
-                Log.e("SpotifyService", "Error fetching track details: " + e.getMessage());
+            }
+
+            @Override
+            public void onError() {
                 activity.runOnUiThread(fetchArtistDetailsCallback::onError);
             }
-        }).start();
+        });
     }
 
     //Get User Info
@@ -315,16 +298,12 @@ public class SpotifyService {
         void onUserInfoFetched(User user);
         void onError();
     }
-    public void fetchUserInfo(String AccessToken, FetchUserInfoCallback callback) {
-        new Thread(() -> {
-            Request request = new Request.Builder()
-                    .url("https://api.spotify.com/v1/me")
-                    .addHeader("Authorization", "Bearer " + AccessToken)
-                    .build();
-
-            try (Response response = client.newCall(request).execute()) {
-                if (response.isSuccessful() && response.body() != null) {
-                    String responseData = response.body().string();
+    public void fetchUserInfo(String accessToken, FetchUserInfoCallback callback) {
+        String url = "https://api.spotify.com/v1/me";
+        executeSpotifyRequest(accessToken, url, "GET", new ResponseHandler() {
+            @Override
+            public void onSuccess(String responseData) {
+                try {
                     JSONObject jsonObject = new JSONObject(responseData);
                     // Extract user information from the JSON object
                     String id = jsonObject.getString("id");
@@ -333,22 +312,24 @@ public class SpotifyService {
                     String profileLink = jsonObject.getJSONObject("external_urls").getString("spotify");
                     String imageUrl = "";
                     JSONArray images = jsonObject.getJSONArray("images");
-                    if(images.length() > 0) {
-                        JSONObject image = images.getJSONObject(1);
+                    if (images.length() > 0) {
+                        JSONObject image = images.getJSONObject(0); // Assuming the first image is the user's profile picture
                         imageUrl = image.getString("url");
                     }
-                    User user = new User(id, username, email, profileLink, imageUrl, AccessToken);
+                    User user = new User(id, username, email, profileLink, imageUrl, accessToken);
                     // Use Handler to run on UI thread
                     activity.runOnUiThread(() -> callback.onUserInfoFetched(user));
-                } else {
-                    // Run on the main thread
+                } catch (Exception e) {
+                    Log.e("SpotifyService", "Error processing user data: " + e.getMessage());
                     activity.runOnUiThread(callback::onError);
                 }
-            } catch (Exception e) {
-            // Run on the main thread
-            activity.runOnUiThread(callback::onError);
-        }
-        }).start();
+            }
+
+            @Override
+            public void onError() {
+                activity.runOnUiThread(callback::onError);
+            }
+        });
     }
     public interface FetchDeviceStatusCallback {
         void onDeviceStatusFetched(String deviceId, Boolean is_playing, String repeat_state, Boolean shuffle_state);
@@ -356,35 +337,32 @@ public class SpotifyService {
         void onError();
     }
     public void fetchCurrentDeviceStatus(String accessToken, FetchDeviceStatusCallback callback) {
-        new Thread(() -> {
-            String url = "https://api.spotify.com/v1/me/player";
-
-            Request request = new Request.Builder()
-                    .url(url)
-                    .addHeader("Authorization", "Bearer " + accessToken)
-                    .build();
-
-            try (Response response = client.newCall(request).execute()) {
-                if (!response.isSuccessful()) {
-                    throw new IOException("Unexpected code " + response);
+        String url = "https://api.spotify.com/v1/me/player";
+        executeSpotifyRequest(accessToken, url, "GET", new ResponseHandler() {
+            @Override
+            public void onSuccess(String responseData) {
+                try {
+                    JSONObject jsonResponse = new JSONObject(responseData);
+                    if (jsonResponse.isNull("device")) {
+                        activity.runOnUiThread(callback::onNoActiveSession);
+                        return;
+                    }
+                    JSONObject device = jsonResponse.getJSONObject("device");
+                    String deviceId = device.getString("id");
+                    Boolean is_playing = jsonResponse.getBoolean("is_playing");
+                    String repeat_state = jsonResponse.getString("repeat_state");
+                    Boolean shuffle_state = jsonResponse.getBoolean("shuffle_state");
+                    activity.runOnUiThread(() -> callback.onDeviceStatusFetched(deviceId, is_playing, repeat_state, shuffle_state));
+                } catch (Exception e) {
+                    Log.e("SpotifyService", "Error fetching device status: " + e.getMessage());
+                    activity.runOnUiThread(callback::onError);
                 }
-                String responseData = response.body().string();
-                if (responseData.isEmpty()) {
-                    activity.runOnUiThread(callback::onNoActiveSession);
-                    return;
-                }
-                JSONObject jsonResponse = new JSONObject(responseData);
-                JSONObject device = jsonResponse.getJSONObject("device");
-                String deviceId = device.getString("id");
-                Boolean is_playing = jsonResponse.getBoolean("is_playing");
-                String repeat_state = jsonResponse.getString("repeat_state");
-                Boolean shuffle_state = jsonResponse.getBoolean("shuffle_state");
-                activity.runOnUiThread(() -> callback.onDeviceStatusFetched(deviceId, is_playing, repeat_state, shuffle_state));
-            } catch (Exception e) {
-                Log.e("SpotifyService", "Error fetching device status", e);
+            }
+            @Override
+            public void onError() {
                 activity.runOnUiThread(callback::onError);
             }
-        }).start();
+        });
     }
 
     //*****************    Put Requests    *****************
@@ -393,49 +371,42 @@ public class SpotifyService {
         void onError();
     }
     public void shufRepPlayPause(String accessToken, String ShufRepPlayPause, shufRepPlayPauseCallback callback) {
-        new Thread(() -> {
-            String url = "https://api.spotify.com/v1/me/player";
-            switch (ShufRepPlayPause) {
-                case "pause":
-                    url +="/pause";
-                    break;
-                case "play":
-                    url +="/play";
-                    break;
-                case "shuffleOn":
-                    url += "/shuffle?state=true";
-                    break;
-                case "shuffleOff":
-                    url += "/shuffle?state=false";
-                    break;
-                case "repeatAll":
-                    url += "/repeat?state=context";
-                    break;
-                case "repeatOne":
-                    url += "/repeat?state=track";
-                    break;
-                case "repeatOff":
-                    url += "/repeat?state=off";
-                    break;
+        String url = "https://api.spotify.com/v1/me/player";
+        switch (ShufRepPlayPause) {
+            case "pause":
+                url +="/pause";
+                break;
+            case "play":
+                url +="/play";
+                break;
+            case "shuffleOn":
+                url += "/shuffle?state=true";
+                break;
+            case "shuffleOff":
+                url += "/shuffle?state=false";
+                break;
+            case "repeatAll":
+                url += "/repeat?state=context";
+                break;
+            case "repeatOne":
+                url += "/repeat?state=track";
+                break;
+            case "repeatOff":
+                url += "/repeat?state=off";
+                break;
+        }
+        executeSpotifyRequest(accessToken, url, "PUT", new ResponseHandler() {
+            @Override
+            public void onSuccess(String responseData) {
+                Log.println(Log.VERBOSE, "ShufRep/PlayPause Status", ShufRepPlayPause + " success");
+                activity.runOnUiThread(callback::onShufRepPlayPauseSuccess);
             }
-            Request.Builder builder = new Request.Builder()
-                    .url(url)
-                    .put(RequestBody.create("", null))
-                    .addHeader("Authorization", "Bearer " + accessToken);
-            Request request = builder.build();
-            try (Response response = client.newCall(request).execute()) {
-                if (response.isSuccessful()) {
-                    Log.println(Log.VERBOSE, "ShufRep/PlayPause Status", ShufRepPlayPause + " success");
-                    activity.runOnUiThread(callback::onShufRepPlayPauseSuccess);
-                } else {
-                    Log.println(Log.VERBOSE, "ShufRep/PlayPause Status", "Failed to " + ShufRepPlayPause + " track");
-                    activity.runOnUiThread(callback::onError);
-                }
-            } catch (Exception e) {
-                Log.println(Log.VERBOSE, "ShufRep/PlayPause Status", "Exception with ShufRep/PlayPause request");
+            @Override
+            public void onError() {
+                Log.println(Log.VERBOSE, "ShufRep/PlayPause Status", "Failed to " + ShufRepPlayPause + " track");
                 activity.runOnUiThread(callback::onError);
             }
-        }).start();
+        });
     }
 
     //*****************    Post Requests    *****************
@@ -444,72 +415,58 @@ public class SpotifyService {
         void onError();
     }
     public void skipSong(String accessToken, String direction, skipSongCallback callback) {
-        new Thread(() -> {
-            String url = "https://api.spotify.com/v1/me/player";
-            if(direction.equals("previous")) {
-                url +="/previous";
-            } else if (direction.equals("next")){
-                url +="/next";
+        String urlSuffix = direction.equals("previous") ? "previous" : "next";
+        String url = "https://api.spotify.com/v1/me/player/" + urlSuffix;
+        Log.println(Log.VERBOSE, "Skip Song Request", "Sending: " + url);
+        executeSpotifyRequest(accessToken, url, "POST", new ResponseHandler() {
+            @Override
+            public void onSuccess(String responseData) {
+                Log.println(Log.VERBOSE, "Skip Song Status", "Skipping " + direction);
+                activity.runOnUiThread(callback::onSkipSongSuccess);
             }
-            Request.Builder builder = new Request.Builder()
-                    .url(url)
-                    .post(RequestBody.create("", null))
-                    .addHeader("Authorization", "Bearer " + accessToken);
-            Request request = builder.build();
-            Log.println(Log.VERBOSE, "Skip Song Request", "Sending: " + request);
-            try (Response response = client.newCall(request).execute()) {
-                if (response.isSuccessful()) {
-                    Log.println(Log.VERBOSE, "Skip Song Status", "Skipping " + direction);
-                    activity.runOnUiThread(callback::onSkipSongSuccess);
-                } else {
-                    Log.println(Log.VERBOSE, "Skip Song Status", "Failed to skip " + direction);
-                    activity.runOnUiThread(callback::onError);
-                }
-            } catch (Exception e) {
-                Log.println(Log.VERBOSE, "Skip Song Status", "Exception skipping " + direction);
+
+            @Override
+            public void onError() {
+                Log.println(Log.VERBOSE, "Skip Song Status", "Failed to skip " + direction);
                 activity.runOnUiThread(callback::onError);
             }
-        }).start();
+        });
     }
     public void addToQueue(String trackID) {
-        new Thread(() -> {
-            String url = "https://api.spotify.com/v1/me/player/queue?uri=spotify%3Atrack%3A" + trackID;
-            Request.Builder builder = new Request.Builder()
-                    .url(url)
-                    .post(RequestBody.create("", null))
-                    .addHeader("Authorization", "Bearer " + accessToken);
-            Request request = builder.build();
-            Log.println(Log.VERBOSE, "Skip Song Request", "Sending: " + request);
-            try (Response response = client.newCall(request).execute()) {
-                if (response.isSuccessful()) {
-                    Log.println(Log.VERBOSE, "Queue Song Success", "Successfully queued song.");
-                } else {
-                    Log.println(Log.VERBOSE, "Queue Song Success", "Failed to queue song.");
-                }
-            } catch (Exception e) {
-                Log.println(Log.VERBOSE, "Queue Song Success", "Exception queuing song.");
+        String url = "https://api.spotify.com/v1/me/player/queue?uri=spotify%3Atrack%3A" + trackID;
+        executeSpotifyRequest(accessToken, url, "POST", new ResponseHandler() {
+            @Override
+            public void onSuccess(String responseData) {
+                Log.println(Log.VERBOSE, "Queue Song Status", "Successfully queued song.");
             }
-        }).start();
+            @Override
+            public void onError() {
+                Log.println(Log.VERBOSE, "Queue Song Status", "Failed to queue song.");
+            }
+        });
     }
+
+    //*****************    Helper Functions    *****************
     private void executeSpotifyRequest(String access_token, String url, String requestType, ResponseHandler handler) {
         new Thread(() -> {
             Request.Builder builder = new Request.Builder()
                     .url(url)
                     .addHeader("Authorization", "Bearer " + access_token);
             switch(requestType) {
-                case "GET":
-                    break;
                 case "POST":
                     builder.post(RequestBody.create("", null));
                     break;
                 case "PUT":
                     builder.put(RequestBody.create("", null));
                     break;
+                case "GET":
+                default:
+                    break;
             }
             Request request = builder.build();
             try (Response response = client.newCall(request).execute()) {
-                if (response.isSuccessful() && response.body() != null) {
-                    String responseData = response.body().string();
+                if (response.isSuccessful()) {
+                    String responseData = response.body() != null ? response.body().string() : "";
                     handler.onSuccess(responseData);
                 } else {
                     handler.onError();
@@ -520,7 +477,6 @@ public class SpotifyService {
             }
         }).start();
     }
-
     private interface ResponseHandler {
         void onSuccess(String responseData);
         void onError();
