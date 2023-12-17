@@ -15,4 +15,5 @@
     <string name="Track_Seek">Top 10 Tracks</string>
     <string name="Artist_Seek">Top 10 Artists</string>
     <string name="Sort_Btn">Sort by Score</string>
+    <string name="Tracks">Tracks</string>
 </resources>

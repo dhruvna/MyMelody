@@ -12,7 +12,6 @@ import android.widget.ListView;
 import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -227,9 +226,7 @@ public class ArtistActivity extends AppCompatActivity {
                 artistAdapter.notifyDataSetChanged();
             }
             @Override
-            public void onError() {
-                showToast("Failed to fetch top artists.");
-            }
+            public void onError() { }
         });
     }
 
@@ -237,10 +234,10 @@ public class ArtistActivity extends AppCompatActivity {
         for (Artist existingArtist : artistArrayList) {
             if (existingArtist.getId().equals(artist.getId())) {
                 // Found a matching artist in the list
-                return true;
+                return false;
             }
         }
-        return false; // No matching artist found
+        return true; // No matching artist found
     }
     private void checkAndStoreArtist(String artistId) {
         databaseReference.child("artists" + currentUser.getId()).child(artistId).addListenerForSingleValueEvent(new ValueEventListener() {
@@ -254,7 +251,7 @@ public class ArtistActivity extends AppCompatActivity {
                     // Artist exists in Firebase, use it
                     Artist artist = dataSnapshot.getValue(Artist.class);
                     if (artist != null) {
-                        if (!isArtistInList(artist)) {
+                        if (isArtistInList(artist)) {
                             artistArrayList.add(artist);
                             artistAdapter.notifyDataSetChanged();
                         }
@@ -277,7 +274,7 @@ public class ArtistActivity extends AppCompatActivity {
                 Log.d("ArtistActivity", "Displaying artist: " + artist.getName() + " - " + artist.getArtistURL() + " - " + artist.getArtistURL());
                 // Store in Firebase
                 databaseReference.child("artists" + currentUser.getId()).child(artistId).setValue(artist);
-                if (!isArtistInList(artist)) {
+                if (isArtistInList(artist)) {
                     artistArrayList.add(artist);
                     artistAdapter.notifyDataSetChanged();
                 }
@@ -329,8 +326,5 @@ public class ArtistActivity extends AppCompatActivity {
             sortArtistByScore(which == 0); // Ascending
         });
         builder.show();
-    }
-    private void showToast(String message) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 }

@@ -57,16 +57,6 @@ public class LoginActivity extends AppCompatActivity {
         loginButton = findViewById(R.id.LoginButton);
         logoutButton = findViewById(R.id.LogoutButton);
         spotifyService = new SpotifyService(this);
-        loginButton.setOnClickListener(view -> spotifyService.authenticateSpotify(this));
-        logoutButton.setOnClickListener(view-> {
-            if(spotifyService.logOut()) {
-                Log.println(Log.VERBOSE, "Log Out Status", "Log out successful.");
-                logout();
-                clearLoginPreferences();
-            }
-        });
-        PFP.setOnClickListener(view -> openProfile());
-
         // Initialize UI elements
         currentlyPlayingAlbumArt = findViewById(R.id.currentlyPlayingAlbumArt);
         currentlyPlayingSongName = findViewById(R.id.currentlyPlayingSongName);
@@ -75,10 +65,10 @@ public class LoginActivity extends AppCompatActivity {
         songProgressBar = findViewById(R.id.songProgressBar);
         elapsedView = findViewById(R.id.currentlyPlayingTrackElapsed);
         durationView = findViewById(R.id.currentlyPlayingTrackDuration);
-        ImageView goBackBtn = findViewById(R.id.goBackButton);
         playPauseBtn = findViewById(R.id.playPauseButton);
         shuffleBtn = findViewById(R.id.shuffleButton);
         repeatBtn = findViewById(R.id.repeatButton);
+        ImageView goBackBtn = findViewById(R.id.goBackButton);
         ImageView fastForwardBtn = findViewById(R.id.fastForwardButton);
 
         if (savedInstanceState != null) {
@@ -88,13 +78,30 @@ public class LoginActivity extends AppCompatActivity {
             if (userString != null) {
                 currentUser = parseUserString(userString);
                 // Update the UI with the restored user details
-                updateUIWithUserDetails();
+                toolbar.setTitle(currentUser.getUsername());
+                String pfpURL = currentUser.getPFPLink();
+                Picasso.get().load(pfpURL).into(PFP);
+                // Set visibility of login/logout buttons based on loggedIn state
+                loginButton.setVisibility(loggedIn ? View.INVISIBLE : View.VISIBLE);
+                logoutButton.setVisibility(loggedIn ? View.VISIBLE : View.INVISIBLE);
             }
         }
-
+        //Button Behavior
+        loginButton.setOnClickListener(view -> spotifyService.authenticateSpotify(this));
+        logoutButton.setOnClickListener(view-> {
+            if(spotifyService.logOut()) {
+                Log.println(Log.VERBOSE, "Log Out Status", "Log out successful.");
+                logout();
+            }
+        });
+        PFP.setOnClickListener(view -> openProfile());
         goBackBtn.setOnClickListener(v-> {
             if(loggedIn)
                 skipSong(currentUser.getAccessToken(), "previous");
+        });
+        fastForwardBtn.setOnClickListener(v-> {
+            if(loggedIn)
+                skipSong(currentUser.getAccessToken(), "next");
         });
         playPauseBtn.setOnClickListener(v-> {
             if(loggedIn) {
@@ -108,10 +115,6 @@ public class LoginActivity extends AppCompatActivity {
 
             }
 
-        });
-        fastForwardBtn.setOnClickListener(v-> {
-            if(loggedIn)
-                skipSong(currentUser.getAccessToken(), "next");
         });
         shuffleBtn.setOnClickListener(v-> {
             if(shuffleState.equals("shuffleOff"))
@@ -133,19 +136,7 @@ public class LoginActivity extends AppCompatActivity {
                 shufRepPlayPause(currentUser.getAccessToken(), "repeatAll");
             }
         });
-
     }
-    private void updateUIWithUserDetails() {
-        if (currentUser != null) {
-            toolbar.setTitle(currentUser.getUsername());
-            String pfpURL = currentUser.getPFPLink();
-            Picasso.get().load(pfpURL).into(PFP);
-            // Set visibility of login/logout buttons based on loggedIn state
-            loginButton.setVisibility(loggedIn ? View.INVISIBLE : View.VISIBLE);
-            logoutButton.setVisibility(loggedIn ? View.VISIBLE : View.INVISIBLE);
-        }
-    }
-
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
@@ -154,8 +145,6 @@ public class LoginActivity extends AppCompatActivity {
             outState.putString("CurrentUser", currentUser.toString());
         }
     }
-
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         final Toolbar myToolbar = findViewById(R.id.Toolbar);
@@ -165,29 +154,24 @@ public class LoginActivity extends AppCompatActivity {
     }
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        super.onOptionsItemSelected(item);
         int myID = item.getItemId();
         if(loggedIn) {
+            Intent menuIntent = null;
             if (myID == R.id.artists){
-                Intent artistIntent = new Intent(this, ArtistActivity.class);
-                artistIntent.putExtra("User Info", currentUser.toString());
-                startActivity(artistIntent);
-                return true;
+                menuIntent = new Intent(this, ArtistActivity.class);
             } else if (myID == R.id.tracks){
-                Intent trackIntent = new Intent(this, TrackActivity.class);
-                trackIntent.putExtra("User Info", currentUser.toString());
-                startActivity(trackIntent);
-                return true;
+                menuIntent = new Intent(this, TrackActivity.class);
             } else if (myID == R.id.charts) {
-                Intent chartsIntent = new Intent(this, GoogleChartsWebView.class);
-                chartsIntent.putExtra("User Info", currentUser.toString());
-                startActivity(chartsIntent);
-                return true;
+                menuIntent = new Intent(this, GoogleChartsWebView.class);
             }
+            menuIntent.putExtra("User Info", currentUser.toString());
+            startActivity(menuIntent);
+            return true;
         } else {
             showToast("Log in first to see user information!");
             return false;
         }
-        return super.onOptionsItemSelected(item);
     }
 
     private void setupFetchCurrentTrackTask() {
@@ -263,18 +247,6 @@ public class LoginActivity extends AppCompatActivity {
         else
             Log.e("LoginActivity", "Widget container not found. Make sure the ID is correct.");
     }
-    private void skipSong(String accessToken, String direction) {
-        spotifyService.skipSong(accessToken, direction, new SpotifyService.skipSongCallback() {
-            @Override
-            public void onSkipSongSuccess() {
-                showToast("Skipping to " + direction + " track.");
-            }
-            @Override
-            public void onError() {
-                showToast("Failed to skip to " + direction + " track.");
-            }
-        });
-    }
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
@@ -293,47 +265,6 @@ public class LoginActivity extends AppCompatActivity {
             updateStatus(accessToken);
             setupFetchCurrentTrackTask();
         }
-    }
-    private void shufRepPlayPause(String accessToken, String ShufRepPlayPause) {
-        spotifyService.shufRepPlayPause(accessToken, ShufRepPlayPause, new SpotifyService.shufRepPlayPauseCallback() {
-            @Override
-            public void onShufRepPlayPauseSuccess() {
-                switch (ShufRepPlayPause) {
-                    case "pause":
-                        showToast("Playback Paused.");
-                        isPlaying = false;
-                        break;
-                    case "play":
-                        showToast("Playback Resumed.");
-                        isPlaying = true;
-                        break;
-                    case "shuffleOn":
-                        showToast("Shuffle on.");
-                        shuffleState = "shuffleOn";
-                        break;
-                    case "shuffleOff":
-                        showToast("Shuffle off.");
-                        shuffleState = "shuffleOff";
-                        break;
-                    case "repeatAll":
-                        showToast("Repeat off.");
-                        repeatState = "repeatAll";
-                        break;
-                    case "repeatOne":
-                        showToast("Repeat one on.");
-                        repeatState = "repeatOne";
-                        break;
-                    case "repeatOff":
-                        showToast("Repeat off.");
-                        repeatState = "repeatOff";
-                        break;
-                }
-            }
-            @Override
-            public void onError() {
-                showToast("Failed to change shuffle/repeat state.");
-            }
-        });
     }
     private void fetchDeviceStatus(String accessToken) {
         spotifyService.fetchCurrentDeviceStatus(accessToken, new SpotifyService.FetchDeviceStatusCallback() {
@@ -376,6 +307,59 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onError() {
                 //showToast("Failed to fetch user information.");
+            }
+        });
+    }
+    private void skipSong(String accessToken, String direction) {
+        spotifyService.skipSong(accessToken, direction, new SpotifyService.skipSongCallback() {
+            @Override
+            public void onSkipSongSuccess() {
+                showToast("Skipping to " + direction + " track.");
+            }
+            @Override
+            public void onError() {
+                showToast("Failed to skip to " + direction + " track.");
+            }
+        });
+    }
+    private void shufRepPlayPause(String accessToken, String ShufRepPlayPause) {
+        spotifyService.shufRepPlayPause(accessToken, ShufRepPlayPause, new SpotifyService.shufRepPlayPauseCallback() {
+            @Override
+            public void onShufRepPlayPauseSuccess() {
+                switch (ShufRepPlayPause) {
+                    case "pause":
+                        showToast("Playback Paused.");
+                        isPlaying = false;
+                        break;
+                    case "play":
+                        showToast("Playback Resumed.");
+                        isPlaying = true;
+                        break;
+                    case "shuffleOn":
+                        showToast("Shuffle on.");
+                        shuffleState = "shuffleOn";
+                        break;
+                    case "shuffleOff":
+                        showToast("Shuffle off.");
+                        shuffleState = "shuffleOff";
+                        break;
+                    case "repeatAll":
+                        showToast("Repeat off.");
+                        repeatState = "repeatAll";
+                        break;
+                    case "repeatOne":
+                        showToast("Repeat one on.");
+                        repeatState = "repeatOne";
+                        break;
+                    case "repeatOff":
+                        showToast("Repeat off.");
+                        repeatState = "repeatOff";
+                        break;
+                }
+            }
+            @Override
+            public void onError() {
+                showToast("Failed to change shuffle/repeat state.");
             }
         });
     }
@@ -518,7 +502,6 @@ public class LoginActivity extends AppCompatActivity {
             }
         }
     }
-
     private void clearLoginPreferences() {
         SharedPreferences prefs = getSharedPreferences("LoginPrefs", MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();

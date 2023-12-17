@@ -12,7 +12,6 @@ import android.widget.ListView;
 import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -227,9 +226,7 @@ public class TrackActivity extends AppCompatActivity {
                 trackAdapter.notifyDataSetChanged();
             }
             @Override
-            public void onError() {
-                showToast("Failed to fetch top tracks.");
-            }
+            public void onError() { }
         });
     }
 
@@ -237,10 +234,10 @@ public class TrackActivity extends AppCompatActivity {
         for (Track existingTrack : trackArrayList) {
             if (existingTrack.getId().equals(track.getId())) {
                 // Found a matching track in the list
-                return true;
+                return false;
             }
         }
-        return false; // No matching track found
+        return true; // No matching track found
     }
     private void checkAndStoreTrack(String trackId) {
         databaseReference.child("tracks" + currentUser.getId()).child(trackId).addListenerForSingleValueEvent(new ValueEventListener() {
@@ -254,7 +251,7 @@ public class TrackActivity extends AppCompatActivity {
                     // Track exists in Firebase, use it
                     Track track = dataSnapshot.getValue(Track.class);
                     if (track != null) {
-                        if (!isTrackInList(track)) {
+                        if (isTrackInList(track)) {
                             trackArrayList.add(track);
                             trackAdapter.notifyDataSetChanged();
                         }
@@ -277,7 +274,7 @@ public class TrackActivity extends AppCompatActivity {
                 Log.d("TrackActivity", "Displaying track: " + track.getName() + " - " + track.getArtist() + " - " + track.getAlbumCover());
                 // Store in Firebase
                 databaseReference.child("tracks" + currentUser.getId()).child(trackId).setValue(track);
-                if (!isTrackInList(track)) {
+                if (isTrackInList(track)) {
                     trackArrayList.add(track);
                     trackAdapter.notifyDataSetChanged();
                 }
@@ -329,8 +326,5 @@ public class TrackActivity extends AppCompatActivity {
             sortTrackByScore(which == 0); // Ascending
         });
         builder.show();
-    }
-    private void showToast(String message) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 }
