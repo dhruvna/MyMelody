@@ -16,6 +16,9 @@
 
  import java.util.ArrayList;
  import java.util.List;
+ import java.util.concurrent.ExecutorService;
+ import java.util.concurrent.Executors;
+ import java.util.concurrent.TimeUnit;
 
  import okhttp3.OkHttpClient;
  import okhttp3.Request;
@@ -23,10 +26,11 @@
  import okhttp3.Response;
 
 public class SpotifyService {
-    private static final String BASE_SPOTIFY_URL = "https://api.spotify.com/v1";
-    private static final OkHttpClient client = new OkHttpClient();
     private static final String REDIRECT_URI = "mymelody://callback";
     private static final String CLIENT_ID = "44d8159e766e496f9b8ce905397518af";
+    private static final String BASE_SPOTIFY_URL = "https://api.spotify.com/v1";
+    private static final OkHttpClient client = new OkHttpClient();
+    private final ExecutorService executorService = Executors.newFixedThreadPool(4); // Number of threads can be adjusted
     @SuppressLint("StaticFieldLeak")
     private static Activity activity = null;
     private static String accessToken = null;
@@ -449,7 +453,7 @@ public class SpotifyService {
 
     //*****************    Helper Functions    *****************
     private void executeSpotifyRequest(String access_token, String url, String requestType, ResponseHandler handler) {
-        new Thread(() -> {
+        executorService.submit(() -> {
             Request.Builder builder = new Request.Builder()
                     .url(BASE_SPOTIFY_URL + url)
                     .addHeader("Authorization", "Bearer " + access_token);
@@ -476,11 +480,25 @@ public class SpotifyService {
                 Log.e("SpotifyService", "Error: " + e.getMessage());
                 handler.onError();
             }
-        }).start();
+        });
     }
     private interface ResponseHandler {
         void onSuccess(String responseData);
         void onError();
+    }
+    public void shutdownThreads() {
+        if (!executorService.isShutdown()) {
+            executorService.shutdown(); // Disable new tasks from being submitted
+            try {
+                // Wait a while for existing tasks to terminate
+                if (!executorService.awaitTermination(60, TimeUnit.SECONDS)) {
+                    executorService.shutdownNow(); // Cancel currently executing tasks
+                }
+            } catch (InterruptedException ie) {
+                // Preserve interrupt status
+                Thread.currentThread().interrupt();
+            }
+        }
     }
     public boolean logOut() {
         if(accessToken != null) {

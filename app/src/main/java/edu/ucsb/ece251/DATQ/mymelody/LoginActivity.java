@@ -499,6 +499,7 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        spotifyService.shutdownThreads();
         Log.d("LoginActivity", "Activity is being destroyed");
     }
     private void showToast(String message) {
