@@ -38,6 +38,7 @@ public class ArtistActivity extends AppCompatActivity {
     private boolean isDataLoaded = false;
     private boolean slider = false;
     private int rangeSetting;
+    private String rangeSelection = "short_term";
     final static int lastMonth = 0;
     final static int last6Months = 1;
     final static int allTime = 2;
@@ -82,12 +83,15 @@ public class ArtistActivity extends AppCompatActivity {
                 switch(selectedTimeRange) {
                     case "Last Month":
                         rangeSetting = lastMonth;
+                        rangeSelection = "short_term";
                         break;
                     case "Last 6 Months":
                         rangeSetting = last6Months;
+                        rangeSelection = "medium_term";
                         break;
                     case "All Time":
                         rangeSetting = allTime;
+                        rangeSelection = "long_term";
                         break;
                 }
                 // Handle the selected item
@@ -97,10 +101,9 @@ public class ArtistActivity extends AppCompatActivity {
                     isDataLoaded = false;
                 }
                 else {
-                    handleTimeRangeSelection(rangeSetting, numArtists);
+                    handleTimeRangeSelection(rangeSelection, numArtists);
                 }
             }
-
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
             }
@@ -123,7 +126,7 @@ public class ArtistActivity extends AppCompatActivity {
                 public void onStopTrackingTouch(SeekBar seekBar) {
                     // Fetch artists here immediately after user selection
                     if (slider) {
-                        fetchUserTopArtists(accessToken, rangeSetting, numArtists);
+                        fetchUserTopArtists(accessToken, rangeSelection, numArtists);
                     }
 
                     slider = false;
@@ -182,7 +185,7 @@ public class ArtistActivity extends AppCompatActivity {
         }
 
         if (accessToken != null && artistArrayList.isEmpty()) {
-            fetchUserTopArtists(accessToken, rangeSetting, numArtists);
+            fetchUserTopArtists(accessToken, rangeSelection, numArtists);
         } else {
             artistAdapter = new ArtistAdapter(this, artistArrayList, currentUser.getId());
             ListView artistListView = findViewById(R.id.ArtistList);
@@ -214,8 +217,8 @@ public class ArtistActivity extends AppCompatActivity {
         savePreferences();
     }
 
-    private void fetchUserTopArtists(String accessToken, int rangeSetting, int numArtists) {
-        spotifyService.fetchUserTopArtists(accessToken, rangeSetting, numArtists, new SpotifyService.FetchArtistCallback() {
+    private void fetchUserTopArtists(String accessToken, String rangeSelection, int numArtists) {
+        spotifyService.fetchUserTopArtists(accessToken, rangeSelection, numArtists, new SpotifyService.FetchArtistCallback() {
             @Override
             public void onArtistFetched(List<Artist> artists) {
                 artistArrayList.clear();
@@ -300,9 +303,9 @@ public class ArtistActivity extends AppCompatActivity {
         );
     }
 
-    private void handleTimeRangeSelection(int rangeSetting, int numArtists) {
+    private void handleTimeRangeSelection(String rangeSelection, int numArtists) {
         // Fetch data for 'Last Month', 'Last 6 Months', or 'All Time'
-        fetchUserTopArtists(accessToken, rangeSetting, numArtists);
+        fetchUserTopArtists(accessToken, rangeSelection, numArtists);
         artistAdapter.notifyDataSetChanged();
     }
     @Override

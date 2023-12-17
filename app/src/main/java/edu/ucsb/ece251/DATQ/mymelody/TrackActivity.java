@@ -38,6 +38,7 @@ public class TrackActivity extends AppCompatActivity {
     private boolean isDataLoaded = false;
     private boolean slider = false;
     private int rangeSetting;
+    private String rangeSelection = "short_term";
     final static int lastMonth = 0;
     final static int last6Months = 1;
     final static int allTime = 2;
@@ -82,12 +83,15 @@ public class TrackActivity extends AppCompatActivity {
                 switch(selectedTimeRange) {
                     case "Last Month":
                         rangeSetting = lastMonth;
+                        rangeSelection = "short_term";
                         break;
                     case "Last 6 Months":
                         rangeSetting = last6Months;
+                        rangeSelection = "medium_term";
                         break;
                     case "All Time":
                         rangeSetting = allTime;
+                        rangeSelection = "long_term";
                         break;
                 }
                 // Handle the selected item
@@ -97,10 +101,9 @@ public class TrackActivity extends AppCompatActivity {
                     isDataLoaded = false;
                 }
                 else {
-                    handleTimeRangeSelection(rangeSetting, numTracks);
+                    handleTimeRangeSelection(rangeSelection, numTracks);
                 }
             }
-
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
             }
@@ -123,7 +126,7 @@ public class TrackActivity extends AppCompatActivity {
                 public void onStopTrackingTouch(SeekBar seekBar) {
                     // Fetch tracks immediately after user selection
                     if(slider) {
-                        fetchUserTopTracks(accessToken, rangeSetting, numTracks);
+                        fetchUserTopTracks(accessToken, rangeSelection, numTracks);
                     }
 
                     slider = false;
@@ -182,7 +185,7 @@ public class TrackActivity extends AppCompatActivity {
         }
 
         if (accessToken != null && trackArrayList.isEmpty()) {
-            fetchUserTopTracks(accessToken, rangeSetting, numTracks);
+            fetchUserTopTracks(accessToken, rangeSelection, numTracks);
         } else {
             trackAdapter = new TrackAdapter(this, trackArrayList, currentUser.getId(), spotifyService);
             ListView trackListView = findViewById(R.id.TrackList);
@@ -214,8 +217,8 @@ public class TrackActivity extends AppCompatActivity {
         savePreferences();
     }
 
-    private void fetchUserTopTracks(String accessToken, int rangeSetting, int numTracks) {
-        spotifyService.fetchUserTopTracks(accessToken, rangeSetting, numTracks, new SpotifyService.FetchTrackCallback() {
+    private void fetchUserTopTracks(String accessToken, String rangeSelection, int numTracks) {
+        spotifyService.fetchUserTopTracks(accessToken, rangeSelection, numTracks, new SpotifyService.FetchTrackCallback() {
             @Override
             public void onTrackFetched(List<Track> tracks) {
                 trackArrayList.clear();
@@ -300,9 +303,9 @@ public class TrackActivity extends AppCompatActivity {
         );
     }
 
-    private void handleTimeRangeSelection(int rangeSetting, int numTracks) {
+    private void handleTimeRangeSelection(String rangeSelection, int numTracks) {
         // Fetch data for 'Last Month', 'Last 6 Months', or 'All Time'
-        fetchUserTopTracks(accessToken, rangeSetting, numTracks);
+        fetchUserTopTracks(accessToken, rangeSelection, numTracks);
         trackAdapter.notifyDataSetChanged();
     }
     @Override

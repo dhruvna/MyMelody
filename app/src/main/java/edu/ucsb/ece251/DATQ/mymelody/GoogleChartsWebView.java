@@ -24,7 +24,7 @@ public class GoogleChartsWebView extends AppCompatActivity{
     private User currentUser;
     SeekBar genreSeekBar;
     private int fetchCount;
-    private int selectedRange;
+    private String rangeSelection;
     private TextView genreCountTextView;
     private boolean isPageLoaded = false; // Flag to check if the WebView page has loaded
     private Map<String, Integer> genreCountReady = null; // Store genre count when ready
@@ -53,18 +53,18 @@ public class GoogleChartsWebView extends AppCompatActivity{
                 String selectedTimeRange = (String) parent.getItemAtPosition(position);
                 switch(selectedTimeRange) {
                     case "Last Month":
-                        selectedRange = 0;
+                        rangeSelection = "short_term";
                         break;
                     case "Last 6 Months":
-                        selectedRange = 1;
+                        rangeSelection = "medium_term";
                         break;
                     case "All Time":
-                        selectedRange = 2;
+                        rangeSelection = "long_term";
                         break;
                 }
                 // Handle the selected item
                 Log.println(Log.VERBOSE, "Range selected", "Range: " + selectedTimeRange);
-                fetchTopArtists(accessToken, selectedRange, fetchCount);
+                fetchTopArtists(accessToken, rangeSelection, fetchCount);
             }
 
             @Override
@@ -86,11 +86,11 @@ public class GoogleChartsWebView extends AppCompatActivity{
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
                 // Fetch artists immediately after user selection
-                fetchTopArtists(accessToken, selectedRange, fetchCount);
+                fetchTopArtists(accessToken, rangeSelection, fetchCount);
             }
         });
 
-        fetchTopArtists(accessToken, 1, 10);
+        fetchTopArtists(accessToken, "short_term", 10);
         WebView webView = findViewById(R.id.googleCharts);
         webView.getSettings().setJavaScriptEnabled(true);
         webView.setWebViewClient(new WebViewClient() {
@@ -108,8 +108,8 @@ public class GoogleChartsWebView extends AppCompatActivity{
 
     }
 
-    private void fetchTopArtists(String accessToken, int rangeSetting, int numArtists) {
-        spotifyService.fetchUserTopArtists(accessToken, rangeSetting, numArtists, new SpotifyService.FetchArtistCallback() {
+    private void fetchTopArtists(String accessToken, String rangeSelection, int numArtists) {
+        spotifyService.fetchUserTopArtists(accessToken, rangeSelection, numArtists, new SpotifyService.FetchArtistCallback() {
             @Override
             public void onArtistFetched( List<Artist> artists) {
                 Map<String, Integer> genreCount = new HashMap<>();

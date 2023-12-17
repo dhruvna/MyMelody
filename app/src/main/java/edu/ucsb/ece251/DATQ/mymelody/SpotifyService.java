@@ -69,36 +69,19 @@ public class SpotifyService {
         void onTrackFetched(List<Track> tracks);
         void onError();
     }
-    public void fetchUserTopTracks(String accessToken, int rangeSetting, int numTracks, FetchTrackCallback callback) {
-        new Thread(() -> {
-            String url = "";
-            switch(rangeSetting) {
-                case 0:
-                    url = "https://api.spotify.com/v1/me/top/tracks?time_range=short_term";
-                    break;
-                case 1:
-                    url = "https://api.spotify.com/v1/me/top/tracks?time_range=medium_term";
-                    break;
-                case 2:
-                    url = "https://api.spotify.com/v1/me/top/tracks?time_range=long_term";
-                    break;
-            }
-            url += "&limit=" + numTracks;
-            Request request = new Request.Builder()
-                    .url(url)
-                    .addHeader("Authorization", "Bearer " + accessToken)
-                    .build();
-            try (Response response = client.newCall(request).execute()) {
-                if(response.isSuccessful() && response.body() != null) {
+    public void fetchUserTopTracks(String accessToken, String rangeSelection, int numTracks, FetchTrackCallback callback) {
+        String url = "https://api.spotify.com/v1/me/top/tracks?time_range=" + rangeSelection + "&limit=" + numTracks;
+        executeSpotifyRequest(accessToken, url, "GET", new ResponseHandler() {
+            @Override
+            public void onSuccess(String responseData) {
+                try {
                     Log.println(Log.VERBOSE, "Track Fetcher", "Received response for tracks!");
                     List<Track> trackList = new ArrayList<>();
-                    String responseData = response.body().string();
                     JSONObject jsonResponse = new JSONObject(responseData);
-                    // Extract user information from the JSON object
                     JSONArray items = jsonResponse.getJSONArray("items");
                     Log.println(Log.VERBOSE, "num tracks", "received " + items.length() + "track");
                     if (items.length() > 0) {
-                        for(int i = 0; i < items.length(); i++) {
+                        for (int i = 0; i < items.length(); i++) {
                             JSONObject track = items.getJSONObject(i);
                             String trackID = track.getString("id");
                             String trackName = track.getString("name");
@@ -126,45 +109,32 @@ public class SpotifyService {
                             activity.runOnUiThread(() -> showToast("No top tracks found"));
                         }
                     }
+                } catch (Exception e) {
+                    Log.e("SpotifyService", "Error processing track data: " + e.getMessage());
+                    activity.runOnUiThread(callback::onError);
                 }
-            } catch (Exception e) {
-                // Run on the main thread
+            }
+
+            @Override
+            public void onError() {
                 activity.runOnUiThread(callback::onError);
             }
-        }).start();
+        });
     }
 
     public interface FetchArtistCallback {
         void onArtistFetched(List<Artist> artistList);
         void onError();
     }
-    public void fetchUserTopArtists(String accessToken, int rangeSetting, int numArtists, FetchArtistCallback callback) {
-        new Thread(() -> {
-            String url = "";
-            switch(rangeSetting) {
-                case 0:
-                    url = "https://api.spotify.com/v1/me/top/artists?time_range=short_term";
-                    break;
-                case 1:
-                    url = "https://api.spotify.com/v1/me/top/artists?time_range=medium_term";
-                    break;
-                case 2:
-                    url = "https://api.spotify.com/v1/me/top/artists?time_range=long_term";
-                    break;
-            }
-            url += "&limit=" + numArtists;
-            Request request = new Request.Builder()
-                    .url(url)
-                    .addHeader("Authorization", "Bearer " + accessToken)
-                    .build();
-
-            try (Response response = client.newCall(request).execute()) {
-                if (response.isSuccessful() && response.body() != null) {
+    public void fetchUserTopArtists(String accessToken, String rangeSelection, int numArtists, FetchArtistCallback callback) {
+        String url = "https://api.spotify.com/v1/me/top/artists?time_range=" + rangeSelection + "&limit=" + numArtists;
+        executeSpotifyRequest(accessToken, url, "GET", new ResponseHandler() {
+            @Override
+            public void onSuccess(String responseData) {
+                try {
                     Log.println(Log.VERBOSE, "Artist Fetcher", "Received response for artists!");
                     List<Artist> artistList = new ArrayList<>();
-                    String responseData = response.body().string();
                     JSONObject jsonResponse = new JSONObject(responseData);
-                    // Extract user information from the JSON object
                     JSONArray items = jsonResponse.getJSONArray("items");
                     Log.println(Log.VERBOSE, "num artists", "received " + items.length() + "artists");
                     if (items.length() > 0) {
@@ -193,13 +163,16 @@ public class SpotifyService {
                             activity.runOnUiThread(() -> showToast("No top tracks found"));
                         }
                     }
+                } catch (Exception e) {
+                    Log.e("SpotifyService", "Error processing track data: " + e.getMessage());
+                    activity.runOnUiThread(callback::onError);
                 }
             }
-            catch (Exception e) {
-                // Run on the main thread
+            @Override
+            public void onError() {
                 activity.runOnUiThread(callback::onError);
             }
-        }).start();
+        });
     }
 
     public interface FetchSongCallback {
@@ -518,6 +491,40 @@ public class SpotifyService {
             }
         }).start();
     }
+    private void executeSpotifyRequest(String access_token, String url, String requestType, ResponseHandler handler) {
+        new Thread(() -> {
+            Request.Builder builder = new Request.Builder()
+                    .url(url)
+                    .addHeader("Authorization", "Bearer " + access_token);
+            switch(requestType) {
+                case "GET":
+                    break;
+                case "POST":
+                    builder.post(RequestBody.create("", null));
+                    break;
+                case "PUT":
+                    builder.put(RequestBody.create("", null));
+                    break;
+            }
+            Request request = builder.build();
+            try (Response response = client.newCall(request).execute()) {
+                if (response.isSuccessful() && response.body() != null) {
+                    String responseData = response.body().string();
+                    handler.onSuccess(responseData);
+                } else {
+                    handler.onError();
+                }
+            } catch (Exception e) {
+                Log.e("SpotifyService", "Error: " + e.getMessage());
+                handler.onError();
+            }
+        }).start();
+    }
+
+    private interface ResponseHandler {
+        void onSuccess(String responseData);
+        void onError();
+    }
     public boolean logOut() {
         if(accessToken != null) {
             accessToken = null;
@@ -529,5 +536,4 @@ public class SpotifyService {
     private static void showToast(String message) {
         Toast.makeText(activity, message, Toast.LENGTH_SHORT).show();
     }
-
 }
