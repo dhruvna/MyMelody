@@ -23,7 +23,8 @@
  import okhttp3.Response;
 
 public class SpotifyService {
-    private final OkHttpClient client = new OkHttpClient();
+    private static final String BASE_SPOTIFY_URL = "https://api.spotify.com/v1";
+    private static final OkHttpClient client = new OkHttpClient();
     private static final String REDIRECT_URI = "mymelody://callback";
     private static final String CLIENT_ID = "44d8159e766e496f9b8ce905397518af";
     @SuppressLint("StaticFieldLeak")
@@ -69,7 +70,7 @@ public class SpotifyService {
         void onError();
     }
     public void fetchUserTopTracks(String accessToken, String rangeSelection, int numTracks, FetchTrackCallback callback) {
-        String url = "https://api.spotify.com/v1/me/top/tracks?time_range=" + rangeSelection + "&limit=" + numTracks;
+        String url = "/me/top/tracks?time_range=" + rangeSelection + "&limit=" + numTracks;
         executeSpotifyRequest(accessToken, url, "GET", new ResponseHandler() {
             @Override
             public void onSuccess(String responseData) {
@@ -126,7 +127,7 @@ public class SpotifyService {
         void onError();
     }
     public void fetchUserTopArtists(String accessToken, String rangeSelection, int numArtists, FetchArtistCallback callback) {
-        String url = "https://api.spotify.com/v1/me/top/artists?time_range=" + rangeSelection + "&limit=" + numArtists;
+        String url = "/me/top/artists?time_range=" + rangeSelection + "&limit=" + numArtists;
         executeSpotifyRequest(accessToken, url, "GET", new ResponseHandler() {
             @Override
             public void onSuccess(String responseData) {
@@ -180,7 +181,7 @@ public class SpotifyService {
         void onError();
     }
     public void fetchCurrentSong(FetchSongCallback callback) {
-        String url = "https://api.spotify.com/v1/me/player/currently-playing?market=US";
+        String url = "/me/player/currently-playing?market=US";
         executeSpotifyRequest(accessToken, url, "GET", new ResponseHandler() {
             @Override
             public void onSuccess(String responseData) {
@@ -220,7 +221,7 @@ public class SpotifyService {
     }
 
     public void fetchTrackDetails(String trackId, FetchTrackDetailsCallback fetchTrackDetailsCallback) {
-        String url = "https://api.spotify.com/v1/tracks/" + trackId;
+        String url = "/tracks/" + trackId;
         executeSpotifyRequest(accessToken, url, "GET", new ResponseHandler() {
             @Override
             public void onSuccess(String responseData) {
@@ -262,7 +263,7 @@ public class SpotifyService {
         void onError();
     }
     public void fetchArtistDetails(String artistId, FetchArtistDetailsCallback fetchArtistDetailsCallback) {
-        String url = "https://api.spotify.com/v1/artists/" + artistId;
+        String url = "/artists/" + artistId;
         executeSpotifyRequest(accessToken, url, "GET", new ResponseHandler() {
             @Override
             public void onSuccess(String responseData) {
@@ -299,7 +300,7 @@ public class SpotifyService {
         void onError();
     }
     public void fetchUserInfo(String accessToken, FetchUserInfoCallback callback) {
-        String url = "https://api.spotify.com/v1/me";
+        String url = "/me";
         executeSpotifyRequest(accessToken, url, "GET", new ResponseHandler() {
             @Override
             public void onSuccess(String responseData) {
@@ -337,7 +338,7 @@ public class SpotifyService {
         void onError();
     }
     public void fetchCurrentDeviceStatus(String accessToken, FetchDeviceStatusCallback callback) {
-        String url = "https://api.spotify.com/v1/me/player";
+        String url = "/me/player";
         executeSpotifyRequest(accessToken, url, "GET", new ResponseHandler() {
             @Override
             public void onSuccess(String responseData) {
@@ -371,7 +372,7 @@ public class SpotifyService {
         void onError();
     }
     public void shufRepPlayPause(String accessToken, String ShufRepPlayPause, shufRepPlayPauseCallback callback) {
-        String url = "https://api.spotify.com/v1/me/player";
+        String url = "/me/player";
         switch (ShufRepPlayPause) {
             case "pause":
                 url +="/pause";
@@ -416,7 +417,7 @@ public class SpotifyService {
     }
     public void skipSong(String accessToken, String direction, skipSongCallback callback) {
         String urlSuffix = direction.equals("previous") ? "previous" : "next";
-        String url = "https://api.spotify.com/v1/me/player/" + urlSuffix;
+        String url = "/me/player/" + urlSuffix;
         Log.println(Log.VERBOSE, "Skip Song Request", "Sending: " + url);
         executeSpotifyRequest(accessToken, url, "POST", new ResponseHandler() {
             @Override
@@ -433,7 +434,7 @@ public class SpotifyService {
         });
     }
     public void addToQueue(String trackID) {
-        String url = "https://api.spotify.com/v1/me/player/queue?uri=spotify%3Atrack%3A" + trackID;
+        String url = "/me/player/queue?uri=spotify%3Atrack%3A" + trackID;
         executeSpotifyRequest(accessToken, url, "POST", new ResponseHandler() {
             @Override
             public void onSuccess(String responseData) {
@@ -450,7 +451,7 @@ public class SpotifyService {
     private void executeSpotifyRequest(String access_token, String url, String requestType, ResponseHandler handler) {
         new Thread(() -> {
             Request.Builder builder = new Request.Builder()
-                    .url(url)
+                    .url(BASE_SPOTIFY_URL + url)
                     .addHeader("Authorization", "Bearer " + access_token);
             switch(requestType) {
                 case "POST":
