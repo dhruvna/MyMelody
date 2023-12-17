@@ -257,13 +257,7 @@ public class LoginActivity extends AppCompatActivity {
             Log.println(Log.VERBOSE, "Access Token on Change", accessToken);
             loggedIn = prefs.getBoolean("LoginStatus", true);
             currentUser = parseUserString(prefs.getString("CurrentUser", null));
-            setLoginPrompt();
-            loginButton.setVisibility(View.INVISIBLE);
-            logoutButton.setVisibility(View.VISIBLE);
-            fetchUserInfo(accessToken);
-            // Fetch and display the currently playing track
-            updateStatus(accessToken);
-            setupFetchCurrentTrackTask();
+            loginStuff(accessToken);
         }
     }
     private void fetchDeviceStatus(String accessToken) {
@@ -376,13 +370,7 @@ public class LoginActivity extends AppCompatActivity {
         }
         if(accessToken != null) {
             loggedIn = true;
-            setLoginPrompt();
-            loginButton.setVisibility(View.INVISIBLE);
-            logoutButton.setVisibility(View.VISIBLE);
-            fetchUserInfo(accessToken);
-            // Fetch and display the currently playing track
-            updateStatus(accessToken);
-            setupFetchCurrentTrackTask();
+            loginStuff(accessToken);
         } else {
             LoginPrompt.setText(R.string.fail_msg);
             showToast("Log in failure.");
@@ -408,7 +396,15 @@ public class LoginActivity extends AppCompatActivity {
                 ;
         LoginPrompt.setText(loginPrompt);
     }
-
+    private void loginStuff(String accessToken) {
+        setLoginPrompt();
+        loginButton.setVisibility(View.INVISIBLE);
+        logoutButton.setVisibility(View.VISIBLE);
+        fetchUserInfo(accessToken);
+        // Fetch and display the currently playing track
+        updateStatus(accessToken);
+        setupFetchCurrentTrackTask();
+    }
     private void openProfile() {
         if (loggedIn) {
             Intent intent = new Intent(Intent.ACTION_VIEW);
@@ -445,13 +441,11 @@ public class LoginActivity extends AppCompatActivity {
         } else {
             playPauseBtn.setImageResource(R.drawable.pause);
         }
-
         if(shuffleState.equals("shuffleOn")) {
             shuffleBtn.setImageResource(R.drawable.shuffle_white);
         } else if(shuffleState.equals("shuffleOff")) {
             shuffleBtn.setImageResource(R.drawable.shuffle);
         }
-
         switch (repeatState) {
             case "repeatOff":
                 repeatBtn.setImageResource(R.drawable.repeat);
@@ -492,13 +486,7 @@ public class LoginActivity extends AppCompatActivity {
                 Log.println(Log.VERBOSE, "Access Token on Resume", accessToken);
                 loggedIn = prefs.getBoolean("LoginStatus", true);
                 currentUser = parseUserString(prefs.getString("CurrentUser", null));
-                setLoginPrompt();
-                loginButton.setVisibility(View.INVISIBLE);
-                logoutButton.setVisibility(View.VISIBLE);
-                fetchUserInfo(accessToken);
-                // Fetch and display the currently playing track
-                updateStatus(accessToken);
-                setupFetchCurrentTrackTask();
+                loginStuff(accessToken);
             }
         }
     }

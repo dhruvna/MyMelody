@@ -24,7 +24,7 @@
  import okhttp3.Response;
 
 public class SpotifyService {
-
+    private final OkHttpClient client = new OkHttpClient();
     private static final String REDIRECT_URI = "mymelody://callback";
     private static final String CLIENT_ID = "44d8159e766e496f9b8ce905397518af";
     @SuppressLint("StaticFieldLeak")
@@ -63,148 +63,7 @@ public class SpotifyService {
         }
         return null;
     }
-    public interface FetchTrackDetailsCallback {
-        void onTrackDetailsFetched(Track track);
-        void onError();
-    }
-
-    public void fetchTrackDetails(String trackId, FetchTrackDetailsCallback fetchTrackDetailsCallback) {
-        new Thread(() -> {
-            OkHttpClient client = new OkHttpClient();
-            String url = "https://api.spotify.com/v1/tracks/" + trackId;
-
-            Request request = new Request.Builder()
-                    .url(url)
-                    .addHeader("Authorization", "Bearer " + accessToken)
-                    .build();
-
-            try (Response response = client.newCall(request).execute()) {
-                if (response.isSuccessful() && response.body() != null) {
-                    String responseData = response.body().string();
-                    JSONObject trackJson = new JSONObject(responseData);
-
-                    // Parse the JSON object to create a Track object
-                    String id = trackJson.getString("id");
-                    String name = trackJson.getString("name");
-                    String previewUrl = trackJson.getString("preview_url");
-                    JSONArray artistsJson = trackJson.getJSONArray("artists");
-                    StringBuilder artistsBuilder = new StringBuilder();
-                    for (int j = 0; j < artistsJson.length(); j++) {
-                        JSONObject artistJson = artistsJson.getJSONObject(j);
-                        if (j > 0) artistsBuilder.append(", ");
-                        artistsBuilder.append(artistJson.getString("name"));
-                    }
-                    String artists = artistsBuilder.toString();
-                    JSONArray album = trackJson.getJSONObject("album").getJSONArray("images");
-                    JSONObject albumImage = album.getJSONObject(0); // Assuming the first image is the largest
-                    String albumCover = albumImage.getString("url");
-                    String trackUrl = trackJson.getJSONObject("external_urls").getString("spotify");
-                    Track track = new Track(id, name, 0, artists, albumCover, previewUrl, trackUrl);
-                    // Use Handler to run on UI thread
-                    activity.runOnUiThread(() -> fetchTrackDetailsCallback.onTrackDetailsFetched(track));
-                } else {
-                    // Handle response failure
-                    activity.runOnUiThread(fetchTrackDetailsCallback::onError);
-                }
-            } catch (Exception e) {
-                Log.e("SpotifyService", "Error fetching track details: " + e.getMessage());
-                activity.runOnUiThread(fetchTrackDetailsCallback::onError);
-            }
-        }).start();
-    }
-
-    public interface FetchArtistDetailsCallback {
-        void onArtistDetailsFetched(Artist artist);
-        void onError();
-    }
-
-    public void fetchArtistDetails(String artistId, FetchArtistDetailsCallback fetchArtistDetailsCallback) {
-        new Thread(() -> {
-            OkHttpClient client = new OkHttpClient();
-            String url = "https://api.spotify.com/v1/artists/" + artistId;
-
-            Request request = new Request.Builder()
-                    .url(url)
-                    .addHeader("Authorization", "Bearer " + accessToken)
-                    .build();
-            try (Response response = client.newCall(request).execute()) {
-                if (response.isSuccessful() && response.body() != null) {
-                    String responseData = response.body().string();
-                    JSONObject artistJson = new JSONObject(responseData);
-
-                    // Parse the JSON object to create a Track object
-                    String artistID = artistJson.getString("id");
-                    String artistName = artistJson.getString("name");
-                    String artistPFPUrl = artistJson.getJSONArray("images").getJSONObject(0).getString("url");
-                    String artistUrl = artistJson.getJSONObject("external_urls").getString("spotify");
-
-                    Artist newArtist = new Artist(artistID, artistName, 0, artistPFPUrl, artistUrl);
-                    Log.d("SpotifyService", "Created artist: " + newArtist.getName() + " - " + newArtist.getArtistURL() + " - " + newArtist.getSpotifyURL());
-                    // Use Handler to run on UI thread
-                    activity.runOnUiThread(() -> fetchArtistDetailsCallback.onArtistDetailsFetched(newArtist));
-                } else {
-                    // Handle response failure
-                    activity.runOnUiThread(fetchArtistDetailsCallback::onError);
-                }
-            } catch (Exception e) {
-                Log.e("SpotifyService", "Error fetching track details: " + e.getMessage());
-                activity.runOnUiThread(fetchArtistDetailsCallback::onError);
-            }
-        }).start();
-    }
-
-
-    //Get User Info
-    public interface FetchUserInfoCallback {
-        void onUserInfoFetched(User user);
-        void onError();
-    }
-    public void fetchUserInfo(String AccessToken, FetchUserInfoCallback callback) {
-        new Thread(() -> {
-            OkHttpClient client = new OkHttpClient();
-            Request request = new Request.Builder()
-                    .url("https://api.spotify.com/v1/me")
-                    .addHeader("Authorization", "Bearer " + AccessToken)
-                    .build();
-
-            try (Response response = client.newCall(request).execute()) {
-                if (response.isSuccessful() && response.body() != null) {
-                    String responseData = response.body().string();
-                    JSONObject jsonObject = new JSONObject(responseData);
-                    // Extract user information from the JSON object
-                    String id = jsonObject.getString("id");
-                    String username = jsonObject.has("display_name") ? jsonObject.getString("display_name") : "";
-                    String email = jsonObject.has("email") ? jsonObject.getString("email") : "";
-                    String profileLink = jsonObject.getJSONObject("external_urls").getString("spotify");
-                    String imageUrl = "";
-                    JSONArray images = jsonObject.getJSONArray("images");
-                    if(images.length() > 0) {
-                        JSONObject image = images.getJSONObject(1);
-                        imageUrl = image.getString("url");
-                    }
-                    User user = new User(id, username, email, profileLink, imageUrl, AccessToken);
-                    // Use Handler to run on UI thread
-                    activity.runOnUiThread(() -> callback.onUserInfoFetched(user));
-                } else {
-                    // Run on the main thread
-                    activity.runOnUiThread(callback::onError);
-                }
-            } catch (Exception e) {
-            // Run on the main thread
-            activity.runOnUiThread(callback::onError);
-        }
-        }).start();
-    }
-
-    public boolean logOut() {
-        if(accessToken != null) {
-            accessToken = null;
-            AuthorizationClient.clearCookies(activity);
-            return true;
-        }
-        return false;
-    }
-
+    //*****************    Get Requests    *****************
     //Tracks/Artists/etc calls
     public interface FetchTrackCallback {
         void onTrackFetched(List<Track> tracks);
@@ -212,7 +71,6 @@ public class SpotifyService {
     }
     public void fetchUserTopTracks(String accessToken, int rangeSetting, int numTracks, FetchTrackCallback callback) {
         new Thread(() -> {
-            OkHttpClient client = new OkHttpClient();
             String url = "";
             switch(rangeSetting) {
                 case 0:
@@ -282,7 +140,6 @@ public class SpotifyService {
     }
     public void fetchUserTopArtists(String accessToken, int rangeSetting, int numArtists, FetchArtistCallback callback) {
         new Thread(() -> {
-            OkHttpClient client = new OkHttpClient();
             String url = "";
             switch(rangeSetting) {
                 case 0:
@@ -338,7 +195,7 @@ public class SpotifyService {
                     }
                 }
             }
-             catch (Exception e) {
+            catch (Exception e) {
                 // Run on the main thread
                 activity.runOnUiThread(callback::onError);
             }
@@ -352,7 +209,6 @@ public class SpotifyService {
     }
     public void fetchCurrentSong(FetchSongCallback callback) {
         new Thread(() -> {
-            OkHttpClient client = new OkHttpClient();
             String url = "https://api.spotify.com/v1/me/player/currently-playing?market=US";
             Request request = new Request.Builder()
                     .url(url)
@@ -394,6 +250,133 @@ public class SpotifyService {
         }).start();
     }
 
+    public interface FetchTrackDetailsCallback {
+        void onTrackDetailsFetched(Track track);
+        void onError();
+    }
+
+    public void fetchTrackDetails(String trackId, FetchTrackDetailsCallback fetchTrackDetailsCallback) {
+        new Thread(() -> {
+            String url = "https://api.spotify.com/v1/tracks/" + trackId;
+
+            Request request = new Request.Builder()
+                    .url(url)
+                    .addHeader("Authorization", "Bearer " + accessToken)
+                    .build();
+
+            try (Response response = client.newCall(request).execute()) {
+                if (response.isSuccessful() && response.body() != null) {
+                    String responseData = response.body().string();
+                    JSONObject trackJson = new JSONObject(responseData);
+
+                    // Parse the JSON object to create a Track object
+                    String id = trackJson.getString("id");
+                    String name = trackJson.getString("name");
+                    String previewUrl = trackJson.getString("preview_url");
+                    JSONArray artistsJson = trackJson.getJSONArray("artists");
+                    StringBuilder artistsBuilder = new StringBuilder();
+                    for (int j = 0; j < artistsJson.length(); j++) {
+                        JSONObject artistJson = artistsJson.getJSONObject(j);
+                        if (j > 0) artistsBuilder.append(", ");
+                        artistsBuilder.append(artistJson.getString("name"));
+                    }
+                    String artists = artistsBuilder.toString();
+                    JSONArray album = trackJson.getJSONObject("album").getJSONArray("images");
+                    JSONObject albumImage = album.getJSONObject(0); // Assuming the first image is the largest
+                    String albumCover = albumImage.getString("url");
+                    String trackUrl = trackJson.getJSONObject("external_urls").getString("spotify");
+                    Track track = new Track(id, name, 0, artists, albumCover, previewUrl, trackUrl);
+                    // Use Handler to run on UI thread
+                    activity.runOnUiThread(() -> fetchTrackDetailsCallback.onTrackDetailsFetched(track));
+                } else {
+                    // Handle response failure
+                    activity.runOnUiThread(fetchTrackDetailsCallback::onError);
+                }
+            } catch (Exception e) {
+                Log.e("SpotifyService", "Error fetching track details: " + e.getMessage());
+                activity.runOnUiThread(fetchTrackDetailsCallback::onError);
+            }
+        }).start();
+    }
+
+    public interface FetchArtistDetailsCallback {
+        void onArtistDetailsFetched(Artist artist);
+        void onError();
+    }
+    public void fetchArtistDetails(String artistId, FetchArtistDetailsCallback fetchArtistDetailsCallback) {
+        new Thread(() -> {
+            String url = "https://api.spotify.com/v1/artists/" + artistId;
+
+            Request request = new Request.Builder()
+                    .url(url)
+                    .addHeader("Authorization", "Bearer " + accessToken)
+                    .build();
+            try (Response response = client.newCall(request).execute()) {
+                if (response.isSuccessful() && response.body() != null) {
+                    String responseData = response.body().string();
+                    JSONObject artistJson = new JSONObject(responseData);
+
+                    // Parse the JSON object to create a Track object
+                    String artistID = artistJson.getString("id");
+                    String artistName = artistJson.getString("name");
+                    String artistPFPUrl = artistJson.getJSONArray("images").getJSONObject(0).getString("url");
+                    String artistUrl = artistJson.getJSONObject("external_urls").getString("spotify");
+
+                    Artist newArtist = new Artist(artistID, artistName, 0, artistPFPUrl, artistUrl);
+                    Log.d("SpotifyService", "Created artist: " + newArtist.getName() + " - " + newArtist.getArtistURL() + " - " + newArtist.getSpotifyURL());
+                    // Use Handler to run on UI thread
+                    activity.runOnUiThread(() -> fetchArtistDetailsCallback.onArtistDetailsFetched(newArtist));
+                } else {
+                    // Handle response failure
+                    activity.runOnUiThread(fetchArtistDetailsCallback::onError);
+                }
+            } catch (Exception e) {
+                Log.e("SpotifyService", "Error fetching track details: " + e.getMessage());
+                activity.runOnUiThread(fetchArtistDetailsCallback::onError);
+            }
+        }).start();
+    }
+
+    //Get User Info
+    public interface FetchUserInfoCallback {
+        void onUserInfoFetched(User user);
+        void onError();
+    }
+    public void fetchUserInfo(String AccessToken, FetchUserInfoCallback callback) {
+        new Thread(() -> {
+            Request request = new Request.Builder()
+                    .url("https://api.spotify.com/v1/me")
+                    .addHeader("Authorization", "Bearer " + AccessToken)
+                    .build();
+
+            try (Response response = client.newCall(request).execute()) {
+                if (response.isSuccessful() && response.body() != null) {
+                    String responseData = response.body().string();
+                    JSONObject jsonObject = new JSONObject(responseData);
+                    // Extract user information from the JSON object
+                    String id = jsonObject.getString("id");
+                    String username = jsonObject.has("display_name") ? jsonObject.getString("display_name") : "";
+                    String email = jsonObject.has("email") ? jsonObject.getString("email") : "";
+                    String profileLink = jsonObject.getJSONObject("external_urls").getString("spotify");
+                    String imageUrl = "";
+                    JSONArray images = jsonObject.getJSONArray("images");
+                    if(images.length() > 0) {
+                        JSONObject image = images.getJSONObject(1);
+                        imageUrl = image.getString("url");
+                    }
+                    User user = new User(id, username, email, profileLink, imageUrl, AccessToken);
+                    // Use Handler to run on UI thread
+                    activity.runOnUiThread(() -> callback.onUserInfoFetched(user));
+                } else {
+                    // Run on the main thread
+                    activity.runOnUiThread(callback::onError);
+                }
+            } catch (Exception e) {
+            // Run on the main thread
+            activity.runOnUiThread(callback::onError);
+        }
+        }).start();
+    }
     public interface FetchDeviceStatusCallback {
         void onDeviceStatusFetched(String deviceId, Boolean is_playing, String repeat_state, Boolean shuffle_state);
         void onNoActiveSession();
@@ -401,7 +384,6 @@ public class SpotifyService {
     }
     public void fetchCurrentDeviceStatus(String accessToken, FetchDeviceStatusCallback callback) {
         new Thread(() -> {
-            OkHttpClient client = new OkHttpClient();
             String url = "https://api.spotify.com/v1/me/player";
 
             Request request = new Request.Builder()
@@ -432,14 +414,13 @@ public class SpotifyService {
         }).start();
     }
 
-//    Put Requests *****************
+    //*****************    Put Requests    *****************
     public interface shufRepPlayPauseCallback {
         void onShufRepPlayPauseSuccess();
         void onError();
     }
     public void shufRepPlayPause(String accessToken, String ShufRepPlayPause, shufRepPlayPauseCallback callback) {
         new Thread(() -> {
-            OkHttpClient client = new OkHttpClient();
             String url = "https://api.spotify.com/v1/me/player";
             switch (ShufRepPlayPause) {
                 case "pause":
@@ -484,14 +465,13 @@ public class SpotifyService {
         }).start();
     }
 
-    //    Post Requests *****************
+    //*****************    Post Requests    *****************
     public interface skipSongCallback {
         void onSkipSongSuccess();
         void onError();
     }
     public void skipSong(String accessToken, String direction, skipSongCallback callback) {
         new Thread(() -> {
-            OkHttpClient client = new OkHttpClient();
             String url = "https://api.spotify.com/v1/me/player";
             if(direction.equals("previous")) {
                 url +="/previous";
@@ -520,7 +500,6 @@ public class SpotifyService {
     }
     public void addToQueue(String trackID) {
         new Thread(() -> {
-            OkHttpClient client = new OkHttpClient();
             String url = "https://api.spotify.com/v1/me/player/queue?uri=spotify%3Atrack%3A" + trackID;
             Request.Builder builder = new Request.Builder()
                     .url(url)
@@ -538,6 +517,14 @@ public class SpotifyService {
                 Log.println(Log.VERBOSE, "Queue Song Success", "Exception queuing song.");
             }
         }).start();
+    }
+    public boolean logOut() {
+        if(accessToken != null) {
+            accessToken = null;
+            AuthorizationClient.clearCookies(activity);
+            return true;
+        }
+        return false;
     }
     private static void showToast(String message) {
         Toast.makeText(activity, message, Toast.LENGTH_SHORT).show();
