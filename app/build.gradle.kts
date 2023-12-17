@@ -6,12 +6,12 @@ plugins {
 
 android {
     namespace = "edu.ucsb.ece251.DATQ.mymelody"
-    compileSdk = 33
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "edu.ucsb.ece251.DATQ.mymelody"
         minSdk = 26
-        targetSdk = 33
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -38,7 +38,7 @@ dependencies {
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation(platform("com.google.firebase:firebase-bom:32.6.0"))
     implementation("com.google.firebase:firebase-analytics")
-    implementation("com.google.android.material:material:1.8.0")
+    implementation("com.google.android.material:material:1.11.0")
     implementation ("com.google.firebase:firebase-database")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("com.google.firebase:firebase-common:20.4.2")
@@ -49,7 +49,7 @@ dependencies {
     implementation("net.openid:appauth:0.11.1")
     implementation("com.spotify.android:auth:1.2.6")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
-    implementation ("com.squareup.picasso:picasso:2.8")
-    implementation ("com.google.code.gson:gson:2.8.6")
+    implementation ("com.squareup.picasso:picasso:2.71828")
+    implementation ("com.google.code.gson:gson:2.8.9")
 
 }

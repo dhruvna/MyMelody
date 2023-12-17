@@ -318,10 +318,11 @@ public class SpotifyService {
                     String imageUrl = "";
                     JSONArray images = jsonObject.getJSONArray("images");
                     if (images.length() > 0) {
-                        JSONObject image = images.getJSONObject(0); // Assuming the first image is the user's profile picture
+                        JSONObject image = images.getJSONObject(1);
                         imageUrl = image.getString("url");
                     }
                     User user = new User(id, username, email, profileLink, imageUrl, accessToken);
+                    Log.println(Log.VERBOSE, "user", user.toString());
                     // Use Handler to run on UI thread
                     activity.runOnUiThread(() -> callback.onUserInfoFetched(user));
                 } catch (Exception e) {
