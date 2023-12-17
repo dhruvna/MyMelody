@@ -52,12 +52,8 @@ public class LoginActivity extends AppCompatActivity {
         toolbar = findViewById(R.id.Toolbar);
         setSupportActionBar(toolbar);
 
-        LoginPrompt = findViewById(R.id.LoginPrompt);
-        PFP = findViewById(R.id.pfp);
-        loginButton = findViewById(R.id.LoginButton);
-        logoutButton = findViewById(R.id.LogoutButton);
-        spotifyService = new SpotifyService(this);
         // Initialize UI elements
+        LoginPrompt = findViewById(R.id.LoginPrompt);
         currentlyPlayingAlbumArt = findViewById(R.id.currentlyPlayingAlbumArt);
         currentlyPlayingSongName = findViewById(R.id.currentlyPlayingSongName);
         currentlyPlayingSongName.setSelected(true);
@@ -65,12 +61,7 @@ public class LoginActivity extends AppCompatActivity {
         songProgressBar = findViewById(R.id.songProgressBar);
         elapsedView = findViewById(R.id.currentlyPlayingTrackElapsed);
         durationView = findViewById(R.id.currentlyPlayingTrackDuration);
-        playPauseBtn = findViewById(R.id.playPauseButton);
-        shuffleBtn = findViewById(R.id.shuffleButton);
-        repeatBtn = findViewById(R.id.repeatButton);
-        ImageView goBackBtn = findViewById(R.id.goBackButton);
-        ImageView fastForwardBtn = findViewById(R.id.fastForwardButton);
-
+        spotifyService = new SpotifyService(this);
         if (savedInstanceState != null) {
             // Restore the logged-in state and current user
             loggedIn = savedInstanceState.getBoolean("LoggedIn", false);
@@ -86,6 +77,17 @@ public class LoginActivity extends AppCompatActivity {
                 logoutButton.setVisibility(loggedIn ? View.VISIBLE : View.INVISIBLE);
             }
         }
+        setupButtonBehavior();
+    }
+    private void setupButtonBehavior() {
+        loginButton = findViewById(R.id.LoginButton);
+        logoutButton = findViewById(R.id.LogoutButton);
+        PFP = findViewById(R.id.pfp);
+        ImageView goBackBtn = findViewById(R.id.goBackButton);
+        ImageView fastForwardBtn = findViewById(R.id.fastForwardButton);
+        playPauseBtn = findViewById(R.id.playPauseButton);
+        shuffleBtn = findViewById(R.id.shuffleButton);
+        repeatBtn = findViewById(R.id.repeatButton);
         //Button Behavior
         loginButton.setOnClickListener(view -> spotifyService.authenticateSpotify(this));
         logoutButton.setOnClickListener(view-> {
@@ -112,9 +114,7 @@ public class LoginActivity extends AppCompatActivity {
                 else {
                     shufRepPlayPause(currentUser.getAccessToken(), "pause");
                 }
-
             }
-
         });
         shuffleBtn.setOnClickListener(v-> {
             if(shuffleState.equals("shuffleOff"))
@@ -173,7 +173,6 @@ public class LoginActivity extends AppCompatActivity {
             return false;
         }
     }
-
     private void setupFetchCurrentTrackTask() {
         Runnable fetchCurrentTrackRunnable = new Runnable() {
             @Override
