@@ -6,7 +6,6 @@ import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -51,17 +50,10 @@ public class LoginActivity extends AppCompatActivity {
 
         toolbar = findViewById(R.id.Toolbar);
         setSupportActionBar(toolbar);
-
         // Initialize UI elements
-        LoginPrompt = findViewById(R.id.LoginPrompt);
-        currentlyPlayingAlbumArt = findViewById(R.id.currentlyPlayingAlbumArt);
-        currentlyPlayingSongName = findViewById(R.id.currentlyPlayingSongName);
-        currentlyPlayingSongName.setSelected(true);
-        currentlyPlayingArtistName = findViewById(R.id.currentlyPlayingArtistName);
-        songProgressBar = findViewById(R.id.songProgressBar);
-        elapsedView = findViewById(R.id.currentlyPlayingTrackElapsed);
-        durationView = findViewById(R.id.currentlyPlayingTrackDuration);
         spotifyService = new SpotifyService(this);
+        initializeUIElements();
+        setupButtonBehavior();
         if (savedInstanceState != null) {
             // Restore the logged-in state and current user
             loggedIn = savedInstanceState.getBoolean("LoggedIn", false);
@@ -77,26 +69,34 @@ public class LoginActivity extends AppCompatActivity {
                 logoutButton.setVisibility(loggedIn ? View.VISIBLE : View.INVISIBLE);
             }
         }
-        setupButtonBehavior();
     }
-    private void setupButtonBehavior() {
+    private void initializeUIElements() {
+        LoginPrompt = findViewById(R.id.LoginPrompt);
+        currentlyPlayingAlbumArt = findViewById(R.id.currentlyPlayingAlbumArt);
+        currentlyPlayingSongName = findViewById(R.id.currentlyPlayingSongName);
+        currentlyPlayingSongName.setSelected(true);
+        currentlyPlayingArtistName = findViewById(R.id.currentlyPlayingArtistName);
+        songProgressBar = findViewById(R.id.songProgressBar);
+        elapsedView = findViewById(R.id.currentlyPlayingTrackElapsed);
+        durationView = findViewById(R.id.currentlyPlayingTrackDuration);
         loginButton = findViewById(R.id.LoginButton);
         logoutButton = findViewById(R.id.LogoutButton);
         PFP = findViewById(R.id.pfp);
-        ImageView goBackBtn = findViewById(R.id.goBackButton);
-        ImageView fastForwardBtn = findViewById(R.id.fastForwardButton);
         playPauseBtn = findViewById(R.id.playPauseButton);
         shuffleBtn = findViewById(R.id.shuffleButton);
         repeatBtn = findViewById(R.id.repeatButton);
+    }
+    private void setupButtonBehavior() {
         //Button Behavior
         loginButton.setOnClickListener(view -> spotifyService.authenticateSpotify(this));
         logoutButton.setOnClickListener(view-> {
             if(spotifyService.logOut()) {
-                Log.println(Log.VERBOSE, "Log Out Status", "Log out successful.");
                 logout();
             }
         });
         PFP.setOnClickListener(view -> openProfile());
+        ImageView goBackBtn = findViewById(R.id.goBackButton);
+        ImageView fastForwardBtn = findViewById(R.id.fastForwardButton);
         goBackBtn.setOnClickListener(v-> {
             if(loggedIn)
                 skipSong(currentUser.getAccessToken(), "previous");
@@ -124,15 +124,12 @@ public class LoginActivity extends AppCompatActivity {
         });
         repeatBtn.setOnClickListener(v-> {
             if(repeatState.equals("repeatAll")) {
-                Log.println(Log.VERBOSE, "Repeat State", "CURRENTLY IN REPEAT ALL, GOING TO REPEAT ONE");
                 shufRepPlayPause(currentUser.getAccessToken(), "repeatOne");
             }
             if(repeatState.equals("repeatOne")) {
-                Log.println(Log.VERBOSE, "Repeat State", "CURRENTLY IN REPEAT ONE, GOING TO REPEAT OFF");
                 shufRepPlayPause(currentUser.getAccessToken(), "repeatOff");
             }
             if(repeatState.equals("repeatOff")) {
-                Log.println(Log.VERBOSE, "Repeat State", "CURRENTLY IN REPEAT OFF, GOING TO REPEAT ALL");
                 shufRepPlayPause(currentUser.getAccessToken(), "repeatAll");
             }
         });
@@ -186,23 +183,20 @@ public class LoginActivity extends AppCompatActivity {
                 spotifyService.fetchCurrentSong(new SpotifyService.FetchSongCallback() {
                     @Override
                     public void onSongFetched(String trackName, String artistName, String albumArtUrl, int progress, int duration) {
-//                        showToast("Received information about " + trackName);
                         updateWidgetVisibility(true);
                         updateStatus(currentUser.getAccessToken());
                         if(!currentSong.equals(trackName)) {
                             currentlyPlayingSongName.setText(trackName);
                             currentlyPlayingArtistName.setText(artistName);
                             Picasso.get().load(albumArtUrl).into(currentlyPlayingAlbumArt);
+                            currentlyPlayingAlbumArt.setVisibility(View.VISIBLE);
                             currentSong = trackName;
                         }
                         // Load the album art into the ImageView using Picasso
                         updateProgressBar(progress, duration);
-                        currentlyPlayingAlbumArt.setVisibility(View.VISIBLE);
-
                     }
                     @Override
                     public void onNoActiveSession() {
-                        Log.println(Log.VERBOSE, "Player Status", "No Active Session");
                         updateWidgetVisibility(false);
                     }
                     @Override
@@ -234,17 +228,8 @@ public class LoginActivity extends AppCompatActivity {
     private void updateWidgetVisibility(boolean isVisible) {
         View widget = findViewById(R.id.spotifyWidgetContainer);
         if (widget != null) {
-            Log.d("LoginActivity", "Updating widget visibility: " + isVisible); // Debugging log
             widget.setVisibility(isVisible ? View.VISIBLE : View.INVISIBLE);
-            if(!isVisible) {
-                currentlyPlayingSongName.setVisibility(View.GONE);
-                currentlyPlayingArtistName.setVisibility(View.GONE);
-                currentlyPlayingAlbumArt.setVisibility(View.GONE);
-                widget.setVisibility(View.INVISIBLE);
-            }
         }
-        else
-            Log.e("LoginActivity", "Widget container not found. Make sure the ID is correct.");
     }
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
@@ -253,7 +238,6 @@ public class LoginActivity extends AppCompatActivity {
         SharedPreferences prefs = getSharedPreferences("LoginPrefs", MODE_PRIVATE);
         String accessToken = prefs.getString("AccessToken", null);
         if(accessToken != null) {
-            Log.println(Log.VERBOSE, "Access Token on Change", accessToken);
             loggedIn = prefs.getBoolean("LoginStatus", true);
             currentUser = parseUserString(prefs.getString("CurrentUser", null));
             loginStuff(accessToken);
@@ -283,7 +267,6 @@ public class LoginActivity extends AppCompatActivity {
             }
             @Override
             public void onError() {
-                Log.println(Log.VERBOSE, "Device ID Error","Failed to fetch current device ID");
             }
         });
     }
@@ -365,7 +348,6 @@ public class LoginActivity extends AppCompatActivity {
             String userInfo = extras.getString("currentUser");
             if (userInfo != null) currentUser = parseUserString(userInfo);
             accessToken = currentUser.getAccessToken();
-            Log.println(Log.VERBOSE, "Testing token after back button", accessToken);
         }
         if(accessToken != null) {
             loggedIn = true;
@@ -383,7 +365,7 @@ public class LoginActivity extends AppCompatActivity {
         logoutButton.setVisibility(View.INVISIBLE);
         PFP.setVisibility(View.INVISIBLE);
         loggedIn = false;
-        clearLoginPreferences();
+        handleSharedPreferences(false);
         if (handler != null) {
             handler.removeCallbacksAndMessages(null);
         }
@@ -416,7 +398,7 @@ public class LoginActivity extends AppCompatActivity {
         if(lines.length != 6) {
             return null;
         }
-        User user = new User(
+        return new User(
                 lines[0].substring(lines[0].indexOf(": ") + 2),
                 lines[1].substring(lines[1].indexOf(": ") + 2),
                 lines[2].substring(lines[2].indexOf(": ") + 2),
@@ -424,8 +406,6 @@ public class LoginActivity extends AppCompatActivity {
                 lines[4].substring(lines[4].indexOf(": ") + 2),
                 lines[5].substring(lines[5].indexOf(": ") + 2)
         );
-        Log.println(Log.VERBOSE, "TESTING PARSE", user.toString());
-        return user;
     }
 
     private String formatMillisToTime(int millis) {
@@ -463,17 +443,7 @@ public class LoginActivity extends AppCompatActivity {
         if (handler != null) {
             handler.removeCallbacksAndMessages(null);
         }
-        SharedPreferences prefs = getSharedPreferences("LoginPrefs", MODE_PRIVATE);
-        SharedPreferences.Editor editor = prefs.edit();
-        if(loggedIn) {
-            editor.putString("AccessToken", currentUser.getAccessToken());
-            editor.putBoolean("LoginStatus", loggedIn);
-            editor.putString("CurrentUser", currentUser.toString());
-            editor.apply();
-        } else {
-            editor.clear();
-        }
-        editor.apply();
+        handleSharedPreferences(true);
     }
     @Override
     protected void onResume() {
@@ -482,24 +452,28 @@ public class LoginActivity extends AppCompatActivity {
             SharedPreferences prefs = getSharedPreferences("LoginPrefs", MODE_PRIVATE);
             String accessToken = prefs.getString("AccessToken", null);
             if(accessToken != null) {
-                Log.println(Log.VERBOSE, "Access Token on Resume", accessToken);
                 loggedIn = prefs.getBoolean("LoginStatus", true);
                 currentUser = parseUserString(prefs.getString("CurrentUser", null));
                 loginStuff(accessToken);
             }
         }
     }
-    private void clearLoginPreferences() {
+    private void handleSharedPreferences(boolean save) {
         SharedPreferences prefs = getSharedPreferences("LoginPrefs", MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
-        editor.clear();
+        if (save && loggedIn) {
+            editor.putString("AccessToken", currentUser.getAccessToken());
+            editor.putBoolean("LoginStatus", loggedIn);
+            editor.putString("CurrentUser", currentUser.toString());
+        } else {
+            editor.clear();
+        }
         editor.apply();
     }
     @Override
     protected void onDestroy() {
         super.onDestroy();
         spotifyService.shutdownThreads();
-        Log.d("LoginActivity", "Activity is being destroyed");
     }
     private void showToast(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
