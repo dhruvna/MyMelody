@@ -6,7 +6,6 @@ import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -16,14 +15,14 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
-import com.spotify.sdk.android.auth.AuthorizationClient;
-import com.spotify.sdk.android.auth.AuthorizationResponse;
 import com.squareup.picasso.Picasso;
 
 import java.util.Locale;
+import java.util.Objects;
 
 public class LoginActivity extends AppCompatActivity {
     private TextView LoginPrompt;
@@ -91,9 +90,7 @@ public class LoginActivity extends AppCompatActivity {
     }
     private void setupButtonBehavior() {
         //Button Behavior
-        loginButton.setOnClickListener(view -> {
-            spotifyService.authenticateSpotify(this);
-        });
+        loginButton.setOnClickListener(view -> spotifyService.authenticateSpotify(this));
         logoutButton.setOnClickListener(view-> {
             if(spotifyService.logOut()) {
                 logout();
@@ -140,7 +137,7 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
     @Override
-    protected void onSaveInstanceState(Bundle outState) {
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putBoolean("LoggedIn", loggedIn);
         if (currentUser != null) {
@@ -155,7 +152,7 @@ public class LoginActivity extends AppCompatActivity {
         return true;
     }
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         super.onOptionsItemSelected(item);
         int myID = item.getItemId();
         if(loggedIn) {
@@ -167,8 +164,10 @@ public class LoginActivity extends AppCompatActivity {
             } else if (myID == R.id.charts) {
                 menuIntent = new Intent(this, GoogleChartsWebView.class);
             }
-            menuIntent.putExtra("User Info", currentUser.toString());
-            startActivity(menuIntent);
+            if (menuIntent != null) {
+                menuIntent.putExtra("User Info", currentUser.toString());
+                startActivity(menuIntent);
+            }
             return true;
         } else {
             showToast("Log in first to see user information!");
@@ -237,14 +236,14 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
     @Override
-    public void onConfigurationChanged(Configuration newConfig) {
+    public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
 
         SharedPreferences prefs = getSharedPreferences("LoginPrefs", MODE_PRIVATE);
         String accessToken = prefs.getString("AccessToken", null);
         if(accessToken != null) {
             loggedIn = prefs.getBoolean("LoginStatus", true);
-            currentUser = parseUserString(prefs.getString("CurrentUser", null));
+            currentUser = parseUserString(Objects.requireNonNull(prefs.getString("CurrentUser", null)));
             loginStuff(accessToken);
         }
     }
@@ -458,7 +457,7 @@ public class LoginActivity extends AppCompatActivity {
             String accessToken = prefs.getString("AccessToken", null);
             if(accessToken != null) {
                 loggedIn = prefs.getBoolean("LoginStatus", true);
-                currentUser = parseUserString(prefs.getString("CurrentUser", null));
+                currentUser = parseUserString(Objects.requireNonNull(prefs.getString("CurrentUser", null)));
                 loginStuff(accessToken);
             }
         }
