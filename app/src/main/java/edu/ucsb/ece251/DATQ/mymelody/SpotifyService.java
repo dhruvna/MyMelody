@@ -50,7 +50,6 @@ public class SpotifyService {
                 .setScopes(new String[]{"user-modify-playback-state", "user-read-playback-state", "user-read-email", "user-read-private", "user-read-recently-played", "playlist-read-private", "user-top-read", "user-follow-read", "user-read-currently-playing"})
                 .setShowDialog(true)
                 .build();
-
         AuthorizationClient.openLoginInBrowser(activity, request);
         Log.println(Log.VERBOSE, "Login Process", "Request Sent, Handling in browser activity now.");
     }

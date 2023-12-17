@@ -6,6 +6,7 @@ import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -18,6 +19,8 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import com.spotify.sdk.android.auth.AuthorizationClient;
+import com.spotify.sdk.android.auth.AuthorizationResponse;
 import com.squareup.picasso.Picasso;
 
 import java.util.Locale;
@@ -88,7 +91,9 @@ public class LoginActivity extends AppCompatActivity {
     }
     private void setupButtonBehavior() {
         //Button Behavior
-        loginButton.setOnClickListener(view -> spotifyService.authenticateSpotify(this));
+        loginButton.setOnClickListener(view -> {
+            spotifyService.authenticateSpotify(this);
+        });
         logoutButton.setOnClickListener(view-> {
             if(spotifyService.logOut()) {
                 logout();
