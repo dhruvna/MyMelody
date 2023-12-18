@@ -47,7 +47,7 @@ public class SpotifyService {
     public void authenticateSpotify(Activity activity) {
         Log.println(Log.VERBOSE, "Starting Auth", "Starting authentication process");
         final AuthorizationRequest request = new AuthorizationRequest.Builder(CLIENT_ID, AuthorizationResponse.Type.TOKEN, REDIRECT_URI)
-                .setScopes(new String[]{"user-modify-playback-state", "user-read-playback-state", "user-read-email", "user-read-private", "user-read-recently-played", "playlist-read-private", "user-top-read", "user-follow-read", "user-read-currently-playing"})
+                .setScopes(new String[]{"user-modify-playback-state", "user-read-playback-state", "user-read-email", "user-read-private", "user-read-recently-played", "playlist-read-private", "user-top-read", "user-read-currently-playing"})
                 .setShowDialog(true)
                 .build();
         AuthorizationClient.openLoginInBrowser(activity, request);
@@ -410,6 +410,19 @@ public class SpotifyService {
             public void onError() {
                 Log.println(Log.VERBOSE, "ShufRep/PlayPause Status", "Failed to " + ShufRepPlayPause + " track");
                 activity.runOnUiThread(callback::onError);
+            }
+        });
+    }
+    public void skipToPosition(int position_ms) {
+        String url = "/me/player/seek?position_ms=" + position_ms;
+        executeSpotifyRequest(accessToken, url, "PUT", new ResponseHandler() {
+            @Override
+            public void onSuccess(String responseData) {
+                Log.println(Log.VERBOSE, "Seek to Position Status", "Successfully changed playback position.");
+            }
+            @Override
+            public void onError() {
+                Log.println(Log.VERBOSE, "Seek to Position Status", "Failed to change playback position.");
             }
         });
     }

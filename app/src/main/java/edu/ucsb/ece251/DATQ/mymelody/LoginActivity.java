@@ -6,12 +6,13 @@ import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -37,12 +38,13 @@ public class LoginActivity extends AppCompatActivity {
     private String currentSong = "";
     private ImageView currentlyPlayingAlbumArt;
     private TextView currentlyPlayingSongName, currentlyPlayingArtistName;
-    private ProgressBar songProgressBar;
+    private SeekBar songProgressBar;
     private TextView elapsedView, durationView;
     private ImageView playPauseBtn, shuffleBtn, repeatBtn;
     private boolean isPlaying = false;
     private String shuffleState = "shuffleOff";
     private String repeatState = "repeatOff";
+    private int songProgress, songDuration;
     private static final int FETCH_INTERVAL = 1050;
     private final Handler handler = new Handler();
     @Override
@@ -90,6 +92,24 @@ public class LoginActivity extends AppCompatActivity {
     }
     private void setupButtonBehavior() {
         //Button Behavior
+        songProgressBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                // Seek to the position when the user releases the SeekBar
+                songProgress = seekBar.getProgress() * songDuration / 100;
+                Log.println(Log.VERBOSE, "Seeking Position", "Seeking to + " + songProgress + "ms");
+                spotifyService.skipToPosition(songProgress);
+                updateProgressBar(songProgress, songDuration);
+            }
+        });
         loginButton.setOnClickListener(view -> spotifyService.authenticateSpotify(this));
         logoutButton.setOnClickListener(view-> {
             if(spotifyService.logOut()) {
@@ -187,6 +207,8 @@ public class LoginActivity extends AppCompatActivity {
                 spotifyService.fetchCurrentSong(new SpotifyService.FetchSongCallback() {
                     @Override
                     public void onSongFetched(String trackName, String artistName, String albumArtUrl, int progress, int duration) {
+                        songProgress = progress;
+                        songDuration = duration;
                         updateWidgetVisibility(true);
                         updateStatus(currentUser.getAccessToken());
                         if(!currentSong.equals(trackName)) {
@@ -197,7 +219,7 @@ public class LoginActivity extends AppCompatActivity {
                             currentSong = trackName;
                         }
                         // Load the album art into the ImageView using Picasso
-                        updateProgressBar(progress, duration);
+                        updateProgressBar(songProgress, songDuration);
                     }
                     @Override
                     public void onNoActiveSession() {
