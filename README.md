@@ -1,4 +1,4 @@
-# Spotify Listening Habits Analyzer
+# MyMelody - A Spotify Listening Habits Analyzer
 
 ## Overview
 
@@ -11,6 +11,7 @@ This Android application integrates with the Spotify API and Firebase to track a
 - **User Preferences Input**: Allows users to manually input their current favorite artist or song.
 - **Google Charts Visualization**: Dynamic visualizations of listening data using Google Charts API.
 - **Responsive Design**: Optimized for various Android devices for a smooth user experience.
+- **Realtime Music Player**: When a Spotify session is detected, our Spotify widget will appear and allow the user to interact with their playback as they would a conventional music player.
 
 ## Setup
 
