@@ -31,7 +31,6 @@ public class LoginActivity extends AppCompatActivity {
     private SpotifyService spotifyService;
     private Button loginButton, logoutButton;
     private User currentUser;
-    private boolean loggedIn;
     private Toolbar toolbar;
 
     //Spotify Player Widget
@@ -39,12 +38,15 @@ public class LoginActivity extends AppCompatActivity {
     private ImageView currentlyPlayingAlbumArt;
     private TextView currentlyPlayingSongName, currentlyPlayingArtistName;
     private SeekBar songProgressBar;
+    private int songProgress, songDuration;
     private TextView elapsedView, durationView;
     private ImageView playPauseBtn, shuffleBtn, repeatBtn;
+
+    //State Variables
+    private boolean loggedIn = false;
     private boolean isPlaying = false;
     private String shuffleState = "shuffleOff";
     private String repeatState = "repeatOff";
-    private int songProgress, songDuration;
     private static final int FETCH_INTERVAL = 1050;
     private final Handler handler = new Handler();
     @Override
@@ -96,11 +98,10 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
             }
-
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
+//                seekBar.getProgressDrawable().setColorFilter(getResources().getColor(R.color.SpotifyGreen), PorterDuff.Mode.MULTIPLY);
             }
-
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
                 // Seek to the position when the user releases the SeekBar
@@ -289,7 +290,6 @@ public class LoginActivity extends AppCompatActivity {
             }
             @Override
             public void onNoActiveSession() {
-//                showToast("NO ACTIVE SESSION");
             }
             @Override
             public void onError() {
@@ -308,7 +308,6 @@ public class LoginActivity extends AppCompatActivity {
             }
             @Override
             public void onError() {
-                //showToast("Failed to fetch user information.");
             }
         });
     }
@@ -330,32 +329,34 @@ public class LoginActivity extends AppCompatActivity {
             public void onShufRepPlayPauseSuccess() {
                 switch (ShufRepPlayPause) {
                     case "pause":
-                        showToast("Playback Paused.");
                         isPlaying = false;
+                        showToast("Playback Paused.");
                         break;
                     case "play":
-                        showToast("Playback Resumed.");
                         isPlaying = true;
+                        showToast("Playback Resumed.");
                         break;
                     case "shuffleOn":
-                        showToast("Shuffle on.");
                         shuffleState = "shuffleOn";
+                        showToast("Shuffle on.");
                         break;
                     case "shuffleOff":
-                        showToast("Shuffle off.");
                         shuffleState = "shuffleOff";
+                        showToast("Shuffle off.");
                         break;
                     case "repeatAll":
-                        showToast("Repeat off.");
                         repeatState = "repeatAll";
+                        showToast("Repeat off.");
                         break;
                     case "repeatOne":
-                        showToast("Repeat one on.");
                         repeatState = "repeatOne";
+                        showToast("Repeat one on.");
                         break;
                     case "repeatOff":
-                        showToast("Repeat off.");
                         repeatState = "repeatOff";
+                        showToast("Repeat off.");
+                        break;
+                    default:
                         break;
                 }
             }
@@ -433,7 +434,6 @@ public class LoginActivity extends AppCompatActivity {
                 lines[5].substring(lines[5].indexOf(": ") + 2)
         );
     }
-
     private String formatMillisToTime(int millis) {
         int seconds = (millis / 1000) % 60;
         int minutes = (millis / (1000 * 60)) % 60;
@@ -447,19 +447,19 @@ public class LoginActivity extends AppCompatActivity {
             playPauseBtn.setImageResource(R.drawable.pause);
         }
         if(shuffleState.equals("shuffleOn")) {
-            shuffleBtn.setImageResource(R.drawable.shuffle_white);
+            shuffleBtn.setImageResource(R.drawable.shuffle_green);
         } else if(shuffleState.equals("shuffleOff")) {
-            shuffleBtn.setImageResource(R.drawable.shuffle);
+            shuffleBtn.setImageResource(R.drawable.shuffle_white);
         }
         switch (repeatState) {
             case "repeatOff":
-                repeatBtn.setImageResource(R.drawable.repeat);
+                repeatBtn.setImageResource(R.drawable.repeat_white);
                 break;
             case "repeatOne":
                 repeatBtn.setImageResource(R.drawable.repeat_one);
                 break;
             case "repeatAll":
-                repeatBtn.setImageResource(R.drawable.repeat_white);
+                repeatBtn.setImageResource(R.drawable.repeat_green);
                 break;
         }
     }
