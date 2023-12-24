@@ -119,7 +119,7 @@
     <SeekBar
         android:id="@+id/songProgressBar"
         android:progressTint="@color/white"
-        android:thumbTint="@color/white"
+        android:thumbTint="@color/SpotifyGreen"
         style="@android:style/Widget.ProgressBar.Horizontal"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
