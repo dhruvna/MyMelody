@@ -4,6 +4,10 @@
 
 This Android application integrates with the Spotify API and Firebase to track and analyze a user's listening habits, including favorite albums, artists, songs, and genres. Users can input their current favorite artist or song, and the app uses Google Charts to visually represent how preferences change over time.
 
+## Progress
+
+Currently written almost entirely in Java, with a small section of HTML written for GoogleCharts API. React Native support is in the works!
+
 ## Features
 
 - **Spotify Integration**: Connects with Spotify to fetch user data related to listening habits.
